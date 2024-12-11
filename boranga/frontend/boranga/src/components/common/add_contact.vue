@@ -1,57 +1,111 @@
 <template lang="html">
     <div id="add-contact">
-        <modal @ok="ok()" @cancel="cancel()" :title="title()" large>
+        <modal :title="title()" large @ok="ok()" @cancel="cancel()">
             <form class="form-horizontal" name="addContactForm">
                 <div class="row">
-                    <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                    <alert v-if="showError" type="danger"
+                        ><strong>{{ errorString }}</strong></alert
+                    >
                     <div class="col-lg-12">
                         <div class="row">
                             <div class="form-group">
-                                <label class="col-md-2 control-label pull-left" for="Name">Given Name(s): </label>
+                                <label
+                                    class="col-md-2 control-label pull-left"
+                                    for="Name"
+                                    >Given Name(s):
+                                </label>
                                 <div class="col-md-10">
-                                    <input type="text" class="form-control" name="name" v-model="contact.first_name" />
+                                    <input
+                                        v-model="contact.first_name"
+                                        type="text"
+                                        class="form-control"
+                                        name="name"
+                                    />
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="form-group">
-                                <label class="col-md-2 control-label pull-left" for="Name">Surname: </label>
+                                <label
+                                    class="col-md-2 control-label pull-left"
+                                    for="Name"
+                                    >Surname:
+                                </label>
                                 <div class="col-md-10">
-                                    <input type="text" class="form-control" name="name" v-model="contact.last_name" />
+                                    <input
+                                        v-model="contact.last_name"
+                                        type="text"
+                                        class="form-control"
+                                        name="name"
+                                    />
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="form-group">
-                                <label class="col-md-2 control-label pull-left" for="Phone">Phone: </label>
+                                <label
+                                    class="col-md-2 control-label pull-left"
+                                    for="Phone"
+                                    >Phone:
+                                </label>
                                 <div class="col-md-10">
-                                    <input type="text" class="form-control" name="phone"
-                                        v-model="contact.phone_number" />
+                                    <input
+                                        v-model="contact.phone_number"
+                                        type="text"
+                                        class="form-control"
+                                        name="phone"
+                                    />
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="form-group">
-                                <label class="col-md-2 control-label pull-left" for="Mobile">Mobile: </label>
+                                <label
+                                    class="col-md-2 control-label pull-left"
+                                    for="Mobile"
+                                    >Mobile:
+                                </label>
                                 <div class="col-md-10">
-                                    <input type="text" class="form-control" name="mobile"
-                                        v-model="contact.mobile_number" />
+                                    <input
+                                        v-model="contact.mobile_number"
+                                        type="text"
+                                        class="form-control"
+                                        name="mobile"
+                                    />
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="form-group">
-                                <label class="col-md-2 control-label pull-left" for="Fax">Fax: </label>
+                                <label
+                                    class="col-md-2 control-label pull-left"
+                                    for="Fax"
+                                    >Fax:
+                                </label>
                                 <div class="col-md-10">
-                                    <input type="text" class="form-control" name="fax" v-model="contact.fax_number" />
+                                    <input
+                                        v-model="contact.fax_number"
+                                        type="text"
+                                        class="form-control"
+                                        name="fax"
+                                    />
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="form-group">
-                                <label class="col-md-2 control-label pull-left" for="Email">Email: </label>
+                                <label
+                                    class="col-md-2 control-label pull-left"
+                                    for="Email"
+                                    >Email:
+                                </label>
                                 <div class="col-md-10">
-                                    <input type="text" class="form-control" name="email" v-model="contact.email" />
+                                    <input
+                                        v-model="contact.email"
+                                        type="text"
+                                        class="form-control"
+                                        name="email"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -63,14 +117,14 @@
 </template>
 
 <script>
-import modal from '@vue-utils/bootstrap-modal.vue'
-import alert from '@vue-utils/alert.vue'
-import { helpers, api_endpoints } from "@/utils/hooks.js"
+import modal from '@vue-utils/bootstrap-modal.vue';
+import alert from '@vue-utils/alert.vue';
+import { helpers, api_endpoints } from '@/utils/hooks.js';
 export default {
-    name: 'Add-Organisation-Contact',
+    name: 'AddOrganisationContact',
     components: {
         modal,
-        alert
+        alert,
     },
     props: {
         org_id: {
@@ -87,13 +141,18 @@ export default {
             errorString: '',
             successString: '',
             success: false,
-        }
+        };
     },
     computed: {
         showError: function () {
             var vm = this;
             return vm.errors;
-        }
+        },
+    },
+    mounted: function () {
+        let vm = this;
+        vm.form = document.forms.addContactForm;
+        vm.addFormValidations();
     },
     methods: {
         ok: function () {
@@ -102,14 +161,13 @@ export default {
                 vm.sendData();
             }
         },
-        cancel: function () {
-        },
+        cancel: function () {},
         title: function () {
             let vm = this;
             if (vm.contact.id) {
-                return "Update Contact";
+                return 'Update Contact';
             }
-            return "Add Contact";
+            return 'Add Contact';
         },
         close: function () {
             this.isModalOpen = false;
@@ -119,32 +177,44 @@ export default {
         },
         fetchContact: function (id) {
             let vm = this;
-            fetch(api_endpoints.contact(id)).then(async (response) => {
-                vm.contact = await response.json();
-                vm.isModalOpen = true;
-            }, (error) => {
-                console.log(error);
-            });
+            fetch(api_endpoints.contact(id)).then(
+                async (response) => {
+                    vm.contact = await response.json();
+                    vm.isModalOpen = true;
+                },
+                (error) => {
+                    console.log(error);
+                }
+            );
         },
         sendData: function () {
             let vm = this;
             vm.errors = false;
             if (vm.contact.id) {
                 let contact = vm.contact;
-                fetch(helpers.add_endpoint_json(api_endpoints.organisation_contacts, contact.id), {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
+                fetch(
+                    helpers.add_endpoint_json(
+                        api_endpoints.organisation_contacts,
+                        contact.id
+                    ),
+                    {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(contact),
+                    }
+                ).then(
+                    (response) => {
+                        vm.$parent.refreshDatatable();
+                        vm.close();
                     },
-                    body: JSON.stringify(contact)
-                }).then((response) => {
-                    vm.$parent.refreshDatatable();
-                    vm.close();
-                }, (error) => {
-                    console.log(error);
-                    vm.errors = true;
-                    vm.errorString = helpers.apiVueResourceError(error);
-                });
+                    (error) => {
+                        console.log(error);
+                        vm.errors = true;
+                        vm.errorString = helpers.apiVueResourceError(error);
+                    }
+                );
             } else {
                 let contact = JSON.parse(JSON.stringify(vm.contact));
                 contact.organisation = vm.org_id;
@@ -153,65 +223,66 @@ export default {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        body: JSON.stringify(contact)
+                        body: JSON.stringify(contact),
                     },
-                }).then((response) => {
+                }).then(
+                    (response) => {
                         vm.close();
                         vm.$parent.addedContact();
-                    }, (error) => {
+                    },
+                    (error) => {
                         console.log(error);
                         vm.errors = true;
                         vm.errorString = helpers.apiVueResourceError(error);
-                    });
-
+                    }
+                );
             }
         },
         addFormValidations: function () {
             let vm = this;
             $(vm.form).validate({
                 rules: {
-                    arrival: "required",
-                    departure: "required",
-                    campground: "required",
+                    arrival: 'required',
+                    departure: 'required',
+                    campground: 'required',
                     campsite: {
                         required: {
                             depends: function (el) {
                                 return vm.campsites.length > 0;
-                            }
-                        }
-                    }
+                            },
+                        },
+                    },
                 },
                 messages: {
-                    arrival: "field is required",
-                    departure: "field is required",
-                    campground: "field is required",
-                    campsite: "field is required"
+                    arrival: 'field is required',
+                    departure: 'field is required',
+                    campground: 'field is required',
+                    campsite: 'field is required',
                 },
                 showErrors: function (errorMap, errorList) {
                     $.each(this.validElements(), function (index, element) {
                         var $element = $(element);
-                        $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
+                        $element
+                            .attr('data-original-title', '')
+                            .parents('.form-group')
+                            .removeClass('has-error');
                     });
                     // destroy tooltips on valid elements
-                    $("." + this.settings.validClass).tooltip("destroy");
+                    $('.' + this.settings.validClass).tooltip('destroy');
                     // add or update tooltips
                     for (var i = 0; i < errorList.length; i++) {
                         var error = errorList[i];
                         $(error.element)
                             .tooltip({
-                                trigger: "focus"
+                                trigger: 'focus',
                             })
-                            .attr("data-original-title", error.message)
-                            .parents('.form-group').addClass('has-error');
+                            .attr('data-original-title', error.message)
+                            .parents('.form-group')
+                            .addClass('has-error');
                     }
-                }
+                },
             });
         },
     },
-    mounted: function () {
-        let vm = this;
-        vm.form = document.forms.addContactForm;
-        vm.addFormValidations();
-    }
-}
+};
 </script>

@@ -1,30 +1,48 @@
 <template lang="html">
     <div id="speciesOccurrenceReport">
-        <FormSection :formCollapse="false" label="Occurrence Report" Index="occurrence_report">
-            <fieldset id="occurrence-report-profile-fieldset" @change="saveOccurrenceReport">
+        <FormSection
+            :form-collapse="false"
+            label="Occurrence Report"
+            Index="occurrence_report"
+        >
+            <fieldset
+                id="occurrence-report-profile-fieldset"
+                @change="saveOccurrenceReport"
+            >
                 <template v-if="!is_external">
-                    <CollapsibleComponent component_title="Assessment Comments" ref="assessment_comments"
-                        :collapsed="false">
+                    <CollapsibleComponent
+ref="assessment_comments" component_title="Assessment Comments"
+                        :collapsed="false"
+                    >
                         <div class="row">
                             <div class="col rounded">
                                 <div class="row">
                                     <div class="col">
                                         <div class="form-floating m-3">
-                                            <textarea :disabled="deficiency_readonly" class="form-control"
-                                                id="assessor_deficiencies" placeholder="Deficiency Comments"
-                                                v-model="occurrence_report_obj.deficiency_data" />
-                                            <label for="assessor_deficiencies" class="form-label">Deficiency
-                                                Comments</label>
+                                            <textarea
+id="assessor_deficiencies" v-model="occurrence_report_obj.deficiency_data"
+                                                :disabled="deficiency_readonly" class="form-control"
+                                                placeholder="Deficiency Comments" />
+                                            <label
+                                                for="assessor_deficiencies"
+                                                class="form-label"
+                                                >Deficiency Comments</label
+                                            >
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col">
                                         <div class="form-floating m-3 mt-1">
-                                            <textarea :disabled="assessor_comment_readonly" class="form-control"
-                                                rows="3" id="assessor_comment" placeholder="Assessor Comments"
-                                                v-model="occurrence_report_obj.assessor_data" />
-                                            <label for="" class="col-sm-4 col-form-label">Assessor Comments</label>
+                                            <textarea
+id="assessor_comment" v-model="occurrence_report_obj.assessor_data"
+                                                :disabled="assessor_comment_readonly" class="form-control" rows="3"
+                                                placeholder="Assessor Comments" />
+                                            <label
+                                                for=""
+                                                class="col-sm-4 col-form-label"
+                                                >Assessor Comments</label
+                                            >
                                         </div>
                                     </div>
                                 </div>
@@ -32,22 +50,42 @@
                                     <div>
                                         <div class="row mt-2">
                                             <div class="col ms-3">
-                                                <h6 class="text-muted">Referral Comments</h6>
+                                                <h6 class="text-muted">
+                                                    Referral Comments
+                                                </h6>
                                             </div>
                                         </div>
-                                        <template v-for="ref in referral_comments_boxes">
+                                        <template
+                                            v-for="ref in referral_comments_boxes"
+                                        >
                                             <div class="row mb-3">
                                                 <div class="col">
-                                                    <div class="form-floating m-3 mt-1">
-                                                        <textarea v-if='!ref.readonly' :disabled="true" :id="ref.name"
-                                                            :name="ref.name" class="form-control"
-                                                            :placeholder="ref.label"
-                                                            v-model="referral.referral_comment" />
-                                                        <textarea v-else :disabled="true" :name="ref.name"
-                                                            :value="ref.value || ''" class="form-control"
+                                                    <div
+                                                        class="form-floating m-3 mt-1"
+                                                    >
+                                                        <textarea
+v-if='!ref.readonly' :id="ref.name" v-model="referral.referral_comment"
+                                                            :disabled="true"
+                                                            :name="ref.name"
+                                                            class="form-control"
                                                             :placeholder="ref.label" />
-                                                        <label :for="ref.name" class="form-label">{{ ref.label
-                                                            }}</label>
+                                                        <textarea
+v-else :disabled="true" :name="ref.name"
+                                                            :value="
+                                                                ref.value || ''
+                                                            "
+                                                            class="form-control"
+                                                            :placeholder="
+                                                                ref.label
+                                                            "
+                                                        />
+                                                        <label
+                                                            :for="ref.name"
+                                                            class="form-label"
+                                                            >{{
+                                                                ref.label
+                                                            }}</label
+                                                        >
                                                     </div>
                                                 </div>
                                             </div>
@@ -60,93 +98,149 @@
                 </template>
                 <div v-show="!isCommunity">
                     <div class="row mb-3">
-                        <label for="" class="col-sm-3 col-form-label fw-bold">Scientific Name: <span
-                                class="text-danger">*</span></label>
+                        <label for="" class="col-sm-3 col-form-label fw-bold"
+                            >Scientific Name:
+                            <span class="text-danger">*</span></label
+                        >
                         <div :id="select_scientific_name" class="col-sm-9">
-                            <select :id="scientific_name_lookup" :ref="scientific_name_lookup" :disabled="isReadOnly"
-                                :name="scientific_name_lookup" class="form-control" />
+                            <select
+:id="scientific_name_lookup" :ref="scientific_name_lookup" :disabled="isReadOnly"
+                                :name="scientific_name_lookup"
+                                class="form-control"
+                            />
                         </div>
                     </div>
                     <div class="row mb-3">
                         <label for="" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
-                            <textarea id="species_display" v-model="species_display" disabled class="form-control"
-                                rows="2" />
+                            <textarea
+id="species_display" v-model="species_display" disabled class="form-control"
+                                rows="2"
+                            />
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <label for="" class="col-sm-3 col-form-label">Previous Name:</label>
+                        <label for="" class="col-sm-3 col-form-label"
+                            >Previous Name:</label
+                        >
                         <div class="col-sm-9">
-                            <input id="previous_name" v-model="taxon_previous_name" readonly type="text"
-                                class="form-control" placeholder="" />
+                            <input
+id="previous_name" v-model="taxon_previous_name" readonly type="text"
+                                class="form-control"
+                                placeholder=""
+                            />
                         </div>
                     </div>
                 </div>
                 <div v-show="isCommunity">
                     <div class="row mb-3">
-                        <label for="" class="col-sm-3 col-form-label">Community Name:</label>
+                        <label for="" class="col-sm-3 col-form-label"
+                            >Community Name:</label
+                        >
                         <div :id="select_community_name" class="col-sm-9">
-                            <select :id="community_name_lookup" :ref="community_name_lookup" :disabled="isReadOnly"
-                                :name="community_name_lookup" class="form-control" />
+                            <select
+:id="community_name_lookup" :ref="community_name_lookup" :disabled="isReadOnly"
+                                :name="community_name_lookup"
+                                class="form-control"
+                            />
                         </div>
                     </div>
                     <div class="row mb-3">
                         <label for="" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
-                            <textarea id="community_display" v-model="community_display" disabled class="form-control"
-                                rows="2" />
+                            <textarea
+id="community_display" v-model="community_display" disabled class="form-control"
+                                rows="2"
+                            />
                         </div>
                     </div>
                 </div>
-                <div v-if="occurrence_report_obj.migrated_from_id" class="row mb-3">
-                    <label for="migrated_from_id" class="col-sm-3 col-form-label">Migrated From ID:</label>
+                <div
+                    v-if="occurrence_report_obj.migrated_from_id"
+                    class="row mb-3"
+                >
+                    <label
+                        for="migrated_from_id"
+                        class="col-sm-3 col-form-label"
+                        >Migrated From ID:</label
+                    >
                     <div class="col-sm-9">
-                        <input id="migrated_from_id" :value="occurrence_report_obj.migrated_from_id" disabled
-                            type="text" class="form-control" />
+                        <input
+id="migrated_from_id" :value="occurrence_report_obj.migrated_from_id" disabled
+                            type="text"
+                            class="form-control"
+                        />
                     </div>
                 </div>
                 <div class="row mb-3">
                     <label for="" class="col-sm-3 col-form-label">Site:</label>
                     <div class="col-sm-9">
-                        <textarea id="site" v-model="occurrence_report_obj.site
-                            " :disabled="isReadOnly" class="form-control" rows="1" placeholder="" />
+                        <textarea
+id="site" v-model="occurrence_report_obj.site
+                            :disabled="isReadOnly"
+                            class="form-control"
+                            rows="1"
+                            placeholder=""
+                        />
                     </div>
                 </div>
                 <template v-if="!is_external">
                     <div class="row mb-3">
-                        <label for="occurrence_report_is_for_occurrence_number" class="col-sm-3 col-form-label">OCR is
-                            for OCC Number:
-                            <HelpText section_id="occurrence_report_is_for_occurrence_number" />
+                        <label
+                            for="occurrence_report_is_for_occurrence_number"
+                            class="col-sm-3 col-form-label"
+                            >OCR is for OCC Number:
+                            <HelpText
+                                section_id="occurrence_report_is_for_occurrence_number"
+                            />
                         </label>
                         <div class="col-sm-9">
-                            <input id="occurrence_report_is_for_occurrence_number" type="text" v-model="occurrence_report_obj.ocr_for_occ_number
-                                " :disabled="isReadOnly" class="form-control" autocomplete="new-password" />
+                            <input
+id="occurrence_report_is_for_occurrence_number" v-model="occurrence_report_obj.ocr_for_occ_number
+                                " type="text" :disabled="isReadOnly" class="form-control" autocomplete="new-password" />
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <label for="occurrence_report_for_occurrence_name" class="col-sm-3 col-form-label">Occurrence
-                            Name:
-                            <HelpText section_id="occurrence_report_for_occurrence_name" />
+                        <label
+                            for="occurrence_report_for_occurrence_name"
+                            class="col-sm-3 col-form-label"
+                            >Occurrence Name:
+                            <HelpText
+                                section_id="occurrence_report_for_occurrence_name"
+                            />
                         </label>
                         <div class="col-sm-9">
-                            <input id="occurrence_report_for_occurrence_name" type="text" v-model="occurrence_report_obj.ocr_for_occ_name
-                                " :disabled="isReadOnly" class="form-control" autocomplete="new-password" />
+                            <input
+id="occurrence_report_for_occurrence_name" v-model="occurrence_report_obj.ocr_for_occ_name
+                                " type="text" :disabled="isReadOnly" class="form-control" autocomplete="new-password" />
                         </div>
                     </div>
                 </template>
                 <div class="row mb-3">
-                    <label for="" class="col-sm-3 col-form-label fw-bold">Observation Date: <span
-                            class="text-danger">*</span></label>
+                    <label for="" class="col-sm-3 col-form-label fw-bold"
+                        >Observation Date:
+                        <span class="text-danger">*</span></label
+                    >
                     <div class="col-sm-9">
-                        <input v-model="occurrence_report_obj.observation_date
-                            " :disabled="isReadOnly" type="datetime-local" class="form-control" name="start_date"
-                            @change="formatObservationDate()" />
+                        <input
+v-model="occurrence_report_obj.observation_date
+                            :disabled="isReadOnly"
+                            type="datetime-local"
+                            class="form-control"
+                            name="start_date"
+                            @change="formatObservationDate()"
+                        />
                     </div>
                 </div>
-                <ObserverDatatable ref="observer_datatable" :occurrence_report_obj="occurrence_report_obj"
-                    :is_external="is_external" :is-read-only="isReadOnly"
-                    :show_observer_contact_information="show_observer_contact_information"
-                    @refreshOccurrenceReport="refreshOccurrenceReport()">
+                <ObserverDatatable
+ref="observer_datatable" :occurrence_report_obj="occurrence_report_obj"
+                    :is_external="is_external"
+                    :is-read-only="isReadOnly"
+                    :show_observer_contact_information="
+                        show_observer_contact_information
+                    "
+                    @refresh-occurrence-report="refreshOccurrenceReport()"
+                >
                 </ObserverDatatable>
             </fieldset>
         </FormSection>
@@ -157,17 +251,19 @@
 import { v4 as uuid } from 'uuid';
 import FormSection from '@/components/forms/section_toggle.vue';
 import ObserverDatatable from './observer_datatable.vue';
-import CollapsibleComponent from '@/components/forms/collapsible_component.vue'
+import CollapsibleComponent from '@/components/forms/collapsible_component.vue';
 import HelpText from '@/components/common/help_text.vue';
 
-import {
-    api_endpoints,
-    helpers
-}
-    from '@/utils/hooks'
+import { api_endpoints, helpers } from '@/utils/hooks';
 
 export default {
     name: 'OccurrenceReportProfile',
+    components: {
+        FormSection,
+        HelpText,
+        ObserverDatatable,
+        CollapsibleComponent
+    },
     props: {
         occurrence_report_obj: {
             type: Object,
@@ -209,31 +305,107 @@ export default {
             referral_comments_boxes: [],
         }
     },
-    components: {
-        FormSection,
-        HelpText,
-        ObserverDatatable,
-        CollapsibleComponent
+    computed: {
+        isReadOnly: function () {
+            return this.occurrence_report_obj.readonly;
+        },
+        csrf_token: function () {
+            return helpers.getCookie('csrftoken');
+        },
+        deficiency_readonly: function () {
+            return !this.is_external &&
+                !this.occurrence_report_obj.can_user_edit &&
+                this.occurrence_report_obj.assessor_mode.assessor_level ==
+                    'assessor' &&
+                this.occurrence_report_obj.assessor_mode.has_assessor_mode &&
+                !this.occurrence_report_obj.assessor_mode
+                    .status_without_assessor
+                ? false
+                : true;
+        },
+        assessor_comment_readonly: function () {
+            return !this.is_external &&
+                !this.occurrence_report_obj.can_user_edit &&
+                this.occurrence_report_obj.assessor_mode.assessor_level ==
+                    'assessor' &&
+                this.occurrence_report_obj.assessor_mode.has_assessor_mode &&
+                !this.occurrence_report_obj.assessor_mode
+                    .status_without_assessor
+                ? false
+                : true;
+        },
     },
     watch: {
-        "occurrence_report_obj.observation_date": function () {
+        'occurrence_report_obj.observation_date': function () {
             let vm = this;
             if (vm.isFauna) {
-                if (vm.occurrence_report_obj && vm.occurrence_report_obj.animal_observation) {
-                    vm.occurrence_report_obj.animal_observation.count_date = vm.occurrence_report_obj.observation_date
+                if (
+                    vm.occurrence_report_obj &&
+                    vm.occurrence_report_obj.animal_observation
+                ) {
+                    vm.occurrence_report_obj.animal_observation.count_date =
+                        vm.occurrence_report_obj.observation_date;
+                }
+            } else if (vm.isCommunity) {
+                if (
+                    vm.occurrence_report_obj &&
+                    vm.occurrence_report_obj.habitat_condition
+                ) {
+                    vm.occurrence_report_obj.habitat_condition.count_date =
+                        vm.occurrence_report_obj.observation_date;
+                }
+            } else {
+                if (
+                    vm.occurrence_report_obj &&
+                    vm.occurrence_report_obj.plant_count
+                ) {
+                    vm.occurrence_report_obj.plant_count.count_date =
+                        vm.occurrence_report_obj.observation_date;
                 }
             }
-            else if (vm.isCommunity) {
-                if (vm.occurrence_report_obj && vm.occurrence_report_obj.habitat_condition) {
-                    vm.occurrence_report_obj.habitat_condition.count_date = vm.occurrence_report_obj.observation_date
+        },
+    },
+    created: async function () {
+        let vm = this;
+        this.uuid = uuid();
+        //------fetch list of values according to action
+        let action = this.$route.query.action;
+        let dict_url =
+            action == 'view'
+                ? api_endpoints.cs_profile_dict +
+                '?group_type=' +
+                vm.occurrence_report_obj.group_type +
+                '&action=' +
+                action
+                : api_endpoints.cs_profile_dict +
+                '?group_type=' +
+                vm.occurrence_report_obj.group_type;
+        fetch(dict_url).then(async (response) => {
+                vm.cs_profile_dict = await response.json();
+                if (!vm.isCommunity) {
+                    this.getSpeciesDisplay();
                 }
-            }
-            else {
-                if (vm.occurrence_report_obj && vm.occurrence_report_obj.plant_count) {
-                    vm.occurrence_report_obj.plant_count.count_date = vm.occurrence_report_obj.observation_date
+                else {
+                    this.getCommunityDisplay();
                 }
+            },
+            (error) => {
+                console.log(error);
             }
+        );
+        if (!vm.is_external) {
+            this.generateReferralCommentBoxes();
         }
+    },
+    mounted: function () {
+        let vm = this;
+        if (!vm.is_external && vm.$refs.assessment_comments) {
+            vm.$refs.assessment_comments.show_warning_icon(false);
+        }
+        this.$nextTick(() => {
+            vm.initialiseScientificNameLookup();
+            vm.initialiseCommunityNameLookup();
+        });
     },
     methods: {
         test: function () {
@@ -430,71 +602,7 @@ export default {
             }
         }
     },
-    created: async function () {
-        let vm = this;
-        this.uuid = uuid();
-        //------fetch list of values according to action
-        let action = this.$route.query.action;
-        let dict_url =
-            action == 'view'
-                ? api_endpoints.cs_profile_dict +
-                '?group_type=' +
-                vm.occurrence_report_obj.group_type +
-                '&action=' +
-                action
-                : api_endpoints.cs_profile_dict +
-                '?group_type=' +
-                vm.occurrence_report_obj.group_type;
-        fetch(dict_url).then(async (response) => {
-                vm.cs_profile_dict = await response.json();
-                if (!vm.isCommunity) {
-                    this.getSpeciesDisplay();
-                }
-                else {
-                    this.getCommunityDisplay();
-                }
-            },
-            (error) => {
-                console.log(error);
-            }
-        );
-        if (!vm.is_external) {
-            this.generateReferralCommentBoxes();
-        }
-    },
-    computed: {
-        isReadOnly: function () {
-            return this.occurrence_report_obj.readonly
-        },
-        csrf_token: function () {
-            return helpers.getCookie('csrftoken');
-        },
-        deficiency_readonly: function () {
-            return !this.is_external &&
-                !this.occurrence_report_obj.can_user_edit &&
-                this.occurrence_report_obj.assessor_mode.assessor_level == 'assessor' &&
-                this.occurrence_report_obj.assessor_mode.has_assessor_mode &&
-                !this.occurrence_report_obj.assessor_mode.status_without_assessor ? false : true;
-        },
-        assessor_comment_readonly: function () {
-            return !this.is_external &&
-                !this.occurrence_report_obj.can_user_edit &&
-                this.occurrence_report_obj.assessor_mode.assessor_level == 'assessor' &&
-                this.occurrence_report_obj.assessor_mode.has_assessor_mode &&
-                !this.occurrence_report_obj.assessor_mode.status_without_assessor ? false : true
-        },
-    },
-    mounted: function () {
-        let vm = this;
-        if (!vm.is_external && vm.$refs.assessment_comments) {
-            vm.$refs.assessment_comments.show_warning_icon(false);
-        }
-        this.$nextTick(() => {
-            vm.initialiseScientificNameLookup();
-            vm.initialiseCommunityNameLookup();
-        });
-    },
-}
+};
 </script>
 
 <style lang="css" scoped>
@@ -514,13 +622,13 @@ legend.scheduler-border {
     border-bottom: none;
 }
 
-input[type=text],
+input[type='text'],
 select {
     width: 100%;
     padding: 0.375rem 2.25rem 0.375rem 0.75rem;
 }
 
-input[type=number] {
+input[type='number'] {
     width: 50%;
 }
 </style>

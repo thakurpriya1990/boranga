@@ -1,75 +1,169 @@
 <template lang="html">
     <div id="internal-ocr-propose-approve-request">
-        <modal id="ocr-propose-approve-modal" transition="modal fade" @ok="ok()" ok-text="Propose Approve"
-            @cancel="close()" :title="`Propose Approve ${occurrence_report_number}`" large>
+        <modal
+            id="ocr-propose-approve-modal"
+            transition="modal fade"
+            ok-text="Propose Approve"
+            :title="`Propose Approve ${occurrence_report_number}`"
+            large
+            @ok="ok()"
+            @cancel="close()"
+        >
             <div class="container">
                 <form id="propose-approve-form">
                     <div v-if="errorString" class="row mb-3">
                         <div class="col">
-                            <alert type="danger"><strong>{{ errorString }}</strong></alert>
+                            <alert type="danger"
+                                ><strong>{{ errorString }}</strong></alert
+                            >
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col">
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="create_new_occurrence"
-                                    id="create_new_occurrence_new" :value="true"
-                                    v-model="propose_approve.create_new_occurrence" @change="resetSelectedOccurrence" />
-                                <label class="form-check-label" for="create_new_occurrence_new">Create New
-                                    Occurrence</label>
+                                <input
+                                    id="create_new_occurrence_new"
+                                    v-model="
+                                        propose_approve.create_new_occurrence
+                                    "
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="create_new_occurrence"
+                                    :value="true"
+                                    @change="resetSelectedOccurrence"
+                                />
+                                <label
+                                    class="form-check-label"
+                                    for="create_new_occurrence_new"
+                                    >Create New Occurrence</label
+                                >
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="create_new_occurrence"
-                                    id="create_new_occurrence_existing" :value="false"
-                                    v-model="propose_approve.create_new_occurrence"
-                                    @change="reinitialiseOccurrenceNameLookup" />
-                                <label class="form-check-label" for="create_new_occurrence_existing">Add to Existing
-                                    Occurrence</label>
+                                <input
+                                    id="create_new_occurrence_existing"
+                                    v-model="
+                                        propose_approve.create_new_occurrence
+                                    "
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="create_new_occurrence"
+                                    :value="false"
+                                    @change="reinitialiseOccurrenceNameLookup"
+                                />
+                                <label
+                                    class="form-check-label"
+                                    for="create_new_occurrence_existing"
+                                    >Add to Existing Occurrence</label
+                                >
                             </div>
                             <hr />
-                            <div v-if="!propose_approve.create_new_occurrence" class="mt-3">
-                                <div v-if="occurrence_report.ocr_for_occ_number" class="form-group mb-3">
-                                    <label for="occurrence_report_is_for_occurrence_number">Proposed / Suggested OCC
-                                        Number:</label>
-                                    <input id="occurrence_report_is_for_occurrence_number" type="text" v-model="occurrence_report.ocr_for_occ_number
-                                        " :disabled="true" class="form-control" autocomplete="new-password" />
+                            <div
+                                v-if="!propose_approve.create_new_occurrence"
+                                class="mt-3"
+                            >
+                                <div
+                                    v-if="occurrence_report.ocr_for_occ_number"
+                                    class="form-group mb-3"
+                                >
+                                    <label
+                                        for="occurrence_report_is_for_occurrence_number"
+                                        >Proposed / Suggested OCC Number:</label
+                                    >
+                                    <input
+                                        id="occurrence_report_is_for_occurrence_number"
+                                        v-model="
+                                            occurrence_report.ocr_for_occ_number
+                                        "
+                                        type="text"
+                                        :disabled="true"
+                                        class="form-control"
+                                        autocomplete="new-password"
+                                    />
                                 </div>
-                                <div v-if="occurrence_report.ocr_for_occ_name" class="form-group mb-3">
-                                    <label for="occurrence_report_for_occurrence_name">Proposed / Suggested Occurrence
-                                        Name:</label>
-                                    <input id="occurrence_report_for_occurrence_name" type="text" v-model="occurrence_report.ocr_for_occ_name
-                                        " :disabled="true" class="form-control" autocomplete="new-password" />
+                                <div
+                                    v-if="occurrence_report.ocr_for_occ_name"
+                                    class="form-group mb-3"
+                                >
+                                    <label
+                                        for="occurrence_report_for_occurrence_name"
+                                        >Proposed / Suggested Occurrence
+                                        Name:</label
+                                    >
+                                    <input
+                                        id="occurrence_report_for_occurrence_name"
+                                        v-model="
+                                            occurrence_report.ocr_for_occ_name
+                                        "
+                                        type="text"
+                                        :disabled="true"
+                                        class="form-control"
+                                        autocomplete="new-password"
+                                    />
                                 </div>
-                                <div class="form-group" id="occurrence_name_lookup_propose_approve_form_group_id">
-                                    <label class="mb-3" for="occurrence_name_lookup_propose_approve">Existing
-                                        Occurrence:</label>
-                                    <select id="occurrence_name_lookup_propose_approve"
+                                <div
+                                    id="occurrence_name_lookup_propose_approve_form_group_id"
+                                    class="form-group"
+                                >
+                                    <label
+                                        class="mb-3"
+                                        for="occurrence_name_lookup_propose_approve"
+                                        >Existing Occurrence:</label
+                                    >
+                                    <select
+                                        id="occurrence_name_lookup_propose_approve"
+                                        ref="occurrence_name_lookup_propose_approve"
                                         name="occurrence_name_lookup_propose_approve"
-                                        ref="occurrence_name_lookup_propose_approve" class="form-control" required />
+                                        class="form-control"
+                                        required
+                                    />
                                 </div>
                             </div>
                             <div v-else class="mt-3">
-                                <label class="mb-3" for="new_occurrence_name">New
-                                    Occurrence Name:</label>
-                                <input type="text" class="form-control" id="new_occurrence_name"
-                                    name="new_occurrence_name" ref="new_occurrence_name"
-                                    v-model="propose_approve.new_occurrence_name" required />
+                                <label class="mb-3" for="new_occurrence_name"
+                                    >New Occurrence Name:</label
+                                >
+                                <input
+                                    id="new_occurrence_name"
+                                    ref="new_occurrence_name"
+                                    v-model="
+                                        propose_approve.new_occurrence_name
+                                    "
+                                    type="text"
+                                    class="form-control"
+                                    name="new_occurrence_name"
+                                    required
+                                />
                             </div>
                             <div class="mt-3">
-                                <label class="form-label" for="details">Details for Approver</label>
-                                <textarea type="date" class="form-control" id="details" name="details"
-                                    v-model="propose_approve.details" required></textarea>
+                                <label class="form-label" for="details"
+                                    >Details for Approver</label
+                                >
+                                <textarea
+                                    id="details"
+                                    v-model="propose_approve.details"
+                                    type="date"
+                                    class="form-control"
+                                    name="details"
+                                    required
+                                ></textarea>
                             </div>
                             <div class="mt-3">
                                 <div class="col-sm-12">
-                                    <label class="control-label" for="cc_email">CC email</label>
-                                    <input type="text" style="width: 70%;" class="form-control" name="cc_email"
-                                        v-model="propose_approve.cc_email" />
+                                    <label class="control-label" for="cc_email"
+                                        >CC email</label
+                                    >
+                                    <input
+                                        v-model="propose_approve.cc_email"
+                                        type="text"
+                                        style="width: 70%"
+                                        class="form-control"
+                                        name="cc_email"
+                                    />
                                 </div>
                             </div>
                             <div class="mt-3">
-                                some blurb to let the user know to go through the report and add sections to the
-                                occurrence.
+                                some blurb to let the user know to go through
+                                the report and add sections to the occurrence.
                             </div>
                         </div>
                     </div>
@@ -80,12 +174,12 @@
 </template>
 
 <script>
-import modal from '@vue-utils/bootstrap-modal.vue'
-import alert from '@vue-utils/alert.vue'
+import modal from '@vue-utils/bootstrap-modal.vue';
+import alert from '@vue-utils/alert.vue';
 
-import { helpers, api_endpoints } from "@/utils/hooks.js"
+import { helpers, api_endpoints } from '@/utils/hooks.js';
 export default {
-    name: 'ocr-propose-approve',
+    name: 'OcrProposeApprove',
     components: {
         modal,
         alert,
@@ -102,7 +196,7 @@ export default {
         },
         occurrence: {
             type: Object,
-        }
+        },
     },
     data: function () {
         return {
@@ -117,36 +211,60 @@ export default {
                 cc_email: '',
             },
             errorString: '',
-        }
+        };
+    },
+    computed: {
+        proposeApproveButtonDisabled: function () {
+            return (
+                !this.propose_approve.create_new_occurrence &&
+                !this.propose_approve.occurrence
+            );
+        },
     },
     watch: {
         isModalOpen: function (value) {
             if (value) {
-                if (this.occurrence !== null && this.occurrence.id !== undefined &&
-                    (
-                        (this.occurrence_report.species_id !== null && this.occurrence_report.species_id === this.occurrence.species) ||
-                        (this.occurrence_report.community_id !== null && this.occurrence_report.community_id === this.occurrence.community)
-                    )
+                if (
+                    this.occurrence !== null &&
+                    this.occurrence.id !== undefined &&
+                    ((this.occurrence_report.species_id !== null &&
+                        this.occurrence_report.species_id ===
+                            this.occurrence.species) ||
+                        (this.occurrence_report.community_id !== null &&
+                            this.occurrence_report.community_id ===
+                                this.occurrence.community))
                 ) {
-                    var newOption = new Option(this.occurrence.occurrence_number + " - " +
-                        this.occurrence.occurrence_name + " (" + this.occurrence.group_type + ")",
-                        this.occurrence.id, false, true);
-                    $(this.$refs.occurrence_name_lookup_propose_approve).append(newOption);
+                    var newOption = new Option(
+                        this.occurrence.occurrence_number +
+                            ' - ' +
+                            this.occurrence.occurrence_name +
+                            ' (' +
+                            this.occurrence.group_type +
+                            ')',
+                        this.occurrence.id,
+                        false,
+                        true
+                    );
+                    $(this.$refs.occurrence_name_lookup_propose_approve).append(
+                        newOption
+                    );
 
                     this.propose_approve.occurrence_id = this.occurrence.id;
-                    this.propose_approve.occurrence_name = this.occurrence.occurrence_name;
+                    this.propose_approve.occurrence_name =
+                        this.occurrence.occurrence_name;
                 } else {
                     this.$nextTick(() => {
-                        $(this.$refs.occurrence_name_lookup_propose_approve).select2('open');
+                        $(
+                            this.$refs.occurrence_name_lookup_propose_approve
+                        ).select2('open');
                     });
                 }
             }
-        }
-    },
-    computed: {
-        proposeApproveButtonDisabled: function () {
-            return !this.propose_approve.create_new_occurrence && !this.propose_approve.occurrence;
         },
+    },
+    mounted: function () {
+        this.form = document.forms['propose-approve-form'];
+        this.initialiseOccurrenceNameLookup();
     },
     methods: {
         ok: function () {
@@ -165,7 +283,9 @@ export default {
                 new_occurrence_name: '',
                 details: '',
             };
-            $(this.$refs.occurrence_name_lookup_propose_approve).empty().trigger('change');
+            $(this.$refs.occurrence_name_lookup_propose_approve)
+                .empty()
+                .trigger('change');
             this.errorString = '';
             this.isModalOpen = false;
         },
@@ -180,7 +300,7 @@ export default {
             swal.fire({
                 title: `Propose Approve Occurrence Report ${vm.occurrence_report_number}`,
                 text: confirmation,
-                icon: "question",
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Propose Approve',
                 customClass: {
@@ -190,14 +310,21 @@ export default {
                 reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    fetch(helpers.add_endpoint_join(api_endpoints.occurrence_report, '/' + (vm.occurrence_report.id + '/propose_approve/')), {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(vm.propose_approve),
-                    })
-                        .then((response) => {
+                    fetch(
+                        helpers.add_endpoint_join(
+                            api_endpoints.occurrence_report,
+                            '/' +
+                                (vm.occurrence_report.id + '/propose_approve/')
+                        ),
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(vm.propose_approve),
+                        }
+                    ).then(
+                        (response) => {
                             swal.fire({
                                 title: 'Proposal to Approve Successful',
                                 text: `Your proposal to approve occurrence report ${vm.occurrence_report_number} has been successfully submitted.`,
@@ -208,11 +335,13 @@ export default {
                             }).then((result) => {
                                 vm.$router.go();
                             });
-                        }, (error) => {
+                        },
+                        (error) => {
                             console.log(error);
                             vm.errorString = helpers.apiVueResourceError(error);
                             vm.amendingProposal = true;
-                        });
+                        }
+                    );
                 }
             });
         },
@@ -226,50 +355,53 @@ export default {
         reinitialiseOccurrenceNameLookup: function () {
             let vm = this;
             vm.$nextTick(() => {
-                $(vm.$refs.occurrence_name_lookup_propose_approve).select2('destroy');
+                $(vm.$refs.occurrence_name_lookup_propose_approve).select2(
+                    'destroy'
+                );
                 vm.initialiseOccurrenceNameLookup();
             });
         },
         initialiseOccurrenceNameLookup: function () {
             let vm = this;
-            $(vm.$refs.occurrence_name_lookup_propose_approve).select2({
-                width: '100%',
-                minimumInputLength: 2,
-                dropdownParent: $("#occurrence_name_lookup_propose_approve_form_group_id"),
-                theme: 'bootstrap-5',
-                allowClear: true,
-                placeholder: "Search Name of Occurrence",
-                ajax: {
-                    url: api_endpoints.occurrence_name_lookup,
-                    dataType: 'json',
-                    data: function (params) {
-                        var query = {
-                            term: params.term,
-                            type: 'public',
-                            group_type_id: vm.group_type_id,
-                            occurrence_report_id: vm.occurrence_report.id,
-                        }
-                        return query;
+            $(vm.$refs.occurrence_name_lookup_propose_approve)
+                .select2({
+                    width: '100%',
+                    minimumInputLength: 2,
+                    dropdownParent: $(
+                        '#occurrence_name_lookup_propose_approve_form_group_id'
+                    ),
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: 'Search Name of Occurrence',
+                    ajax: {
+                        url: api_endpoints.occurrence_name_lookup,
+                        dataType: 'json',
+                        data: function (params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.group_type_id,
+                                occurrence_report_id: vm.occurrence_report.id,
+                            };
+                            return query;
+                        },
                     },
-                },
-            }).
-                on("select2:select", function (e) {
+                })
+                .on('select2:select', function (e) {
                     vm.propose_approve.occurrence_id = e.params.data.id;
                     vm.propose_approve.occurrence_name = e.params.data.text;
-                }).
-                on("select2:open", function (e) {
-                    const searchField = $('[aria-controls="select2-occurrence_name_lookup_propose_approve-results"]')
+                })
+                .on('select2:open', function (e) {
+                    const searchField = $(
+                        '[aria-controls="select2-occurrence_name_lookup_propose_approve-results"]'
+                    );
                     searchField[0].focus();
-                }).
-                on("select2:unselect", function (e) {
+                })
+                .on('select2:unselect', function (e) {
                     vm.propose_approve.occurrence_id = null;
                     vm.propose_approve.occurrence_name = null;
                 });
         },
     },
-    mounted: function () {
-        this.form = document.forms['propose-approve-form'];
-        this.initialiseOccurrenceNameLookup();
-    }
-}
+};
 </script>

@@ -164,13 +164,13 @@ export default {
                     value: Object.hasOwn(option, 'key')
                         ? option.key.toString() // Casting to string to avoid potential type mismatch
                         : Object.hasOwn(option, 'id')
-                        ? option.id.toString()
-                        : option.value.toString(),
+                          ? option.id.toString()
+                          : option.value.toString(),
                     text: Object.hasOwn(option, 'key')
                         ? option.value.toString()
                         : Object.hasOwn(option, 'name')
-                        ? option.name.toString()
-                        : option.text.toString(),
+                          ? option.name.toString()
+                          : option.text.toString(),
                 };
             });
         },

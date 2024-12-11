@@ -183,7 +183,9 @@ export async function queryLayerAtPoint(map_component, layer, coordinate) {
  */
 export function set_mode(mode, subMode = null) {
     if (!this.map.getTargetElement()) {
-        console.warn('Map not initialized in set_mode function. Returning false.');
+        console.warn(
+            'Map not initialized in set_mode function. Returning false.'
+        );
         return false;
     }
     // Toggle map mode on/off when the new mode is the old one

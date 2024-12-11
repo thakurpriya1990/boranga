@@ -1,27 +1,35 @@
 <template id="comms_logs">
     <div class="">
-
         <div class="card mb-3">
             <div class="card-header">Logs</div>
             <div class="card-body border-bottom">
-                <label for="assigned-to" class="form-label">Communication Logs</label>
+                <label for="assigned-to" class="form-label"
+                    >Communication Logs</label
+                >
                 <div class="rounded border py-2">
-                    <span class="ps-3 pe-2"><i class="bi bi-card-list"></i> </span>
-                    <a href="#" class="pe-5" ref="showCommsBtn" @click.prevent>View</a>
+                    <span class="ps-3 pe-2"
+                        ><i class="bi bi-card-list"></i>
+                    </span>
+                    <a ref="showCommsBtn" href="#" class="pe-5" @click.prevent
+                        >View</a
+                    >
                     <template v-if="!disable_add_entry">
                         <span class="pe-2">
                             <i class="bi bi-plus-circle"></i>
                         </span>
-                        <a href="#" ref="addCommsBtn" @click.prevent="addComm()">Add
-                            Entry</a>
+                        <a ref="addCommsBtn" href="#" @click.prevent="addComm()"
+                            >Add Entry</a
+                        >
                     </template>
                 </div>
             </div>
             <div class="card-body">
                 <label for="assigned-to" class="form-label">Action Logs</label>
                 <div class="rounded border py-2">
-                    <span class="ps-3 pe-2"><i class="bi bi-card-list"></i> </span>
-                    <a href="#" ref="showActionBtn" @click.prevent>View</a>
+                    <span class="ps-3 pe-2"
+                        ><i class="bi bi-card-list"></i>
+                    </span>
+                    <a ref="showActionBtn" href="#" @click.prevent>View</a>
                 </div>
             </div>
         </div>
@@ -30,30 +38,31 @@
 </template>
 
 <script>
-import AddCommLog from './add_comm_log.vue'
-import {
-    constants,
-} from '@/utils/hooks'
+import AddCommLog from './add_comm_log.vue';
+import { constants } from '@/utils/hooks';
 import { v4 as uuid } from 'uuid';
 export default {
     name: 'CommsLogSection',
+    components: {
+        AddCommLog,
+    },
     props: {
         comms_url: {
             type: String,
-            required: true
+            required: true,
         },
         logs_url: {
             type: String,
-            required: true
+            required: true,
         },
         comms_add_url: {
             type: String,
-            required: true
+            required: true,
         },
         disable_add_entry: {
             type: Boolean,
-            default: true
-        }
+            default: true,
+        },
     },
     data() {
         let vm = this;
@@ -64,7 +73,7 @@ export default {
             popoversInitialised: false,
             actionsDtOptions: {
                 language: {
-                    processing: constants.DATATABLE_PROCESSING_HTML
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 deferRender: true,
@@ -76,39 +85,39 @@ export default {
                     "<'row'<'col-sm-5'i><'col-sm-7'p>>",
                 processing: true,
                 ajax: {
-                    "url": vm.logs_url,
-                    "dataSrc": '',
+                    url: vm.logs_url,
+                    dataSrc: '',
                 },
                 order: [],
                 columns: [
                     {
                         title: 'Who',
-                        data: "who",
-                        orderable: false
+                        data: 'who',
+                        orderable: false,
                     },
                     {
                         title: 'What',
-                        data: "what",
-                        orderable: false
+                        data: 'what',
+                        orderable: false,
                     },
                     {
                         title: 'When',
-                        data: "when",
+                        data: 'when',
                         orderable: false,
                         mRender: function (data, type, full) {
                             return moment(data).format(vm.dateFormat);
-                        }
+                        },
                     },
                     {
                         title: 'Created',
                         data: 'when',
-                        visible: false
-                    }
-                ]
+                        visible: false,
+                    },
+                ],
             },
             commsDtOptions: {
                 language: {
-                    processing: constants.DATATABLE_PROCESSING_HTML
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 deferRender: true,
@@ -120,8 +129,8 @@ export default {
                     "<'row'<'col-sm-12'tr>>" +
                     "<'row'<'col-sm-5'i><'col-sm-7'p>>",
                 ajax: {
-                    "url": vm.comms_url,
-                    "dataSrc": '',
+                    url: vm.comms_url,
+                    dataSrc: '',
                 },
                 columns: [
                     {
@@ -129,34 +138,36 @@ export default {
                         data: 'created',
                         render: function (date) {
                             return moment(date).format(vm.dateFormat);
-                        }
+                        },
                     },
                     {
                         title: 'Type',
-                        data: 'type'
+                        data: 'type',
                     },
                     {
                         title: 'To',
                         data: 'to',
-                        'render': function (value) {
+                        render: function (value) {
                             var ellipsis = '...',
                                 truncated = _.truncate(value, {
                                     length: 25,
                                     omission: ellipsis,
-                                    separator: ' '
+                                    separator: ' ',
                                 }),
                                 result = '<span>' + truncated + '</span>',
-                                popTemplate = _.template('<a href="javascript://" ' +
-                                    'role="button" ' +
-                                    'data-bs-toggle="popover" ' +
-                                    'data-trigger="click" ' +
-                                    'data-placement="top auto"' +
-                                    'data-html="true" ' +
-                                    'data-bs-content="<%= text %>" ' +
-                                    '>more</a>');
+                                popTemplate = _.template(
+                                    '<a href="javascript://" ' +
+                                        'role="button" ' +
+                                        'data-bs-toggle="popover" ' +
+                                        'data-trigger="click" ' +
+                                        'data-placement="top auto"' +
+                                        'data-html="true" ' +
+                                        'data-bs-content="<%= text %>" ' +
+                                        '>more</a>'
+                                );
                             if (_.endsWith(truncated, ellipsis)) {
                                 result += popTemplate({
-                                    text: value
+                                    text: value,
                                 });
                             }
                             return result;
@@ -165,25 +176,27 @@ export default {
                     {
                         title: 'CC',
                         data: 'cc',
-                        'render': function (value) {
+                        render: function (value) {
                             var ellipsis = '...',
                                 truncated = _.truncate(value, {
                                     length: 25,
                                     omission: ellipsis,
-                                    separator: ' '
+                                    separator: ' ',
                                 }),
                                 result = '<span>' + truncated + '</span>',
-                                popTemplate = _.template('<a href="javascript://" ' +
-                                    'role="button" ' +
-                                    'data-bs-toggle="popover" ' +
-                                    'data-trigger="click" ' +
-                                    'data-placement="top auto"' +
-                                    'data-html="true" ' +
-                                    'data-bs-content="<%= text %>" ' +
-                                    '>more</a>');
+                                popTemplate = _.template(
+                                    '<a href="javascript://" ' +
+                                        'role="button" ' +
+                                        'data-bs-toggle="popover" ' +
+                                        'data-trigger="click" ' +
+                                        'data-placement="top auto"' +
+                                        'data-html="true" ' +
+                                        'data-bs-content="<%= text %>" ' +
+                                        '>more</a>'
+                                );
                             if (_.endsWith(truncated, ellipsis)) {
                                 result += popTemplate({
-                                    text: value
+                                    text: value,
                                 });
                             }
                             return result;
@@ -192,30 +205,32 @@ export default {
                     {
                         title: 'From',
                         data: 'fromm',
-                        render: vm.commaToNewline
+                        render: vm.commaToNewline,
                     },
                     {
                         title: 'Subject/Desc.',
                         data: 'subject',
-                        'render': function (value) {
+                        render: function (value) {
                             var ellipsis = '...',
                                 truncated = _.truncate(value, {
                                     length: 25,
                                     omission: ellipsis,
-                                    separator: ' '
+                                    separator: ' ',
                                 }),
                                 result = '<span>' + truncated + '</span>',
-                                popTemplate = _.template('<a href="javascript://" ' +
-                                    'role="button" ' +
-                                    'data-bs-toggle="popover" ' +
-                                    'data-trigger="click" ' +
-                                    'data-placement="top auto"' +
-                                    'data-html="true" ' +
-                                    'data-bs-content="<%= text %>" ' +
-                                    '>more</a>');
+                                popTemplate = _.template(
+                                    '<a href="javascript://" ' +
+                                        'role="button" ' +
+                                        'data-bs-toggle="popover" ' +
+                                        'data-trigger="click" ' +
+                                        'data-placement="top auto"' +
+                                        'data-html="true" ' +
+                                        'data-bs-content="<%= text %>" ' +
+                                        '>more</a>'
+                                );
                             if (_.endsWith(truncated, ellipsis)) {
                                 result += popTemplate({
-                                    text: value
+                                    text: value,
                                 });
                             }
                             return result;
@@ -224,25 +239,27 @@ export default {
                     {
                         title: 'Text',
                         data: 'text',
-                        'render': function (value) {
+                        render: function (value) {
                             var ellipsis = '...',
                                 truncated = _.truncate(value, {
                                     length: 100,
                                     omission: ellipsis,
-                                    separator: ' '
+                                    separator: ' ',
                                 }),
                                 result = '<span>' + truncated + '</span>',
-                                popTemplate = _.template('<a href="javascript://" ' +
-                                    'role="button" ' +
-                                    'data-bs-toggle="popover" ' +
-                                    'data-trigger="click" ' +
-                                    'data-placement="top auto"' +
-                                    'data-html="true" ' +
-                                    'data-bs-content="<%= text %>" ' +
-                                    '>more</a>');
+                                popTemplate = _.template(
+                                    '<a href="javascript://" ' +
+                                        'role="button" ' +
+                                        'data-bs-toggle="popover" ' +
+                                        'data-trigger="click" ' +
+                                        'data-placement="top auto"' +
+                                        'data-html="true" ' +
+                                        'data-bs-content="<%= text %>" ' +
+                                        '>more</a>'
+                                );
                             if (_.endsWith(truncated, ellipsis)) {
                                 result += popTemplate({
-                                    text: value
+                                    text: value,
                                 });
                             }
                             return result;
@@ -251,7 +268,7 @@ export default {
                     {
                         title: 'Documents',
                         data: 'documents',
-                        'render': function (values) {
+                        render: function (values) {
                             var result = '';
                             _.forEach(values, function (value) {
                                 // We expect an array [docName, url]
@@ -269,38 +286,52 @@ export default {
                                     docName = _.truncate(docName, {
                                         length: 18,
                                         omission: '...',
-                                        separator: ' '
+                                        separator: ' ',
                                     });
                                 }
-                                result += '<a href="' + url + '" target="_blank"><p>' + docName + '</p></a><br>';
+                                result +=
+                                    '<a href="' +
+                                    url +
+                                    '" target="_blank"><p>' +
+                                    docName +
+                                    '</p></a><br>';
                             });
                             return result;
-                        }
+                        },
                     },
                     {
                         title: 'Created',
                         data: 'created',
-                        visible: false
-                    }
-                ]
+                        visible: false,
+                    },
+                ],
             },
             commsTable: null,
-        }
+        };
     },
-    components: {
-        AddCommLog
+    mounted: function () {
+        let vm = this;
+        this.$nextTick(() => {
+            vm.initialisePopovers();
+        });
     },
     methods: {
         initialiseCommLogs: function () {
             // To allow table elements (ref: https://getbootstrap.com/docs/5.1/getting-started/javascript/#sanitizer)
-            var myDefaultAllowList = bootstrap.Tooltip.Default.allowList
-            myDefaultAllowList.table = []
+            var myDefaultAllowList = bootstrap.Tooltip.Default.allowList;
+            myDefaultAllowList.table = [];
             let vm = this;
             let commsLogId = 'comms-log-table' + vm.uuid;
             let popover_name = 'popover-' + vm.uuid + '-comms';
-            let popover_elem = $(vm.$refs.showCommsBtn)[0]
-            let my_content = '<table id="' + commsLogId + '" class="hover table table-striped table-bordered dt-responsive" cellspacing="0"></table>'
-            let my_template = '<div class="popover ' + popover_name + '" role="tooltip"><div class="popover-arrow" style="top:110px;"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>'
+            let popover_elem = $(vm.$refs.showCommsBtn)[0];
+            let my_content =
+                '<table id="' +
+                commsLogId +
+                '" class="hover table table-striped table-bordered dt-responsive" cellspacing="0"></table>';
+            let my_template =
+                '<div class="popover ' +
+                popover_name +
+                '" role="tooltip"><div class="popover-arrow" style="top:110px;"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>';
             new bootstrap.Popover(popover_elem, {
                 sanitize: false,
                 html: true,
@@ -309,38 +340,57 @@ export default {
                 title: 'Communication logs',
                 container: 'body',
                 placement: 'auto',
-                trigger: "click",
-            })
+                trigger: 'click',
+            });
             popover_elem.addEventListener('inserted.bs.popover', () => {
                 // when the popover template has been added to the DOM
-                vm.commsTable = $('#' + commsLogId).DataTable(vm.commsDtOptions);
-                vm.commsTable.on('draw', function () { // Draw event - fired once the table has completed a draw.
-                    var popoverTriggerList = [].slice.call(document.querySelectorAll('#' + commsLogId + ' [data-bs-toggle="popover"]'))
-                    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-                        return new bootstrap.Popover(popoverTriggerEl)
-                    })
-                })
-            })
+                vm.commsTable = $('#' + commsLogId).DataTable(
+                    vm.commsDtOptions
+                );
+                vm.commsTable.on('draw', function () {
+                    // Draw event - fired once the table has completed a draw.
+                    var popoverTriggerList = [].slice.call(
+                        document.querySelectorAll(
+                            '#' + commsLogId + ' [data-bs-toggle="popover"]'
+                        )
+                    );
+                    var popoverList = popoverTriggerList.map(
+                        function (popoverTriggerEl) {
+                            return new bootstrap.Popover(popoverTriggerEl);
+                        }
+                    );
+                });
+            });
             popover_elem.addEventListener('shown.bs.popover', () => {
                 // when the popover has been made visible to the user
-                let el = vm.$refs.showCommsBtn
-                var popover_bounding_top = parseInt($('.' + popover_name)[0].getBoundingClientRect().top);
-                var el_bounding_top = parseInt($(el)[0].getBoundingClientRect().top);
+                let el = vm.$refs.showCommsBtn;
+                var popover_bounding_top = parseInt(
+                    $('.' + popover_name)[0].getBoundingClientRect().top
+                );
+                var el_bounding_top = parseInt(
+                    $(el)[0].getBoundingClientRect().top
+                );
                 var diff = el_bounding_top - popover_bounding_top;
                 var x = diff + 5;
                 // $('.' + popover_name).children('.arrow').css('top', x + 'px');
-            })
+            });
         },
         initialiseActionLogs: function () {
             // To allow table elements (ref: https://getbootstrap.com/docs/5.1/getting-started/javascript/#sanitizer)
-            var myDefaultAllowList = bootstrap.Tooltip.Default.allowList
-            myDefaultAllowList.table = []
+            var myDefaultAllowList = bootstrap.Tooltip.Default.allowList;
+            myDefaultAllowList.table = [];
             let vm = this;
             let actionLogId = 'actions-log-table' + vm.uuid;
             let popover_name = 'popover-' + vm.uuid + '-logs';
-            let popover_elem = $(vm.$refs.showActionBtn)[0]
-            let my_content = '<table id="' + actionLogId + '" class="hover table table-striped table-bordered dt-responsive" cellspacing="0" width="100%"></table>'
-            let my_template = '<div class="popover ' + popover_name + '" role="tooltip"><div class="popover-arrow" style="top:110px;"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>'
+            let popover_elem = $(vm.$refs.showActionBtn)[0];
+            let my_content =
+                '<table id="' +
+                actionLogId +
+                '" class="hover table table-striped table-bordered dt-responsive" cellspacing="0" width="100%"></table>';
+            let my_template =
+                '<div class="popover ' +
+                popover_name +
+                '" role="tooltip"><div class="popover-arrow" style="top:110px;"></div><h3 class="popover-header"></h3><div class="popover-body"></div></div>';
             new bootstrap.Popover(popover_elem, {
                 html: true,
                 content: my_content,
@@ -348,27 +398,41 @@ export default {
                 title: 'Action logs',
                 container: 'body',
                 placement: 'auto',
-                trigger: "click",
-            })
+                trigger: 'click',
+            });
             popover_elem.addEventListener('inserted.bs.popover', () => {
                 // when the popover template has been added to the DOM
-                vm.actionsTable = $('#' + actionLogId).DataTable(this.actionsDtOptions);
+                vm.actionsTable = $('#' + actionLogId).DataTable(
+                    this.actionsDtOptions
+                );
                 vm.actionsTable.on('draw', function () {
-                    var popoverTriggerList = [].slice.call(document.querySelectorAll('#' + actionLogId + ' [data-bs-toggle="popover"]'))
-                    var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-                        return new bootstrap.Popover(popoverTriggerEl)
-                    })
-                })
-            })
+                    var popoverTriggerList = [].slice.call(
+                        document.querySelectorAll(
+                            '#' + actionLogId + ' [data-bs-toggle="popover"]'
+                        )
+                    );
+                    var popoverList = popoverTriggerList.map(
+                        function (popoverTriggerEl) {
+                            return new bootstrap.Popover(popoverTriggerEl);
+                        }
+                    );
+                });
+            });
             popover_elem.addEventListener('shown.bs.popover', () => {
                 // when the popover has been made visible to the user
-                let el = vm.$refs.showActionBtn
-                var popover_bounding_top = parseInt($('.' + popover_name)[0].getBoundingClientRect().top);
-                var el_bounding_top = parseInt($(el)[0].getBoundingClientRect().top);
+                let el = vm.$refs.showActionBtn;
+                var popover_bounding_top = parseInt(
+                    $('.' + popover_name)[0].getBoundingClientRect().top
+                );
+                var el_bounding_top = parseInt(
+                    $(el)[0].getBoundingClientRect().top
+                );
                 var diff = el_bounding_top - popover_bounding_top;
                 var x = diff + 5;
-                $('.' + popover_name).children('.arrow').css('top', x + 'px');
-            })
+                $('.' + popover_name)
+                    .children('.arrow')
+                    .css('top', x + 'px');
+            });
         },
         initialisePopovers: function () {
             if (!this.popoversInitialised) {
@@ -379,13 +443,7 @@ export default {
         },
         addComm() {
             this.$refs.add_comm.isModalOpen = true;
-        }
+        },
     },
-    mounted: function () {
-        let vm = this;
-        this.$nextTick(() => {
-            vm.initialisePopovers();
-        });
-    }
-}
+};
 </script>

@@ -1,84 +1,201 @@
 <template>
     <div id="submitter-information">
-        <FormSection :formCollapse="false" label="Submitter Information" Index="submitter_information">
-            <form id="submitter-information-form" class="needs-validation" novalidate>
+        <FormSection
+            :form-collapse="false"
+            label="Submitter Information"
+            Index="submitter_information"
+        >
+            <form
+                id="submitter-information-form"
+                class="needs-validation"
+                novalidate
+            >
                 <fieldset :disabled="disabled">
                     <div class="row mb-3">
-                        <label for="submitter_category" class="col-sm-2 col-form-label fw-bold">Category <span
-                                class="text-danger">*</span></label>
+                        <label
+                            for="submitter_category"
+                            class="col-sm-2 col-form-label fw-bold"
+                            >Category <span class="text-danger">*</span></label
+                        >
                         <div class="col-sm-6">
                             <template v-if="!disabled">
                                 <template
-                                    v-if="submitter_categories && submitter_categories.length > 0 && submitter_information.submitter_category && !submitter_categories.map((d) => d.id).includes(submitter_information.submitter_category)">
-                                    <input type="text" v-if="submitter_information.submitter_category_name"
+                                    v-if="
+                                        submitter_categories &&
+                                        submitter_categories.length > 0 &&
+                                        submitter_information.submitter_category &&
+                                        !submitter_categories
+                                            .map((d) => d.id)
+                                            .includes(
+                                                submitter_information.submitter_category
+                                            )
+                                    "
+                                >
+                                    <input
+                                        v-if="
+                                            submitter_information.submitter_category_name
+                                        "
+                                        type="text"
                                         class="form-control mb-3"
-                                        :value="submitter_information.submitter_category_name + ' (Now Archived)'"
-                                        disabled />
+                                        :value="
+                                            submitter_information.submitter_category_name +
+                                            ' (Now Archived)'
+                                        "
+                                        disabled
+                                    />
                                     <div class="mb-3 text-muted">
                                         Change submitter category to:
                                     </div>
                                 </template>
-                                <select class="form-select" id="submitter_category" ref="submitter_category"
-                                    v-model="submitter_information.submitter_category">
-                                    <option :value="null" disabled>Please select a submitter category</option>
-                                    <option v-for="submitter_category in submitter_categories"
-                                        :value="submitter_category.id" v-bind:key="submitter_category.id">
+                                <select
+                                    id="submitter_category"
+                                    ref="submitter_category"
+                                    v-model="
+                                        submitter_information.submitter_category
+                                    "
+                                    class="form-select"
+                                >
+                                    <option :value="null" disabled>
+                                        Please select a submitter category
+                                    </option>
+                                    <option
+                                        v-for="submitter_category in submitter_categories"
+                                        :key="submitter_category.id"
+                                        :value="submitter_category.id"
+                                    >
                                         {{ submitter_category.name }}
                                     </option>
                                 </select>
                             </template>
                             <template v-else>
-                                <input class="form-control" type="text" :disabled="disabled"
-                                    v-model="submitter_information.submitter_category_name" />
+                                <input
+                                    v-model="
+                                        submitter_information.submitter_category_name
+                                    "
+                                    class="form-control"
+                                    type="text"
+                                    :disabled="disabled"
+                                />
                             </template>
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <label for="name" class="col-sm-2 col-form-label">Name</label>
+                        <label for="name" class="col-sm-2 col-form-label"
+                            >Name</label
+                        >
                         <div class="col-sm-6">
-                            <input type="text" maxlength="100" class="form-control" id="name"
-                                v-model="submitter_information.name">
+                            <input
+                                id="name"
+                                v-model="submitter_information.name"
+                                type="text"
+                                maxlength="100"
+                                class="form-control"
+                            />
                         </div>
                     </div>
-                    <div v-if="show_submitter_contact_details && Object.hasOwn(submitter_information, 'contact_details')"
-                        class="row mb-3 pb-3 border-bottom">
-                        <label for="contact_details" class="col-sm-2 col-form-label">Contact Details</label>
+                    <div
+                        v-if="
+                            show_submitter_contact_details &&
+                            Object.hasOwn(
+                                submitter_information,
+                                'contact_details'
+                            )
+                        "
+                        class="row mb-3 pb-3 border-bottom"
+                    >
+                        <label
+                            for="contact_details"
+                            class="col-sm-2 col-form-label"
+                            >Contact Details</label
+                        >
                         <div class="col-sm-6">
-                            <textarea class="form-control" id="contact_details"
-                                v-model="submitter_information.contact_details" rows="4" />
+                            <textarea
+                                id="contact_details"
+                                v-model="submitter_information.contact_details"
+                                class="form-control"
+                                rows="4"
+                            />
                         </div>
                     </div>
-                    <div class="row" :class="show_organisation_information ? 'mb-3' : ''">
-                        <label for="" class="col-sm-4 col-form-label">Are you submitting on behalf of an
-                            organisation?</label>
+                    <div
+                        class="row"
+                        :class="show_organisation_information ? 'mb-3' : ''"
+                    >
+                        <label for="" class="col-sm-4 col-form-label"
+                            >Are you submitting on behalf of an
+                            organisation?</label
+                        >
                         <div class="col-sm-6 d-flex align-items-center">
-                            <div class="form-check form-check-inline" @click="checkOrganisationDetails">
-                                <input type="radio" class="form-check-input" id="organisation_no"
-                                    v-model="submitting_on_behalf_of_organisation" value="no"
-                                    :disabled="organisation_details_entered">
-                                <label for="name" class="form-check-label">No</label>
+                            <div
+                                class="form-check form-check-inline"
+                                @click="checkOrganisationDetails"
+                            >
+                                <input
+                                    id="organisation_no"
+                                    v-model="
+                                        submitting_on_behalf_of_organisation
+                                    "
+                                    type="radio"
+                                    class="form-check-input"
+                                    value="no"
+                                    :disabled="organisation_details_entered"
+                                />
+                                <label for="name" class="form-check-label"
+                                    >No</label
+                                >
                             </div>
                             <div class="form-check form-check-inline">
-                                <input type="radio" class="form-check-input" id="organisation_yes"
-                                    v-model="submitting_on_behalf_of_organisation" value="yes"
-                                    @change.prevent="focusOrganisation">
-                                <label for="name" class="form-check-label">Yes</label>
+                                <input
+                                    id="organisation_yes"
+                                    v-model="
+                                        submitting_on_behalf_of_organisation
+                                    "
+                                    type="radio"
+                                    class="form-check-input"
+                                    value="yes"
+                                    @change.prevent="focusOrganisation"
+                                />
+                                <label for="name" class="form-check-label"
+                                    >Yes</label
+                                >
                             </div>
                         </div>
                     </div>
                     <template v-if="show_organisation_information">
                         <div class="row mb-3">
-                            <label for="organisation" class="col-sm-2 col-form-label">Organisation</label>
+                            <label
+                                for="organisation"
+                                class="col-sm-2 col-form-label"
+                                >Organisation</label
+                            >
                             <div class="col-sm-6">
-                                <input type="text" maxlength="100" class="form-control" id="organisation"
-                                    ref="organisation" v-model="submitter_information.organisation">
+                                <input
+                                    id="organisation"
+                                    ref="organisation"
+                                    v-model="submitter_information.organisation"
+                                    type="text"
+                                    maxlength="100"
+                                    class="form-control"
+                                />
                             </div>
                         </div>
-                        <div v-if="show_organisation_information" class="row mb-3">
-                            <label for="position" class="col-sm-2 col-form-label">Position / Role</label>
+                        <div
+                            v-if="show_organisation_information"
+                            class="row mb-3"
+                        >
+                            <label
+                                for="position"
+                                class="col-sm-2 col-form-label"
+                                >Position / Role</label
+                            >
                             <div class="col-sm-6">
-                                <input type="text" maxlength="100" class="form-control" id="position"
-                                    v-model="submitter_information.position">
+                                <input
+                                    id="position"
+                                    v-model="submitter_information.position"
+                                    type="text"
+                                    maxlength="100"
+                                    class="form-control"
+                                />
                             </div>
                         </div>
                     </template>
@@ -91,10 +208,13 @@
 <script>
 import FormSection from '@/components/forms/section_toggle.vue';
 
-import { api_endpoints } from '@/utils/hooks.js'
+import { api_endpoints } from '@/utils/hooks.js';
 
 export default {
     name: 'SubmitterInformation',
+    components: {
+        FormSection,
+    },
     props: {
         submitter_information: {
             type: Object,
@@ -109,22 +229,48 @@ export default {
             default: true,
         },
     },
-    components: {
-        FormSection,
-    },
     data: function () {
         return {
             submitter_categories: null,
             submitting_on_behalf_of_organisation: 'no',
-        }
+        };
     },
     computed: {
         organisation_details_entered: function () {
-            return !!(this.submitter_information.organisation || this.submitter_information.position);
+            return !!(
+                this.submitter_information.organisation ||
+                this.submitter_information.position
+            );
         },
         show_organisation_information: function () {
-            return this.submitting_on_behalf_of_organisation == 'yes' || this.organisation_details_entered
+            return (
+                this.submitting_on_behalf_of_organisation == 'yes' ||
+                this.organisation_details_entered
+            );
         },
+    },
+    created() {
+        this.fetchSubmitterCategories();
+        if (this.show_organisation_information) {
+            this.submitting_on_behalf_of_organisation = 'yes';
+        }
+    },
+    mounted() {
+        let vm = this;
+        var form = document.getElementById('submitter-information-form');
+        form.addEventListener(
+            'change',
+            function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    form.classList.add('was-validated');
+                } else {
+                    vm.saveSubmitterInformation();
+                }
+            },
+            false
+        );
     },
     methods: {
         focusOrganisation() {
@@ -137,7 +283,7 @@ export default {
                 .then(async (response) => {
                     this.submitter_categories = await response.json();
                 })
-                .catch(error => {
+                .catch((error) => {
                     console.log(error);
                 });
         },
@@ -147,13 +293,13 @@ export default {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(this.submitter_information)
+                body: JSON.stringify(this.submitter_information),
             })
-                .then(response => response.json())
-                .then(data => {
+                .then((response) => response.json())
+                .then((data) => {
                     console.log(data);
                 })
-                .catch(error => {
+                .catch((error) => {
                     console.log(error);
                 });
         },
@@ -166,28 +312,9 @@ export default {
                     customClass: {
                         confirmButton: 'btn btn-primary',
                     },
-                })
+                });
             }
         },
     },
-    created() {
-        this.fetchSubmitterCategories();
-        if (this.show_organisation_information) {
-            this.submitting_on_behalf_of_organisation = 'yes';
-        }
-    },
-    mounted() {
-        let vm = this;
-        var form = document.getElementById('submitter-information-form')
-        form.addEventListener('change', function (event) {
-            if (!form.checkValidity()) {
-                event.preventDefault()
-                event.stopPropagation()
-                form.classList.add('was-validated')
-            } else {
-                vm.saveSubmitterInformation();
-            }
-        }, false)
-    }
-}
+};
 </script>

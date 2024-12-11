@@ -2,17 +2,24 @@
     <div id="speciesDocumentHistory">
         <modal
             transition="modal fade"
-            :title="'Species S'+ speciesId +' - Document D' + documentId + ' - History ' "
+            :title="
+                'Species S' +
+                speciesId +
+                ' - Document D' +
+                documentId +
+                ' - History '
+            "
             :large="true"
             :full="true"
-            :showOK="false"
+            :show-o-k="false"
             cancel-text="Close"
             @cancel="close()"
         >
             <div class="container-fluid">
                 <div class="row">
                     <alert v-if="errorString" type="danger"
-                        ><strong>{{ errorString }}</strong></alert>
+                        ><strong>{{ errorString }}</strong></alert
+                    >
                     <div class="col-sm-12">
                         <div class="form-group">
                             <div class="row">
@@ -24,14 +31,16 @@
                                         :dt-headers="datatable_headers"
                                     />
                                     <div v-if="historyId">
-                                    <DisplayHistory
-                                        ref="display_history"
-                                        :key="historyId"
-                                        :primary_model_number="'D'+documentId"
-                                        :revision_id="historyId"
-                                        :revision_sequence="historySequence"
-                                        :primary_model="'SpeciesDocument'"
-                                    />
+                                        <DisplayHistory
+                                            ref="display_history"
+                                            :key="historyId"
+                                            :primary_model_number="
+                                                'D' + documentId
+                                            "
+                                            :revision_id="historyId"
+                                            :revision_sequence="historySequence"
+                                            :primary_model="'SpeciesDocument'"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -73,8 +82,7 @@ export default {
             historyId: null,
             historySequence: null,
             datatable_id: 'history-datatable-' + uuid(),
-            documentDetails: {
-            },
+            documentDetails: {},
             isModalOpen: false,
             errorString: '',
             successString: '',
@@ -112,16 +120,24 @@ export default {
         },
         column_sequence: function () {
             return {
-
                 data: 'revision_sequence',
                 orderable: true,
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     if (full.data.speciesdocument.fields.document_number) {
-                        return full.data.speciesdocument.fields.document_number+'-'+full.revision_sequence;
+                        return (
+                            full.data.speciesdocument.fields.document_number +
+                            '-' +
+                            full.revision_sequence
+                        );
                     } else {
-                        return "D"+full.data.speciesdocument.pk+'-'+full.revision_sequence;
+                        return (
+                            'D' +
+                            full.data.speciesdocument.pk +
+                            '-' +
+                            full.revision_sequence
+                        );
                     }
                 },
                 name: 'revision_sequence',
@@ -149,14 +165,17 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.speciesdocument.fields.document_number+'-'+full.revision_sequence;
+                    return (
+                        full.data.speciesdocument.fields.document_number +
+                        '-' +
+                        full.revision_sequence
+                    );
                 },
                 name: 'document_number',
             };
         },
         column_revision_id: function () {
             return {
-
                 data: 'revision_id',
                 orderable: true,
                 searchable: true,
@@ -169,7 +188,6 @@ export default {
         },
         column_revision_date: function () {
             return {
-
                 data: 'date_created',
                 orderable: true,
                 searchable: true,
@@ -182,7 +200,6 @@ export default {
         },
         column_revision_user: function () {
             return {
-
                 data: 'revision_user',
                 orderable: false,
                 searchable: false,
@@ -202,10 +219,11 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    if(full.data.speciesdocument.fields.document_category) {
-                        return full.data.speciesdocument.fields.document_category.document_category_name;
+                    if (full.data.speciesdocument.fields.document_category) {
+                        return full.data.speciesdocument.fields
+                            .document_category.document_category_name;
                     } else {
-                        return ''
+                        return '';
                     }
                 },
                 name: 'document_category', //_name',
@@ -213,17 +231,19 @@ export default {
         },
         column_sub_category: function () {
             return {
-
                 data: 'data.data.speciesdocument.fields.document_sub_category',
                 defaultContent: '',
                 orderable: false,
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    if(full.data.speciesdocument.fields.document_sub_category) {
-                        return full.data.speciesdocument.fields.document_sub_category.document_sub_category_name;
+                    if (
+                        full.data.speciesdocument.fields.document_sub_category
+                    ) {
+                        return full.data.speciesdocument.fields
+                            .document_sub_category.document_sub_category_name;
                     } else {
-                        return ''
+                        return '';
                     }
                 },
                 name: 'document_sub_category',
@@ -238,15 +258,23 @@ export default {
                 searchable: true,
                 visible: true,
                 mRender: function (row, type, full) {
-                    let links='';
-                    if(full.data.speciesdocument.fields.active){
+                    let links = '';
+                    if (full.data.speciesdocument.fields.active) {
                         let value = full.data.speciesdocument.fields.name;
                         let result = helpers.dtPopoverSplit(value, 30, 'hover');
-                        links+='<span><a href="/private-media/'+ full.data.speciesdocument.fields._file+'" target="_blank">' + result.text + '</a> ' + result.link + '</span>';
-                    }else{
+                        links +=
+                            '<span><a href="/private-media/' +
+                            full.data.speciesdocument.fields._file +
+                            '" target="_blank">' +
+                            result.text +
+                            '</a> ' +
+                            result.link +
+                            '</span>';
+                    } else {
                         let value = full.data.speciesdocument.fields.name;
                         let result = helpers.dtPopover(value, 30, 'hover');
-                        links += type == 'export' ? value : '<s>' + result + '</s>';
+                        links +=
+                            type == 'export' ? value : '<s>' + result + '</s>';
                     }
                     return links;
                 },
@@ -264,7 +292,7 @@ export default {
                 render: function (row, type, full) {
                     let value = full.data.speciesdocument.fields.description;
                     let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
+                    return type == 'export' ? value : result;
                 },
                 name: 'description',
             };
@@ -275,11 +303,11 @@ export default {
                 orderable: false,
                 searchable: false,
                 visible: true,
-                mRender: function(data, type, full){
-                    let links = "";
+                mRender: function (data, type, full) {
+                    let links = '';
                     links += `<a href='#' data-view-history='${full.revision_id}' data-view-history-seq='${full.revision_sequence}'>View</a><br>`;
                     return links;
-                }
+                },
             };
         },
         datatable_options: function () {
@@ -306,7 +334,10 @@ export default {
                 order: [[0, 'desc']],
                 serverSide: true,
                 ajax: {
-                    url: api_endpoints.lookup_history_species_document(this.documentId)+"?format=datatables",
+                    url:
+                        api_endpoints.lookup_history_species_document(
+                            this.documentId
+                        ) + '?format=datatables',
                     dataSrc: 'data',
                 },
                 buttons: [
@@ -316,8 +347,8 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> Excel',
                         className: 'btn btn-primary me-2 rounded',
                         exportOptions: {
-                            orthogonal: 'export'
-                        }
+                            orthogonal: 'export',
+                        },
                     },
                     {
                         extend: 'csv',
@@ -325,57 +356,24 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> CSV',
                         className: 'btn btn-primary rounded',
                         exportOptions: {
-                            orthogonal: 'export'
-                        }
+                            orthogonal: 'export',
+                        },
                     },
                 ],
-                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
-                         "<'row'<'col-sm-12'tr>>" +
-                         "<'d-flex align-items-center'<'me-auto'i>p>",
+                dom:
+                    "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'d-flex align-items-center'<'me-auto'i>p>",
                 columns: columns,
                 processing: true,
-                drawCallback: function() {
+                drawCallback: function () {
                     helpers.enablePopovers();
                 },
-                initComplete: function() {
+                initComplete: function () {
                     helpers.enablePopovers();
                 },
             };
         },
-    },
-    methods: {
-        close: function () {
-            this.errorString = '';
-            this.isModalOpen = false;
-            $('.has-error').removeClass('has-error');
-        },
-        viewHistory: function(id,seq){
-                console.log("viewHistory");
-                this.historyId = parseInt(id);
-                this.historySequence = parseInt(seq);
-                this.uuid++;
-                this.$nextTick(() => {
-                    this.$refs.display_history.isModalOpen = true;
-                });
-            },
-        addEventListeners:function (){
-            let vm=this;
-            vm.$refs.history_datatable.vmDataTable.on('click', 'a[data-view-history]', function(e) {
-                e.preventDefault();
-                var id = $(this).attr('data-view-history');
-                var seq = $(this).attr('data-view-history-seq');
-                vm.viewHistory(id,seq);
-            });
-            vm.$refs.history_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
-                helpers.enablePopovers();
-            });
-        }
-    },
-    mounted: function(){
-        let vm = this;
-        this.$nextTick(() => {
-            vm.addEventListeners();
-        });
     },
     watch: {
         isModalOpen() {
@@ -383,26 +381,67 @@ export default {
             if (this.isModalOpen) {
                 vm.$refs.history_datatable.vmDataTable.ajax.reload();
             }
-        }
+        },
+    },
+    mounted: function () {
+        let vm = this;
+        this.$nextTick(() => {
+            vm.addEventListeners();
+        });
+    },
+    methods: {
+        close: function () {
+            this.errorString = '';
+            this.isModalOpen = false;
+            $('.has-error').removeClass('has-error');
+        },
+        viewHistory: function (id, seq) {
+            console.log('viewHistory');
+            this.historyId = parseInt(id);
+            this.historySequence = parseInt(seq);
+            this.uuid++;
+            this.$nextTick(() => {
+                this.$refs.display_history.isModalOpen = true;
+            });
+        },
+        addEventListeners: function () {
+            let vm = this;
+            vm.$refs.history_datatable.vmDataTable.on(
+                'click',
+                'a[data-view-history]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-view-history');
+                    var seq = $(this).attr('data-view-history-seq');
+                    vm.viewHistory(id, seq);
+                }
+            );
+            vm.$refs.history_datatable.vmDataTable.on(
+                'childRow.dt',
+                function (e, settings) {
+                    helpers.enablePopovers();
+                }
+            );
+        },
     },
 };
 </script>
 
 <style lang="css" scoped>
-    /*ul, li {
+/*ul, li {
         zoom:1;
         display: inline;
     }*/
-    fieldset.scheduler-border {
+fieldset.scheduler-border {
     border: 1px groove #ddd !important;
     padding: 0 1.4em 1.4em 1.4em !important;
     margin: 0 0 1.5em 0 !important;
-    -webkit-box-shadow:  0px 0px 0px 0px #000;
-            box-shadow:  0px 0px 0px 0px #000;
-    }
-    legend.scheduler-border {
-    width:inherit; /* Or auto */
-    padding:0 10px; /* To give a bit of padding on the left and right */
-    border-bottom:none;
-    }
+    -webkit-box-shadow: 0px 0px 0px 0px #000;
+    box-shadow: 0px 0px 0px 0px #000;
+}
+legend.scheduler-border {
+    width: inherit; /* Or auto */
+    padding: 0 10px; /* To give a bit of padding on the left and right */
+    border-bottom: none;
+}
 </style>

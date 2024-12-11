@@ -1,40 +1,67 @@
 <template lang="html">
-    <div v-if="occurrence_report" class="container" id="internal-occurence-report-detail">
+    <div
+        v-if="occurrence_report"
+        id="internal-occurence-report-detail"
+        class="container"
+    >
         <div class="row mb-2">
             <div class="col">
-                <h3 class="float-start">Occurrence Report: {{ occurrence_report.occurrence_report_number }} - <span
-                        class="text-capitalize">{{ display_group_type }}</span></h3>
+                <h3 class="float-start">
+                    Occurrence Report:
+                    {{ occurrence_report.occurrence_report_number }} -
+                    <span class="text-capitalize">{{
+                        display_group_type
+                    }}</span>
+                </h3>
                 <h4 class="text-muted mb-3 float-end">
-                    <span class="badge bg-light text-primary text-capitalize border p-2 fs-6 me-3">
-                        <template v-if="occurrence_report.occurrence">Occurrence:
-                            {{ occurrence_report.occurrence.occurrence_number }}<small><a
+                    <span
+                        class="badge bg-light text-primary text-capitalize border p-2 fs-6 me-3"
+                    >
+                        <template v-if="occurrence_report.occurrence"
+                            >Occurrence:
+                            {{ occurrence_report.occurrence.occurrence_number
+                            }}<small
+                                ><a
                                     :href="`/internal/occurrence/${occurrence_report.occurrence.id}?group_type_name=${occurrence_report.group_type}&action=view`"
-                                    target="_blank"><i class="bi bi-box-arrow-up-right ms-2"></i></a></small>
+                                    target="_blank"
+                                    ><i
+                                        class="bi bi-box-arrow-up-right ms-2"
+                                    ></i></a
+                            ></small>
                         </template>
-                        <template v-else>
-                            Occurrence: NOT SET
-                        </template>
+                        <template v-else> Occurrence: NOT SET </template>
                     </span>
-                    <span class="badge bg-light text-primary text-capitalize border p-2 fs-6 me-2 align-middle">
+                    <span
+                        class="badge bg-light text-primary text-capitalize border p-2 fs-6 me-2 align-middle"
+                    >
                         <template v-if="isCommunity">
                             <template v-if="occurrence_report.community_id">
-                                Community: {{ occurrence_report.community_number }}<small><a
+                                Community:
+                                {{ occurrence_report.community_number
+                                }}<small
+                                    ><a
                                         :href="`/internal/species-communities/${occurrence_report.community_id}?group_type_name=${occurrence_report.group_type}&action=view`"
-                                        target="_blank"><i class="bi bi-box-arrow-up-right ms-2"></i></a></small>
+                                        target="_blank"
+                                        ><i
+                                            class="bi bi-box-arrow-up-right ms-2"
+                                        ></i></a
+                                ></small>
                             </template>
-                            <template v-else>
-                                Community: NOT SET
-                            </template>
+                            <template v-else> Community: NOT SET </template>
                         </template>
                         <template v-else>
                             <template v-if="occurrence_report.species_id">
-                                Species: {{ occurrence_report.species_number }}<small><a
+                                Species: {{ occurrence_report.species_number
+                                }}<small
+                                    ><a
                                         :href="`/internal/species-communities/${occurrence_report.species_id}?group_type_name=${occurrence_report.group_type}&action=view`"
-                                        target="_blank"><i class="bi bi-box-arrow-up-right ms-2"></i></a></small>
+                                        target="_blank"
+                                        ><i
+                                            class="bi bi-box-arrow-up-right ms-2"
+                                        ></i></a
+                                ></small>
                             </template>
-                            <template v-else>
-                                Species: NOT SET
-                            </template>
+                            <template v-else> Species: NOT SET </template>
                         </template>
                     </span>
                 </h4>
@@ -42,77 +69,130 @@
         </div>
         <div class="row pb-4">
             <div class="col-md-3">
+                <CommsLogs
+                    :comms_url="comms_url"
+                    :logs_url="logs_url"
+                    :comms_add_url="comms_add_url"
+                    :disable_add_entry="!occurrence_report.can_add_log"
+                    class="mb-3"
+                />
 
-                <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
-                    :disable_add_entry="!occurrence_report.can_add_log" class="mb-3" />
-
-                <Submission :submitter_first_name="submitter_first_name" :submitter_last_name="submitter_last_name"
+                <Submission
+:submitter_first_name="submitter_first_name" :submitter_last_name="submitter_last_name"
                     :lodgement_date="occurrence_report.lodgement_date"
-                    :is_new_contributor="occurrence_report.is_new_contributor" class="mb-3" />
+                    :is_new_contributor="occurrence_report.is_new_contributor"
+                    class="mb-3"
+                />
 
                 <div class="card card-default sticky-top">
-                    <div class="card-header">
-                        Workflow
-                    </div>
+                    <div class="card-header">Workflow</div>
                     <div class="card-body border-bottom">
                         <strong>Status</strong><br />
                         {{ occurrence_report.processing_status }}
                     </div>
                     <div class="card-body">
-                        <div class="mb-2"><strong>Currently assigned to</strong></div>
+                        <div class="mb-2">
+                            <strong>Currently assigned to</strong>
+                        </div>
                         <template v-if="with_approver">
-                            <select ref="assigned_officer" :disabled="!occurrence_report.can_user_approve"
-                                class="form-select mb-2" v-model="occurrence_report.assigned_approver">
-                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id"
-                                    :selected="member.id == occurrence_report.assigned_approver">
-                                    {{ member.first_name }} {{ member.last_name }}</option>
+                            <select
+ref="assigned_officer" v-model="occurrence_report.assigned_approver"
+                                :disabled="!occurrence_report.can_user_approve" class="form-select mb-2">
+                                <option
+v-for="member in occurrence_report.allowed_assessors" :value="member.id"
+                                    :selected="
+                                        member.id ==
+                                        occurrence_report.assigned_approver
+                                    "
+                                >
+                                    {{ member.first_name }}
+                                    {{ member.last_name }}
+                                </option>
                             </select>
-                            <a v-if="with_approver && occurrence_report.assigned_approver != occurrence_report.current_assessor.id && occurrence_report.assessor_mode.assessor_can_assess"
-                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to
-                                me</a>
+                            <a
+v-if="with_approver && occurrence_report.assigned_approver != occurrence_report.current_assessor.id && occurrence_report.assessor_mode.assessor_can_assess"
+                                class="actionBtn float-end" role="button" @click.prevent="assignRequestUser()">Assign to
+                            >
                         </template>
                         <template v-else>
-                            <select ref="assigned_officer" :disabled="!occurrence_report.can_user_assess"
-                                class="form-select mb-2" v-model="occurrence_report.assigned_officer">
-                                <option v-for="member in occurrence_report.allowed_assessors" :value="member.id"
-                                    :selected="member.id == occurrence_report.current_assessor.id">
-                                    {{ member.first_name }} {{ member.last_name }}</option>
+                            <select
+ref="assigned_officer" v-model="occurrence_report.assigned_officer"
+                                :disabled="!occurrence_report.can_user_assess" class="form-select mb-2">
+                                <option
+v-for="member in occurrence_report.allowed_assessors" :value="member.id"
+                                    :selected="
+                                        member.id ==
+                                        occurrence_report.current_assessor.id
+                                    "
+                                >
+                                    {{ member.first_name }}
+                                    {{ member.last_name }}
+                                </option>
                             </select>
-                            <a v-if="(with_assessor || with_referral || unlocked) && occurrence_report.assigned_officer != occurrence_report.current_assessor.id && occurrence_report.assessor_mode.assessor_can_assess"
-                                @click.prevent="assignRequestUser()" class="actionBtn float-end" role="button">Assign to
-                                me</a>
+                            <a
+v-if="(with_assessor || with_referral || unlocked) && occurrence_report.assigned_officer != occurrence_report.current_assessor.id && occurrence_report.assessor_mode.assessor_can_assess"
+                                class="actionBtn float-end" role="button" @click.prevent="assignRequestUser()">Assign to
+                            >
                         </template>
                     </div>
-                    <div v-if="display_referral_actions" class="card-body border-top">
+                    <div
+                        v-if="display_referral_actions"
+                        class="card-body border-top"
+                    >
                         <div class="mb-2"><strong>Referrals</strong></div>
                         <div class="form-group mb-3">
-                            <select :disabled="!canAction" ref="department_users" class="form-control">
-                            </select>
-                            <template v-if='!sendingReferral'>
+                            <select
+                                ref="department_users"
+                                :disabled="!canAction"
+                                class="form-control"
+                            ></select>
+                            <template v-if="!sendingReferral">
                                 <template v-if="selected_referral">
-                                    <label class="control-label mt-3" for="referral_text">Comments</label>
-                                    <textarea class="form-control" name="referral_text" ref="referral_text"
-                                        v-model="referral_text"></textarea>
-                                    <a v-if="canAction" @click.prevent="sendReferral()" class="actionBtn float-end mt-2"
-                                        role="button">Send</a>
+                                    <label
+                                        class="control-label mt-3"
+                                        for="referral_text"
+                                        >Comments</label
+                                    >
+                                    <textarea
+ref="referral_text" v-model="referral_text" class="form-control"
+                                        name="referral_text"
+                                    ></textarea>
+                                    <a
+v-if="canAction" class="actionBtn float-end mt-2" role="button"
+                                        @click.prevent="sendReferral()"
+                                        >Send</a
+                                    >
                                 </template>
                             </template>
                             <template v-else>
-                                <span v-if="canAction" @click.prevent="sendReferral()" disabled
-                                    class="actionBtn text-primary float-end">
+                                <span
+v-if="canAction" disabled class="actionBtn text-primary float-end"
+                                    @click.prevent="sendReferral()"
+                                >
                                     Sending Referral&nbsp;
-                                    <span class="spinner-border spinner-border-sm" role="status"
-                                        aria-hidden="true"></span>
-                                    <span class="visually-hidden">Loading...</span>
+                                    <span
+class="spinner-border spinner-border-sm" role="status"
+                                        aria-hidden="true"
+                                    ></span>
+                                    <span class="visually-hidden"
+                                        >Loading...</span
+                                    >
                                 </span>
                             </template>
                         </div>
-                        <div v-if="
-                            occurrence_report.external_referral_invites &&
-                            occurrence_report.external_referral_invites.length > 0
-                        ">
-                            <div class="fw-bold mb-1">External Referee Invites</div>
-                            <table class="table table-sm table-hover table-referrals">
+                        <div
+                            v-if="
+                                occurrence_report.external_referral_invites &&
+                                occurrence_report.external_referral_invites
+                                    .length > 0
+                            "
+                        >
+                            <div class="fw-bold mb-1">
+                                External Referee Invites
+                            </div>
+                            <table
+                                class="table table-sm table-hover table-referrals"
+                            >
                                 <thead>
                                     <tr>
                                         <th scope="col">Referee</th>
@@ -121,31 +201,50 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="external_referee_invite in occurrence_report.external_referral_invites"
-                                        :key="external_referee_invite.id">
+                                    <tr
+                                        v-for="external_referee_invite in occurrence_report.external_referral_invites"
+                                        :key="external_referee_invite.id"
+                                    >
                                         <td class="truncate-name">
-                                            {{ external_referee_invite.full_name }}
+                                            {{
+                                                external_referee_invite.full_name
+                                            }}
                                         </td>
                                         <td>Pending</td>
                                         <td class="text-center">
-                                            <a role="button" data-bs-toggle="popover" data-bs-trigger="hover focus"
-                                                :data-bs-content="'Send a reminder to ' +
+                                            <a
+role="button" data-bs-toggle="popover" data-bs-trigger="hover focus"
+                                                :data-bs-content="
+                                                    'Send a reminder to ' +
                                                     external_referee_invite.full_name
-                                                    " data-bs-placement="bottom" @click.prevent="
-                                                        remindExternalReferee(
-                                                            external_referee_invite
-                                                        )
-                                                        "><i class="fa fa-bell text-warning" aria-hidden="true"></i>
+                                                "
+                                                data-bs-placement="bottom"
+                                                @click.prevent="
+                                                    remindExternalReferee(
+                                                        external_referee_invite
+                                                    )
+                                                "
+                                                ><i
+                                                    class="fa fa-bell text-warning"
+                                                    aria-hidden="true"
+                                                ></i>
                                             </a>
-                                            <a role="button" data-bs-toggle="popover" data-bs-trigger="hover focus"
-                                                :data-bs-content="'Retract the external referee invite sent to ' +
+                                            <a
+role="button" data-bs-toggle="popover" data-bs-trigger="hover focus"
+                                                :data-bs-content="
+                                                    'Retract the external referee invite sent to ' +
                                                     external_referee_invite.full_name
-                                                    " data-bs-placement="bottom" @click.prevent="
-                                                        retractExternalRefereeInvite(
-                                                            external_referee_invite
-                                                        )
-                                                        "><i class="fa fa-times-circle text-danger"
-                                                    aria-hidden="true"></i>
+                                                "
+                                                data-bs-placement="bottom"
+                                                @click.prevent="
+                                                    retractExternalRefereeInvite(
+                                                        external_referee_invite
+                                                    )
+                                                "
+                                                ><i
+                                                    class="fa fa-times-circle text-danger"
+                                                    aria-hidden="true"
+                                                ></i>
                                             </a>
                                         </td>
                                     </tr>
@@ -153,19 +252,32 @@
                             </table>
                         </div>
                     </div>
-                    <div v-if="display_referral_actions &&
-                        isAssignedOfficer &&
-                        occurrence_report.latest_referrals &&
-                        occurrence_report.latest_referrals.length > 0
-                    " class="card-body border-top">
+                    <div
+v-if="display_referral_actions &&
+                            isAssignedOfficer &&
+                            occurrence_report.latest_referrals &&
+                            occurrence_report.latest_referrals.length > 0
+                        "
+                        class="card-body border-top"
+                    >
                         <div>
                             <div class="fw-bold mb-1">
                                 Recent Referrals
-                                <small class="text-secondary fw-lighter">(Showing {{
-                                    occurrence_report.latest_referrals.length }} of
-                                    {{ occurrence_report.referrals.length }})</small>
+                                <small class="text-secondary fw-lighter"
+                                    >(Showing
+                                    {{
+                                        occurrence_report.latest_referrals
+                                            .length
+                                    }}
+                                    of
+                                    {{
+                                        occurrence_report.referrals.length
+                                    }})</small
+                                >
                             </div>
-                            <table class="table table-sm table-hover table-referrals">
+                            <table
+                                class="table table-sm table-hover table-referrals"
+                            >
                                 <thead>
                                     <tr>
                                         <th>Referee</th>
@@ -174,7 +286,10 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="r in occurrence_report.latest_referrals" :key="r.id">
+                                    <tr
+                                        v-for="r in occurrence_report.latest_referrals"
+                                        :key="r.id"
+                                    >
                                         <td class="truncate-name">
                                             {{ r.referral.first_name }}
                                             {{ r.referral.last_name }}
@@ -183,41 +298,75 @@
                                             {{ r.processing_status }}
                                         </td>
                                         <td class="text-center">
-                                            <template v-if="'Awaiting' == r.processing_status">
-                                                <a v-if="canAction" role="button" data-bs-toggle="popover"
-                                                    data-bs-trigger="hover" :data-bs-content="'Send a reminder to ' +
+                                            <template
+                                                v-if="
+                                                    'Awaiting' ==
+                                                    r.processing_status
+                                                "
+                                            >
+                                                <a
+v-if="canAction" role="button" data-bs-toggle="popover"
+                                                    data-bs-trigger="hover"
+                                                    :data-bs-content="
+                                                        'Send a reminder to ' +
                                                         r.referral['fullname']
-                                                        " data-bs-placement="bottom" @click.prevent="
-                                                            remindReferral(r)
-                                                            "><i class="fa fa-bell text-warning"
-                                                        aria-hidden="true"></i>
+                                                    "
+                                                    data-bs-placement="bottom"
+                                                    @click.prevent="
+                                                        remindReferral(r)
+                                                    "
+                                                    ><i
+                                                        class="fa fa-bell text-warning"
+                                                        aria-hidden="true"
+                                                    ></i>
                                                 </a>
-                                                <a role="button" data-bs-toggle="popover" data-bs-trigger="hover"
-                                                    :data-bs-content="'Recall the referral request sent to ' +
+                                                <a
+role="button" data-bs-toggle="popover" data-bs-trigger="hover"
+                                                    :data-bs-content="
+                                                        'Recall the referral request sent to ' +
                                                         r.referral['fullname']
-                                                        " data-bs-placement="bottom" @click.prevent="
-                                                            recallReferral(r)
-                                                            "><i class="fa fa-times-circle text-danger"
-                                                        aria-hidden="true"></i>
+                                                    "
+                                                    data-bs-placement="bottom"
+                                                    @click.prevent="
+                                                        recallReferral(r)
+                                                    "
+                                                    ><i
+                                                        class="fa fa-times-circle text-danger"
+                                                        aria-hidden="true"
+                                                    ></i>
                                                 </a>
                                             </template>
                                             <template v-else>
-                                                <small v-if="canAction"><a role="button" data-bs-toggle="popover"
-                                                        data-bs-trigger="hover" :data-bs-content="'Resend this referral request to ' +
-                                                            r.referral['fullname']
-                                                            " @click.prevent="
-                                                                resendReferral(r)
-                                                                "><i class="fa fa-envelope text-primary"
-                                                            aria-hidden="true"></i>
-                                                    </a></small>
+                                                <small v-if="canAction"
+                                                    ><a
+                                                        role="button"
+                                                        data-bs-toggle="popover"
+                                                        data-bs-trigger="hover"
+                                                        :data-bs-content="
+                                                            'Resend this referral request to ' +
+                                                            r.referral[
+                                                                'fullname'
+                                                            ]
+                                                        "
+                                                        @click.prevent="
+                                                            resendReferral(r)
+                                                        "
+                                                        ><i
+                                                            class="fa fa-envelope text-primary"
+                                                            aria-hidden="true"
+                                                        ></i> </a
+                                                ></small>
                                             </template>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
-                            <ShowAllReferrals @refreshFromResponse="refreshFromResponse"
-                                :occurrence_report_obj="occurrence_report" :canAction="canAction"
-                                :isFinalised="occurrence_report.finalised" :referral_url="referralListURL" />
+                            <ShowAllReferrals
+                                :occurrence_report_obj="occurrence_report"
+                                :can-action="canAction" :is-finalised="occurrence_report.finalised"
+                                :referral_url="referralListURL"
+                                @refresh-from-response="refreshFromResponse"
+                            />
                         </div>
                     </div>
                     <div v-if="canAction" class="card-body border-top">
@@ -225,96 +374,201 @@
                             <strong>Actions</strong>
                         </div>
                         <div class="text-center">
-                            <button v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-4"
-                                @click.prevent="amendmentRequest()">Request
-                                Amendment</button>
-                            <button v-if="with_approver || unlocked" style="width:80%;" class="btn btn-primary mb-4"
-                                @click.prevent="backToAssessor()">Back to Assessor</button>
+                            <button
+v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-4"
+                                @click.prevent="amendmentRequest()"
+                            >
+                                Request Amendment
+                            </button>
+                            <button
+v-if="with_approver || unlocked" style="width:80%;" class="btn btn-primary mb-4"
+                                @click.prevent="backToAssessor()"
+                            >
+                                Back to Assessor
+                            </button>
 
-                            <button v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-2"
-                                @click.prevent="proposeApprove">Propose Approve</button>
-                            <button v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-4"
-                                @click.prevent="proposeDecline">Propose Decline</button>
+                            <button
+v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-2"
+                                @click.prevent="proposeApprove"
+                            >
+                                Propose Approve
+                            </button>
+                            <button
+v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-4"
+                                @click.prevent="proposeDecline"
+                            >
+                                Propose Decline
+                            </button>
 
-                            <button v-if="display_approve_button" style="width:80%;" class="btn btn-primary mb-4"
-                                @click.prevent="approve()">Approve</button>
-                            <button v-if="display_decline_button" style="width:80%;" class="btn btn-primary mb-4"
-                                @click.prevent="decline()">Decline</button>
+                            <button
+v-if="display_approve_button" style="width:80%;" class="btn btn-primary mb-4"
+                                @click.prevent="approve()"
+                            >
+                                Approve
+                            </button>
+                            <button
+v-if="display_decline_button" style="width:80%;" class="btn btn-primary mb-4"
+                                @click.prevent="decline()"
+                            >
+                                Decline
+                            </button>
 
-                            <button v-if="approved" style="width:80%;" class="btn btn-primary mb-4"
-                                @click.prevent="unlock()">Unlock</button>
-                            <button v-if="unlocked" style="width:80%;" class="btn btn-primary mb-4"
-                                @click.prevent="lock()">Lock</button>
-
+                            <button
+v-if="approved" style="width:80%;" class="btn btn-primary mb-4"
+                                @click.prevent="unlock()"
+                            >
+                                Unlock
+                            </button>
+                            <button
+v-if="unlocked" style="width:80%;" class="btn btn-primary mb-4"
+                                @click.prevent="lock()"
+                            >
+                                Lock
+                            </button>
                         </div>
                     </div>
-                    <div v-if="occurrence_report.user_is_assessor" class="card-body border-top text-center">
-                        <button style="width:80%;" class="btn btn-primary mb-1"
-                            @click.prevent="copyOccurrenceReport()"><i class="bi bi-copy me-1"></i> Copy {{
+                    <div
+                        v-if="occurrence_report.user_is_assessor"
+                        class="card-body border-top text-center"
+                    >
+                        <button
+style="width:80%;" class="btn btn-primary mb-1"
+                            @click.prevent="copyOccurrenceReport()"
+                        >
+                            <i class="bi bi-copy me-1"></i> Copy
+                            {{
                                 occurrence_report.occurrence_report_number
-                            }}</button><br />
+                            }}</button
+                        ><br />
                     </div>
                 </div>
             </div>
             <div class="col-md-9">
-                <form :action="occurrence_report_form_url" method="post" name="occurrence_report"
-                    enctype="multipart/form-data">
-                    <ProposalOccurrenceReport v-if="occurrence_report" :occurrence_report_obj="occurrence_report"
-                        id="OccurrenceReportStart" :canEditStatus="false" :is_external="false" :is_internal="true"
-                        ref="occurrence_report" @refreshFromResponse="refreshFromResponse"
-                        @refreshOccurrenceReport="refreshOccurrenceReport()"
-                        @saveOccurrenceReport="save_before_submit()">
+                <form
+:action="occurrence_report_form_url" method="post" name="occurrence_report"
+                    enctype="multipart/form-data"
+                >
+                    <ProposalOccurrenceReport
+v-if="occurrence_report" id="OccurrenceReportStart"
+                        ref="occurrence_report" :occurrence_report_obj="occurrence_report" :can-edit-status="false" :is_external="false"
+                        :is_internal="true" @refresh-from-response="refreshFromResponse"
+                        @refresh-occurrence-report="refreshOccurrenceReport()"
+                        @save-occurrence-report="save_before_submit()"
+                    >
                     </ProposalOccurrenceReport>
 
-                    <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
-                    <input type='hidden' name="occurrence_report_id" :value="1" />
+                    <input
+                        type="hidden"
+                        name="csrfmiddlewaretoken"
+                        :value="csrf_token"
+                    />
+                    <input
+                        type="hidden"
+                        name="occurrence_report_id"
+                        :value="1"
+                    />
                     <div class="row" style="margin-bottom: 50px">
-                        <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
+                        <div
+                            class="navbar fixed-bottom"
+                            style="background-color: #f5f5f5"
+                        >
                             <div class="container">
-                                <button class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
-                                    @click.prevent="returnToDashboard">
-                                    Return to Dashboard</button>
-                                <div v-if="occurrence_report.internal_application && occurrence_report.can_user_edit"
-                                    class="col-md-6 text-end">
-                                    <button v-if="savingOccurrenceReport" class="btn btn-primary me-2"
-                                        style="margin-top:5px;" disabled>Save and Continue&nbsp;
-                                        <span class="spinner-border spinner-border-sm" role="status"
-                                            aria-hidden="true"></span>
-                                        <span class="visually-hidden">Loading...</span></button>
-                                    <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
-                                        @click.prevent="save()"
-                                        :disabled="saveExitOccurrenceReport || submitOccurrenceReport">Save
-                                        and Continue</button>
-
-                                    <button v-if="saveExitOccurrenceReport" class="btn btn-primary me-2"
-                                        style="margin-top:5px;" disabled>Save and Exit&nbsp;
-                                        <span class="spinner-border spinner-border-sm" role="status"
-                                            aria-hidden="true"></span>
-                                        <span class="visually-hidden">Loading...</span></button>
-                                    <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
-                                        @click.prevent="save_exit()"
-                                        :disabled="savingOccurrenceReport || submitOccurrenceReport">Save
-                                        and Exit</button>
-
-                                    <button v-if="submitOccurrenceReport" class="btn btn-primary"
-                                        style="margin-top:5px;" disabled>Submit&nbsp;
-                                        <span class="spinner-border spinner-border-sm" role="status"
-                                            aria-hidden="true"></span>
-                                        <span class="visually-hidden">Loading...</span></button>
-                                    <button v-else class="btn btn-primary" style="margin-top:5px;"
-                                        @click.prevent="submit()"
-                                        :disabled="saveExitOccurrenceReport || savingOccurrenceReport">Submit</button>
-                                </div>
-                                <div v-else-if="(occurrence_report.assessor_mode.has_assessor_mode || occurrence_report.assessor_mode.has_unlocked_mode)"
-                                    class="col-md-6 text-end">
-                                    <button v-if="savingOccurrenceReport" class="btn btn-primary"
-                                        style="margin-top:5px;" disabled>Save Changes <span
-                                            class="spinner-border spinner-border-sm" role="status"
-                                            aria-hidden="true"></span>
-                                        <span class="visually-hidden">Loading...</span></button>
-                                    <button v-else class="btn btn-primary" style="margin-top:5px;"
+                                <button
+class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
+                                    @click.prevent="returnToDashboard"
+                                >
+                                    Return to Dashboard
+                                </button>
+                                <div
+v-if="occurrence_report.internal_application && occurrence_report.can_user_edit"
+                                    class="col-md-6 text-end"
+                                >
+                                    <button
+v-if="savingOccurrenceReport" class="btn btn-primary me-2"
+                                        style="margin-top: 5px"
+                                        disabled
+                                    >
+                                        Save and Continue&nbsp;
+                                        <span
+class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"
+                                        ></span>
+                                        <span class="visually-hidden"
+                                            >Loading...</span
+                                        >
+                                    </button>
+                                    <button
+v-else class="btn btn-primary me-2" style="margin-top:5px;"
+                                        :disabled="saveExitOccurrenceReport || submitOccurrenceReport"
                                         @click.prevent="save()">Save
-                                        Changes</button>
+                                        Save and Continue
+                                    </button>
+
+                                    <button
+v-if="saveExitOccurrenceReport" class="btn btn-primary me-2"
+                                        style="margin-top: 5px"
+                                        disabled
+                                    >
+                                        Save and Exit&nbsp;
+                                        <span
+class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"
+                                        ></span>
+                                        <span class="visually-hidden"
+                                            >Loading...</span
+                                        >
+                                    </button>
+                                    <button
+v-else class="btn btn-primary me-2" style="margin-top:5px;"
+                                        :disabled="savingOccurrenceReport || submitOccurrenceReport"
+                                        @click.prevent="save_exit()">Save
+                                        Save and Exit
+                                    </button>
+
+                                    <button
+v-if="submitOccurrenceReport" class="btn btn-primary"
+                                        style="margin-top: 5px"
+                                        disabled
+                                    >
+                                        Submit&nbsp;
+                                        <span
+class="spinner-border spinner-border-sm" role="status"
+                                            aria-hidden="true"
+                                        ></span>
+                                        <span class="visually-hidden"
+                                            >Loading...</span
+                                        >
+                                    </button>
+                                    <button
+v-else class="btn btn-primary" style="margin-top:5px;"
+                                        :disabled="saveExitOccurrenceReport || savingOccurrenceReport"
+                                        @click.prevent="submit()">Submit</button>
+                                </div>
+                                <div
+v-else-if="(occurrence_report.assessor_mode.has_assessor_mode || occurrence_report.assessor_mode.has_unlocked_mode)"
+                                    class="col-md-6 text-end"
+                                >
+                                    <button
+v-if="savingOccurrenceReport" class="btn btn-primary"
+                                        style="margin-top: 5px"
+                                        disabled
+                                    >
+                                        Save Changes
+                                        <span
+                                            class="spinner-border spinner-border-sm"
+                                            role="status"
+                                            aria-hidden="true"
+                                        ></span>
+                                        <span class="visually-hidden"
+                                            >Loading...</span
+                                        >
+                                    </button>
+                                    <button
+v-else class="btn btn-primary" style="margin-top:5px;"
+                                        @click.prevent="save()"
+                                    >
+                                        Save Changes
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -323,59 +577,111 @@
             </div>
         </div>
 
-        <AmendmentRequest ref="amendment_request" :occurrence_report_id="occurrence_report.id"
-            @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
-        <BackToAssessor ref="back_to_assessor" :occurrence_report_id="occurrence_report.id"
-            :occurrence_report_number="occurrence_report.occurrence_report_number"
-            @refreshFromResponse="refreshFromResponse">
+        <AmendmentRequest
+ref="amendment_request" :occurrence_report_id="occurrence_report.id"
+            @refresh-from-response="refreshFromResponse"
+        ></AmendmentRequest>
+        <BackToAssessor
+ref="back_to_assessor" :occurrence_report_id="occurrence_report.id"
+            :occurrence_report_number="
+                occurrence_report.occurrence_report_number
+            "
+            @refresh-from-response="refreshFromResponse"
+        >
         </BackToAssessor>
-        <ProposeAppprove ref="propose_approve" :occurrence_report="occurrence_report"
-            :occurrence_report_number="occurrence_report.occurrence_report_number"
-            :occurrence="occurrence_report.occurrence" :group_type_id="occurrence_report.group_type_id"
-            @refreshFromResponse="refreshFromResponse">
+        <ProposeAppprove
+ref="propose_approve" :occurrence_report="occurrence_report"
+            :occurrence_report_number="
+                occurrence_report.occurrence_report_number
+            "
+            :occurrence="occurrence_report.occurrence"
+            :group_type_id="occurrence_report.group_type_id"
+            @refresh-from-response="refreshFromResponse"
+        >
         </ProposeAppprove>
-        <ProposeDecline ref="propose_decline" :occurrence_report_id="occurrence_report.id"
-            :occurrence_report_number="occurrence_report.occurrence_report_number"
-            @refreshFromResponse="refreshFromResponse">
+        <ProposeDecline
+ref="propose_decline" :occurrence_report_id="occurrence_report.id"
+            :occurrence_report_number="
+                occurrence_report.occurrence_report_number
+            "
+            @refresh-from-response="refreshFromResponse"
+        >
         </ProposeDecline>
 
-        <Decline v-if="display_decline_button" ref="decline" :occurrence_report_id="occurrence_report.id"
-            :occurrence_report_number="occurrence_report.occurrence_report_number"
-            :declined_details="occurrence_report.declined_details" @refreshFromResponse="refreshFromResponse">
+        <Decline
+v-if="display_decline_button" ref="decline" :occurrence_report_id="occurrence_report.id"
+            :occurrence_report_number="
+                occurrence_report.occurrence_report_number
+            "
+            :declined_details="occurrence_report.declined_details"
+            @refresh-from-response="refreshFromResponse"
+        >
         </Decline>
-        <Approve v-if="display_approve_button && occurrence_report.approval_details" ref="approve"
+        <Approve
+v-if="display_approve_button && occurrence_report.approval_details" ref="approve"
             :occurrence_report_id="occurrence_report.id"
-            :occurrence_report_number="occurrence_report.occurrence_report_number"
-            :approval_details="occurrence_report.approval_details" @refreshFromResponse="refreshFromResponse">
+            :occurrence_report_number="
+                occurrence_report.occurrence_report_number
+            "
+            :approval_details="occurrence_report.approval_details"
+            @refresh-from-response="refreshFromResponse"
+        >
         </Approve>
-        <InviteExternalReferee ref="inviteExternalReferee" :pk="occurrence_report.id" model="occurrence_report"
-            :email="external_referee_email" @externalRefereeInviteSent="externalRefereeInviteSent" />
+        <InviteExternalReferee
+ref="inviteExternalReferee" :pk="occurrence_report.id" model="occurrence_report"
+            :email="external_referee_email"
+            @external-referee-invite-sent="externalRefereeInviteSent"
+        />
     </div>
-
-
 </template>
 <script>
+import datatable from '@vue-utils/datatable.vue';
+import CommsLogs from '@common-utils/comms_logs.vue';
+import Submission from '@common-utils/submission.vue';
+import ShowAllReferrals from '@common-utils/occurrence/ocr_more_referrals.vue';
+import ProposalOccurrenceReport from '@/components/form_occurrence_report.vue';
+import AmendmentRequest from './amendment_request.vue';
+import BackToAssessor from './back_to_assessor.vue';
+import ProposeDecline from './ocr_propose_decline.vue';
+import ProposeAppprove from './ocr_propose_approve.vue';
+import InviteExternalReferee from '@common-utils/invite_external_referee.vue';
+import Decline from './ocr_decline.vue';
+import Approve from './ocr_approve.vue';
 
-import datatable from '@vue-utils/datatable.vue'
-import CommsLogs from '@common-utils/comms_logs.vue'
-import Submission from '@common-utils/submission.vue'
-import ShowAllReferrals from '@common-utils/occurrence/ocr_more_referrals.vue'
-import ProposalOccurrenceReport from '@/components/form_occurrence_report.vue'
-import AmendmentRequest from './amendment_request.vue'
-import BackToAssessor from './back_to_assessor.vue'
-import ProposeDecline from './ocr_propose_decline.vue'
-import ProposeAppprove from './ocr_propose_approve.vue'
-import InviteExternalReferee from '@common-utils/invite_external_referee.vue'
-import Decline from './ocr_decline.vue'
-import Approve from './ocr_approve.vue'
-
-import {
-    api_endpoints,
-    helpers
-}
-    from '@/utils/hooks'
+import { api_endpoints, helpers } from '@/utils/hooks';
 export default {
     name: 'InternalOccurrenceReportDetail',
+    components: {
+        datatable,
+        CommsLogs,
+        Submission,
+        ShowAllReferrals,
+        ProposalOccurrenceReport,
+        AmendmentRequest,
+        BackToAssessor,
+        ProposeDecline,
+        ProposeAppprove,
+        Decline,
+        Approve,
+        InviteExternalReferee,
+    },
+    filters: {
+        formatDate: function (data) {
+            return data ? moment(data).format('DD/MM/YYYY HH:mm:ss') : '';
+        },
+    },
+    beforeRouteEnter: function (to, from, next) {
+        fetch(`/api/occurrence_report/${to.params.occurrence_report_id}/`).then(
+            async (response) => {
+                next(async (vm) => {
+                    vm.occurrence_report = await response.json();
+                });
+            },
+            (err) => {
+                console.log(err);
+            }
+        );
+    },
     data: function () {
         return {
             occurrence_report: null,
@@ -396,34 +702,20 @@ export default {
             external_referee_email: '',
         }
     },
-    components: {
-        datatable,
-        CommsLogs,
-        Submission,
-        ShowAllReferrals,
-        ProposalOccurrenceReport,
-        AmendmentRequest,
-        BackToAssessor,
-        ProposeDecline,
-        ProposeAppprove,
-        Decline,
-        Approve,
-        InviteExternalReferee,
-    },
-    filters: {
-        formatDate: function (data) {
-            return data ? moment(data).format('DD/MM/YYYY HH:mm:ss') : '';
-        }
-    },
     computed: {
         csrf_token: function () {
-            return helpers.getCookie('csrftoken')
+            return helpers.getCookie('csrftoken');
         },
         isCommunity: function () {
-            return this.occurrence_report && this.occurrence_report.group_type === "community"
+            return (
+                this.occurrence_report &&
+                this.occurrence_report.group_type === 'community'
+            );
         },
         occurrence_report_form_url: function () {
-            return (this.occurrence_report) ? `/api/occurrence_report/${this.occurrence_report.id}/draft.json` : '';
+            return this.occurrence_report
+                ? `/api/occurrence_report/${this.occurrence_report.id}/draft.json`
+                : '';
         },
         display_group_type: function () {
             if (this.occurrence_report && this.occurrence_report.group_type) {
@@ -432,78 +724,147 @@ export default {
             return '';
         },
         display_number: function () {
-            return (this.occurrence_report.group_type === "community") ?
-                this.occurrence_report.community_number :
-                this.occurrence_report.species_number;
+            return this.occurrence_report.group_type === 'community'
+                ? this.occurrence_report.community_number
+                : this.occurrence_report.species_number;
         },
         display_name: function () {
-            return (this.occurrence_report.group_type === "community") ?
-                (this.occurrence_report.taxonomy_details != null) ? this.occurrence_report.taxonomy_details.community_migrated_id : '' :
-                (this.occurrence_report.taxonomy_details != null) ? this.occurrence_report.taxonomy_details.scientific_name + " (" + this.occurrence_report.taxonomy_details.taxon_name_id + ")" : '';
+            return this.occurrence_report.group_type === 'community'
+                ? this.occurrence_report.taxonomy_details != null
+                    ? this.occurrence_report.taxonomy_details
+                          .community_migrated_id
+                    : ''
+                : this.occurrence_report.taxonomy_details != null
+                  ? this.occurrence_report.taxonomy_details.scientific_name +
+                    ' (' +
+                    this.occurrence_report.taxonomy_details.taxon_name_id +
+                    ')'
+                  : '';
         },
         display_approve_button: function () {
-            return this.with_approver && this.occurrence_report.approval_details
+            return (
+                this.with_approver && this.occurrence_report.approval_details
+            );
         },
         display_decline_button: function () {
-            return this.with_approver && this.occurrence_report.proposed_decline_status && this.occurrence_report.declined_details
+            return (
+                this.with_approver &&
+                this.occurrence_report.proposed_decline_status &&
+                this.occurrence_report.declined_details
+            );
         },
         display_referral_actions: function () {
-            return this.occurrence_report && ['With Assessor', 'With Referral'].includes(this.occurrence_report.processing_status) && this.isAssignedOfficer
+            return (
+                this.occurrence_report &&
+                ['With Assessor', 'With Referral'].includes(
+                    this.occurrence_report.processing_status
+                ) &&
+                this.isAssignedOfficer
+            );
         },
         submitter_first_name: function () {
             if (this.occurrence_report && this.occurrence_report.submitter) {
-                return this.occurrence_report.submitter.first_name
+                return this.occurrence_report.submitter.first_name;
             } else {
-                return ''
+                return '';
             }
         },
         submitter_last_name: function () {
             if (this.occurrence_report && this.occurrence_report.submitter) {
-                return this.occurrence_report.submitter.last_name
+                return this.occurrence_report.submitter.last_name;
             } else {
-                return ''
+                return '';
             }
         },
         with_assessor: function () {
-            return this.occurrence_report && this.occurrence_report.processing_status === 'With Assessor'
+            return (
+                this.occurrence_report &&
+                this.occurrence_report.processing_status === 'With Assessor'
+            );
         },
         with_referral: function () {
-            return this.occurrence_report && this.occurrence_report.processing_status === 'With Referral'
+            return (
+                this.occurrence_report &&
+                this.occurrence_report.processing_status === 'With Referral'
+            );
         },
         with_approver: function () {
-            return this.occurrence_report && this.occurrence_report.processing_status === 'With Approver'
+            return (
+                this.occurrence_report &&
+                this.occurrence_report.processing_status === 'With Approver'
+            );
         },
         approved: function () {
-            return this.occurrence_report && this.occurrence_report.processing_status === 'Approved'
+            return (
+                this.occurrence_report &&
+                this.occurrence_report.processing_status === 'Approved'
+            );
         },
         unlocked: function () {
-            return this.occurrence_report && this.occurrence_report.processing_status === 'Unlocked'
+            return (
+                this.occurrence_report &&
+                this.occurrence_report.processing_status === 'Unlocked'
+            );
         },
         isAssignedOfficer: function () {
-            return this.occurrence_report && this.occurrence_report.assigned_officer == this.occurrence_report.current_assessor.id;
+            return (
+                this.occurrence_report &&
+                this.occurrence_report.assigned_officer ==
+                    this.occurrence_report.current_assessor.id
+            );
         },
         isAssignedApprover: function () {
-            return this.occurrence_report && this.occurrence_report.assigned_approver == this.occurrence_report.current_assessor.id;
+            return (
+                this.occurrence_report &&
+                this.occurrence_report.assigned_approver ==
+                    this.occurrence_report.current_assessor.id
+            );
         },
         canAction: function () {
-            return this.occurrence_report && this.occurrence_report.can_user_action;
+            return (
+                this.occurrence_report && this.occurrence_report.can_user_action
+            );
         },
         comms_url: function () {
-            return helpers.add_endpoint_json(api_endpoints.occurrence_report, this.$route.params.occurrence_report_id + '/comms_log')
+            return helpers.add_endpoint_json(
+                api_endpoints.occurrence_report,
+                this.$route.params.occurrence_report_id + '/comms_log'
+            );
         },
         comms_add_url: function () {
-            return helpers.add_endpoint_json(api_endpoints.occurrence_report, this.$route.params.occurrence_report_id + '/add_comms_log')
+            return helpers.add_endpoint_json(
+                api_endpoints.occurrence_report,
+                this.$route.params.occurrence_report_id + '/add_comms_log'
+            );
         },
         logs_url: function () {
-            return helpers.add_endpoint_json(api_endpoints.occurrence_report, this.$route.params.occurrence_report_id + '/action_log')
+            return helpers.add_endpoint_json(
+                api_endpoints.occurrence_report,
+                this.$route.params.occurrence_report_id + '/action_log'
+            );
         },
         referralListURL: function () {
             return this.occurrence_report != null
-                ?
-                api_endpoints.occurrence_report +
-                `/${this.occurrence_report.id}/referrals/`
+                ? api_endpoints.occurrence_report +
+                      `/${this.occurrence_report.id}/referrals/`
                 : '';
+        },
+    },
+    created: function () {
+        if (!this.occurrence_report) {
+            this.fetchOccurrenceReport(this.$route.params.occurrence_report_id);
         }
+    },
+    mounted: function () {
+        let vm = this;
+        vm.fetchDeparmentUsers();
+    },
+    updated: function () {
+        let vm = this;
+        this.$nextTick(() => {
+            vm.initialiseSelects();
+            vm.form = document.forms.occurrence_report;
+        });
     },
     methods: {
         discardOCRProposal: function () {
@@ -1366,31 +1727,5 @@ export default {
             this.fetchOccurrenceReport(this.$route.params.occurrence_report_id);
         },
     },
-    created: function () {
-        if (!this.occurrence_report) {
-            this.fetchOccurrenceReport(this.$route.params.occurrence_report_id);
-        }
-    },
-    mounted: function () {
-        let vm = this;
-        vm.fetchDeparmentUsers();
-    },
-    updated: function () {
-        let vm = this;
-        this.$nextTick(() => {
-            vm.initialiseSelects();
-            vm.form = document.forms.occurrence_report;
-        });
-    },
-    beforeRouteEnter: function (to, from, next) {
-        fetch(`/api/occurrence_report/${to.params.occurrence_report_id}/`).then(async (response) => {
-            next(async vm => {
-                vm.occurrence_report = await response.json();
-            });
-        },
-            err => {
-                console.log(err);
-            });
-    },
-}
+};
 </script>

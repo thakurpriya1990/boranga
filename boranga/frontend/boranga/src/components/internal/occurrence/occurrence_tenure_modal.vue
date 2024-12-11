@@ -1,56 +1,110 @@
 <template lang="html">
     <div id="occurrence_tenure_modal">
-        <modal transition="modal fade" :title="modalTitle" large @ok="ok()" @cancel="cancel()">
+        <modal
+            transition="modal fade"
+            :title="modalTitle"
+            large
+            @ok="ok()"
+            @cancel="cancel()"
+        >
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="modalForm">
-                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
-                        <alert v-if="changeWarning && !isReadOnly" type="warning"><strong>{{ changeWarning }}</strong>
+                        <alert v-if="showError" type="danger"
+                            ><strong>{{ errorString }}</strong></alert
+                        >
+                        <alert
+                            v-if="changeWarning && !isReadOnly"
+                            type="warning"
+                            ><strong>{{ changeWarning }}</strong>
                         </alert>
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Status</label>
+                                        <label class="control-label pull-left"
+                                            >Status</label
+                                        >
                                     </div>
                                     <div class="col-sm-3">
                                         <!-- status_display -->
-                                        <input id="status_id" v-model="tenureObj.status" :disabled="isReadOnly ||
-                                            isAlwaysReadOnly('status')
-                                            " type="text" class="form-control" placeholder="Status" />
+                                        <input
+                                            id="status_id"
+                                            v-model="tenureObj.status"
+                                            :disabled="
+                                                isReadOnly ||
+                                                isAlwaysReadOnly('status')
+                                            "
+                                            type="text"
+                                            class="form-control"
+                                            placeholder="Status"
+                                        />
                                     </div>
                                 </div>
                             </div>
                             <div class="row mb-3">
-                                <label for="" class="col-sm-3 control-label">Tenure Area Id</label>
+                                <label for="" class="col-sm-3 control-label"
+                                    >Tenure Area Id</label
+                                >
                                 <div class="col-sm-9">
-                                    <input id="tenure_area_id" v-model="tenureObj.tenure_area_id" :disabled="isReadOnly ||
-                                        isAlwaysReadOnly('tenure_area_id')
-                                        " type="text" class="form-control" placeholder="Tenure Area Id" />
+                                    <input
+                                        id="tenure_area_id"
+                                        v-model="tenureObj.tenure_area_id"
+                                        :disabled="
+                                            isReadOnly ||
+                                            isAlwaysReadOnly('tenure_area_id')
+                                        "
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Tenure Area Id"
+                                    />
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-left">Owner/Manager</label>
+                                    <label class="control-label pull-left"
+                                        >Owner/Manager</label
+                                    >
                                 </div>
                                 <div class="col-sm-9">
-                                    <input id="owner_name" v-model="tenureObj.owner_name" :disabled="isReadOnly ||
-                                        isAlwaysReadOnly('owner_name')
-                                        " type="text" class="form-control" placeholder="Owner Name" />
+                                    <input
+                                        id="owner_name"
+                                        v-model="tenureObj.owner_name"
+                                        :disabled="
+                                            isReadOnly ||
+                                            isAlwaysReadOnly('owner_name')
+                                        "
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Owner Name"
+                                    />
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-left">Vesting</label>
+                                    <label class="control-label pull-left"
+                                        >Vesting</label
+                                    >
                                 </div>
                                 <div class="col-sm-9">
-                                    <select ref="vesting_select" v-model="tenureObj.vesting_id" :disabled="isReadOnly ||
-                                        isAlwaysReadOnly('vesting_id')
-                                        " style="width: 100%" class="form-select input-sm">
+                                    <select
+                                        ref="vesting_select"
+                                        v-model="tenureObj.vesting_id"
+                                        :disabled="
+                                            isReadOnly ||
+                                            isAlwaysReadOnly('vesting_id')
+                                        "
+                                        style="width: 100%"
+                                        class="form-select input-sm"
+                                    >
                                         <option :value="null" selected>
                                             Select a Vesting
                                         </option>
-                                        <option v-for="vesting in vestings" :key="vesting.id" :value="vesting.id">
+                                        <option
+                                            v-for="vesting in vestings"
+                                            :key="vesting.id"
+                                            :value="vesting.id"
+                                        >
                                             {{ vesting.code }} -
                                             {{ vesting.label }}
                                         </option>
@@ -59,47 +113,86 @@
                             </div>
                             <div class="row mb-3">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-left">Purpose</label>
+                                    <label class="control-label pull-left"
+                                        >Purpose</label
+                                    >
                                 </div>
                                 <div class="col-sm-9">
-
                                     <template v-if="!isReadOnly">
                                         <template
-                                            v-if="purposes && purposes.length > 0 && tenureObj.purpose_id && !purposes.map((d) => d.id).includes(tenureObj.purpose_id)">
-                                            <input type="text" v-if="tenureObj.purpose" class="form-control mb-3"
-                                                :value="tenureObj.purpose + ' (Now Archived)'" disabled />
+                                            v-if="
+                                                purposes &&
+                                                purposes.length > 0 &&
+                                                tenureObj.purpose_id &&
+                                                !purposes
+                                                    .map((d) => d.id)
+                                                    .includes(
+                                                        tenureObj.purpose_id
+                                                    )
+                                            "
+                                        >
+                                            <input
+                                                v-if="tenureObj.purpose"
+                                                type="text"
+                                                class="form-control mb-3"
+                                                :value="
+                                                    tenureObj.purpose +
+                                                    ' (Now Archived)'
+                                                "
+                                                disabled
+                                            />
                                             <div class="mb-3 text-muted">
                                                 Change purpose to:
                                             </div>
                                         </template>
-                                        <select class="form-select" v-model="tenureObj.purpose_id">
+                                        <select
+                                            v-model="tenureObj.purpose_id"
+                                            class="form-select"
+                                        >
                                             <option :value="null" selected>
                                                 Select a Purpose
                                             </option>
-                                            <option v-for="purpose in purposes" :value="purpose.id"
-                                                v-bind:key="purpose.id">
+                                            <option
+                                                v-for="purpose in purposes"
+                                                :key="purpose.id"
+                                                :value="purpose.id"
+                                            >
                                                 {{ purpose.code }} -
                                                 {{ purpose.label }}
                                             </option>
                                         </select>
                                     </template>
                                     <template v-else>
-                                        <input class="form-control" type="text" :disabled="isReadOnly"
-                                            v-model="tenureObj.purpose" />
+                                        <input
+                                            v-model="tenureObj.purpose"
+                                            class="form-control"
+                                            type="text"
+                                            :disabled="isReadOnly"
+                                        />
                                     </template>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-sm-3">
-                                    <label class="control-label pull-left">Significant to Occurrence</label>
+                                    <label class="control-label pull-left"
+                                        >Significant to Occurrence</label
+                                    >
                                 </div>
                                 <div class="col-sm-3">
-                                    <select ref="significant_to_occurrence_select" v-model="tenureObj.significant_to_occurrence
-                                        " :disabled="isReadOnly ||
+                                    <select
+                                        ref="significant_to_occurrence_select"
+                                        v-model="
+                                            tenureObj.significant_to_occurrence
+                                        "
+                                        :disabled="
+                                            isReadOnly ||
                                             isAlwaysReadOnly(
                                                 'significant_to_occurrence'
                                             )
-                                            " style="width: 100%" class="form-select input-sm">
+                                        "
+                                        style="width: 100%"
+                                        class="form-select input-sm"
+                                    >
                                         <option :value="true">Yes</option>
                                         <option :value="false">No</option>
                                     </select>
@@ -108,13 +201,21 @@
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Comments</label>
+                                        <label class="control-label pull-left"
+                                            >Comments</label
+                                        >
                                     </div>
                                     <div class="col-sm-9">
-                                        <textarea v-model="tenureObj.comments" :disabled="isReadOnly ||
-                                            isAlwaysReadOnly('comments')
-                                            " rows="2" class="form-control">
-            </textarea>
+                                        <textarea
+                                            v-model="tenureObj.comments"
+                                            :disabled="
+                                                isReadOnly ||
+                                                isAlwaysReadOnly('comments')
+                                            "
+                                            rows="2"
+                                            class="form-control"
+                                        >
+                                        </textarea>
                                     </div>
                                 </div>
                             </div>
@@ -122,33 +223,69 @@
                     </form>
                 </div>
             </div>
-            <div slot="footer">
-                <button type="button" class="btn btn-secondary me-2" @click="cancel">
-                    Cancel
-                </button>
-                <template v-if="modal_action != 'view'">
-                    <template v-if="object_id">
-                        <button v-if="updatingEntry" type="button" disabled class="btn btn-primary" @click="ok">
-                            Updating <span class="spinner-border spinner-border-sm" role="status"
-                                aria-hidden="true"></span>
-                            <span class="visually-hidden">Loading...</span>
-                        </button>
-                        <button v-else type="button" class="btn btn-primary" @click="ok">
-                            Update
-                        </button>
+            <template #footer>
+                <div>
+                    <button
+                        type="button"
+                        class="btn btn-secondary me-2"
+                        @click="cancel"
+                    >
+                        Cancel
+                    </button>
+                    <template v-if="modal_action != 'view'">
+                        <template v-if="object_id">
+                            <button
+                                v-if="updatingEntry"
+                                type="button"
+                                disabled
+                                class="btn btn-primary"
+                                @click="ok"
+                            >
+                                Updating
+                                <span
+                                    class="spinner-border spinner-border-sm"
+                                    role="status"
+                                    aria-hidden="true"
+                                ></span>
+                                <span class="visually-hidden">Loading...</span>
+                            </button>
+                            <button
+                                v-else
+                                type="button"
+                                class="btn btn-primary"
+                                @click="ok"
+                            >
+                                Update
+                            </button>
+                        </template>
+                        <template v-else>
+                            <button
+                                v-if="addingEntry"
+                                type="button"
+                                disabled
+                                class="btn btn-primary"
+                                @click="ok"
+                            >
+                                Adding
+                                <span
+                                    class="spinner-border spinner-border-sm"
+                                    role="status"
+                                    aria-hidden="true"
+                                ></span>
+                                <span class="visually-hidden">Loading...</span>
+                            </button>
+                            <button
+                                v-else
+                                type="button"
+                                class="btn btn-primary"
+                                @click="ok"
+                            >
+                                Add Entry
+                            </button>
+                        </template>
                     </template>
-                    <template v-else>
-                        <button v-if="addingEntry" type="button" disabled class="btn btn-primary" @click="ok">
-                            Adding <span class="spinner-border spinner-border-sm" role="status"
-                                aria-hidden="true"></span>
-                            <span class="visually-hidden">Loading...</span>
-                        </button>
-                        <button v-else type="button" class="btn btn-primary" @click="ok">
-                            Add Entry
-                        </button>
-                    </template>
-                </template>
-            </div>
+                </div>
+            </template>
         </modal>
     </div>
 </template>

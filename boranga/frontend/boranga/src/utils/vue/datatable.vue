@@ -1,42 +1,54 @@
 <template lang="html">
     <div id="DataTable">
-        <table class="hover table border table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%"
-            :id="id">
+        <table
+            :id="id"
+            class="hover table border table-striped table-bordered dt-responsive nowrap"
+            cellspacing="0"
+            width="100%"
+        >
             <thead>
                 <tr>
-                    <th :data-class="(i == 0) ? 'expand' : null" v-for="(header, i) in dtHeaders"> {{ header }}</th>
+                    <th
+                        v-for="(header, i) in dtHeaders"
+                        :data-class="i == 0 ? 'expand' : null"
+                    >
+                        {{ header }}
+                    </th>
                 </tr>
             </thead>
-            <tbody>
-            </tbody>
+            <tbody></tbody>
         </table>
     </div>
 </template>
 <script>
-
 export default {
     name: 'DataTable',
     props: {
         dtHeaders: {
             type: Array,
-            required: true
+            required: true,
         },
         dtOptions: {
             type: Object,
-            required: true
+            required: true,
         },
         id: {
-            required: true
-        }
+            required: true,
+        },
     },
     data: function () {
         return {
             table: null,
             vmDataTable: null,
-        }
+        };
     },
-    computed: {
-
+    computed: {},
+    mounted: function () {
+        let vm = this;
+        vm.table = $('#' + vm.id);
+        //$.fn.dataTable.ext.errMode = 'throw';
+        //$.fn.dataTable.ext.classes.sPageButton = 'page-link page-item';
+        vm.initEvents();
     },
     methods: {
         initEvents: function () {
@@ -45,22 +57,15 @@ export default {
             var breakpointDefinition = {
                 //bootstrap grid values
                 tablet: 992,
-                phone: 768
+                phone: 768,
             };
-            var options = Object.assign(vm.dtOptions)
+            var options = Object.assign(vm.dtOptions);
             vm.vmDataTable = $(vm.table).DataTable(options);
             $(vm.table).resize(function (e) {
                 vm.vmDataTable.draw(true);
             });
-        }
+        },
     },
-    mounted: function () {
-        let vm = this;
-        vm.table = $('#' + vm.id);
-        //$.fn.dataTable.ext.errMode = 'throw';
-        //$.fn.dataTable.ext.classes.sPageButton = 'page-link page-item';
-        vm.initEvents();
-    }
 };
 </script>
 
@@ -69,7 +74,7 @@ div.dataTables_processing div {
     display: none;
 }
 
-td>a {
+td > a {
     border: none;
     border-radius: 2px;
     position: relative;
@@ -78,9 +83,18 @@ td>a {
     font-weight: 500;
     letter-spacing: 0;
     will-change: box-shadow, transform;
-    -webkit-transition: -webkit-box-shadow 0.2s cubic-bezier(0.4, 0, 1, 1), background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    -o-transition: box-shadow 0.2s cubic-bezier(0.4, 0, 1, 1), background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    transition: box-shadow 0.2s cubic-bezier(0.4, 0, 1, 1), background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-transition:
+        -webkit-box-shadow 0.2s cubic-bezier(0.4, 0, 1, 1),
+        background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    -o-transition:
+        box-shadow 0.2s cubic-bezier(0.4, 0, 1, 1),
+        background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+        box-shadow 0.2s cubic-bezier(0.4, 0, 1, 1),
+        background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     outline: 0;
     cursor: pointer;
     text-decoration: none;
@@ -120,41 +134,43 @@ table.dataTable thead .sorting_asc {
     cursor: pointer;
 }
 
-table.collapsed>tbody>tr>td>span.responsiveExpander,
-table.has-columns-hidden>tbody>tr>td>span.responsiveExpander {
-    background: url("https://raw.githubusercontent.com/Comanche/datatables-responsive/master/files/1.10/img/plus.png") no-repeat 5px center;
+table.collapsed > tbody > tr > td > span.responsiveExpander,
+table.has-columns-hidden > tbody > tr > td > span.responsiveExpander {
+    background: url('https://raw.githubusercontent.com/Comanche/datatables-responsive/master/files/1.10/img/plus.png')
+        no-repeat 5px center;
     padding-left: 32px;
     cursor: pointer;
 }
 
-table.collapsed>tbody>tr.parent>td span.responsiveExpander,
-table.has-columns-hidden>tbody>tr.detail-show>td span.responsiveExpander {
-    background: url("https://raw.githubusercontent.com/Comanche/datatables-responsive/master/files/1.10/img/minus.png") no-repeat 5px center;
+table.collapsed > tbody > tr.parent > td span.responsiveExpander,
+table.has-columns-hidden > tbody > tr.detail-show > td span.responsiveExpander {
+    background: url('https://raw.githubusercontent.com/Comanche/datatables-responsive/master/files/1.10/img/minus.png')
+        no-repeat 5px center;
 }
 
-table.collapsed>tbody>tr>td.child,
-table.has-columns-hidden>tbody>tr>td.child {
+table.collapsed > tbody > tr > td.child,
+table.has-columns-hidden > tbody > tr > td.child {
     background: #eee;
 }
 
-table.collapsed>tbody>tr>td>ul,
-table.has-columns-hidden>tbody>tr>td>ul {
+table.collapsed > tbody > tr > td > ul,
+table.has-columns-hidden > tbody > tr > td > ul {
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-table.collapsed>tbody>tr>td>ul>li>span.dtr-title,
-table.has-columns-hidden>tbody>tr>td>ul>li>span.columnTitle {
+table.collapsed > tbody > tr > td > ul > li > span.dtr-title,
+table.has-columns-hidden > tbody > tr > td > ul > li > span.columnTitle {
     font-weight: bold;
 }
 
-.table>tbody>tr>td,
-.table>tbody>tr>th,
-.table>tfoot>tr>td,
-.table>tfoot>tr>th,
-.table>thead>tr>td,
-.table>thead>tr>th {
+.table > tbody > tr > td,
+.table > tbody > tr > th,
+.table > tfoot > tr > td,
+.table > tfoot > tr > th,
+.table > thead > tr > td,
+.table > thead > tr > th {
     vertical-align: middle;
 }
 
@@ -174,7 +190,6 @@ div.dataTables_length select {
 }
 
 @media screen and (max-width: 767px) {
-
     div.dataTables_length,
     div.dataTables_info {
         float: left;

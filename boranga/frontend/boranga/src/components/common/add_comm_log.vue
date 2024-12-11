@@ -1,39 +1,76 @@
 <template lang="html">
     <div id="AddComms">
-        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" title="Communication Log - Add Entry" large>
+        <modal
+            transition="modal fade"
+            title="Communication Log - Add Entry"
+            large
+            @ok="ok()"
+            @cancel="cancel()"
+        >
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="commsForm">
-                        <alert v-if="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="showError" type="danger"
+                            ><strong>{{ errorString }}</strong></alert
+                        >
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left" for="Name">To</label>
+                                        <label
+                                            class="control-label pull-left"
+                                            for="Name"
+                                            >To</label
+                                        >
                                     </div>
                                     <div class="col-sm-4">
-                                        <input type="text" class="form-control" ref="to" name="to" v-model="comms.to">
+                                        <input
+                                            ref="to"
+                                            v-model="comms.to"
+                                            type="text"
+                                            class="form-control"
+                                            name="to"
+                                        />
                                     </div>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left" for="Name">From</label>
+                                        <label
+                                            class="control-label pull-left"
+                                            for="Name"
+                                            >From</label
+                                        >
                                     </div>
                                     <div class="col-sm-4">
-                                        <input type="text" class="form-control" name="fromm" v-model="comms.fromm">
+                                        <input
+                                            v-model="comms.fromm"
+                                            type="text"
+                                            class="form-control"
+                                            name="fromm"
+                                        />
                                     </div>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left" for="Name">Type</label>
+                                        <label
+                                            class="control-label pull-left"
+                                            for="Name"
+                                            >Type</label
+                                        >
                                     </div>
                                     <div class="col-sm-4">
-                                        <select class="form-select" name="type" v-model="comms.type">
-                                            <option value="">Select Type</option>
+                                        <select
+                                            v-model="comms.type"
+                                            class="form-select"
+                                            name="type"
+                                        >
+                                            <option value="">
+                                                Select Type
+                                            </option>
                                             <option value="email">Email</option>
                                             <option value="mail">Mail</option>
                                             <option value="phone">Phone</option>
@@ -44,57 +81,133 @@
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left" for="Name">Subject/Description</label>
+                                        <label
+                                            class="control-label pull-left"
+                                            for="Name"
+                                            >Subject/Description</label
+                                        >
                                     </div>
                                     <div class="col-sm-9">
-                                        <input type="text" class="form-control" name="subject" style="width:70%;"
-                                            v-model="comms.subject">
+                                        <input
+                                            v-model="comms.subject"
+                                            type="text"
+                                            class="form-control"
+                                            name="subject"
+                                            style="width: 70%"
+                                        />
                                     </div>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left" for="Name">Text</label>
+                                        <label
+                                            class="control-label pull-left"
+                                            for="Name"
+                                            >Text</label
+                                        >
                                     </div>
                                     <div class="col-sm-9">
-                                        <textarea name="text" class="form-control" style="width:70%;"
-                                            v-model="comms.text"></textarea>
+                                        <textarea
+                                            v-model="comms.text"
+                                            name="text"
+                                            class="form-control"
+                                            style="width: 70%"
+                                        ></textarea>
                                     </div>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left" for="Name">Attachments</label>
+                                        <label
+                                            class="control-label pull-left"
+                                            for="Name"
+                                            >Attachments</label
+                                        >
                                     </div>
                                     <div class="col-sm-9">
                                         <template v-for="(f, i) in files">
-                                            <div :class="'row top-buffer file-row-' + i">
+                                            <div
+                                                :class="
+                                                    'row top-buffer file-row-' +
+                                                    i
+                                                "
+                                            >
                                                 <div class="col-sm-3">
-                                                    <span v-if="f.file == null"
-                                                        class="btn btn-primary btn-file pull-left">
-                                                        Attach File <input type="file" :name="'file-upload-' + i"
-                                                            :class="'file-upload-' + i"
-                                                            @change="uploadFile('file-upload-' + i, f)" />
+                                                    <span
+                                                        v-if="f.file == null"
+                                                        class="btn btn-primary btn-file pull-left"
+                                                    >
+                                                        Attach File
+                                                        <input
+                                                            type="file"
+                                                            :name="
+                                                                'file-upload-' +
+                                                                i
+                                                            "
+                                                            :class="
+                                                                'file-upload-' +
+                                                                i
+                                                            "
+                                                            @change="
+                                                                uploadFile(
+                                                                    'file-upload-' +
+                                                                        i,
+                                                                    f
+                                                                )
+                                                            "
+                                                        />
                                                     </span>
-                                                    <span v-else class="btn btn-primary btn-file pull-left">
-                                                        Update File <input type="file" :name="'file-upload-' + i"
-                                                            :class="'file-upload-' + i"
-                                                            @change="uploadFile('file-upload-' + i, f)" />
+                                                    <span
+                                                        v-else
+                                                        class="btn btn-primary btn-file pull-left"
+                                                    >
+                                                        Update File
+                                                        <input
+                                                            type="file"
+                                                            :name="
+                                                                'file-upload-' +
+                                                                i
+                                                            "
+                                                            :class="
+                                                                'file-upload-' +
+                                                                i
+                                                            "
+                                                            @change="
+                                                                uploadFile(
+                                                                    'file-upload-' +
+                                                                        i,
+                                                                    f
+                                                                )
+                                                            "
+                                                        />
                                                     </span>
                                                 </div>
-                                                <div class="col-sm-6 truncate-text">
+                                                <div
+                                                    class="col-sm-6 truncate-text"
+                                                >
                                                     <span>{{ f.name }}</span>
                                                 </div>
                                                 <div class="col-sm-3">
-                                                    <a href="" @click.prevent="removeFile(i)"
-                                                        style="color: red;">Remove</a>
+                                                    <a
+                                                        href=""
+                                                        style="color: red"
+                                                        @click.prevent="
+                                                            removeFile(i)
+                                                        "
+                                                        >Remove</a
+                                                    >
                                                 </div>
                                             </div>
                                         </template>
-                                        <a href="" @click.prevent="attachAnother"><i
-                                                class="fa fa-lg fa-plus top-buffer-2x"></i></a>
+                                        <a
+                                            href=""
+                                            @click.prevent="attachAnother"
+                                            ><i
+                                                class="fa fa-lg fa-plus top-buffer-2x"
+                                            ></i
+                                        ></a>
                                     </div>
                                 </div>
                             </div>
@@ -107,20 +220,20 @@
 </template>
 
 <script>
-import modal from '@vue-utils/bootstrap-modal.vue'
-import alert from '@vue-utils/alert.vue'
-import { helpers } from "@/utils/hooks.js"
+import modal from '@vue-utils/bootstrap-modal.vue';
+import alert from '@vue-utils/alert.vue';
+import { helpers } from '@/utils/hooks.js';
 export default {
-    name: 'Add-Comms',
+    name: 'AddComms',
     components: {
         modal,
-        alert
+        alert,
     },
     props: {
         url: {
             type: String,
-            required: true
-        }
+            required: true,
+        },
     },
     data: function () {
         let vm = this;
@@ -140,15 +253,15 @@ export default {
                 showClear: true,
                 useCurrent: false,
                 keepInvalid: true,
-                allowInputToggle: true
+                allowInputToggle: true,
             },
             files: [
                 {
-                    'file': null,
-                    'name': ''
-                }
-            ]
-        }
+                    file: null,
+                    name: '',
+                },
+            ],
+        };
     },
     computed: {
         showError: function () {
@@ -162,9 +275,13 @@ export default {
             if (val) {
                 vm.$nextTick(function () {
                     vm.$refs.to.focus();
-                })
+                });
             }
-        }
+        },
+    },
+    mounted: function () {
+        let vm = this;
+        vm.form = document.forms.commsForm;
     },
     methods: {
         ok: function () {
@@ -198,12 +315,12 @@ export default {
         },
         attachAnother() {
             this.files.push({
-                'file': null,
-                'name': ''
-            })
+                file: null,
+                name: '',
+            });
         },
         cancel: function () {
-            this.close()
+            this.close();
         },
         close: function () {
             let vm = this;
@@ -225,59 +342,59 @@ export default {
             vm.errors = false;
             let comms = new FormData(vm.form);
             vm.addingComms = true;
-            fetch(vm.url,
-                {
-                    method: 'POST',
-                    body: comms,
-                    'Content-Type': 'application/json',
+            fetch(vm.url, {
+                method: 'POST',
+                body: comms,
+                'Content-Type': 'application/json',
+            }).then(
+                (response) => {
+                    vm.addingComms = false;
+                    vm.close();
+                },
+                (error) => {
+                    vm.errors = true;
+                    vm.addingComms = false;
+                    vm.errorString = helpers.apiVueResourceError(error);
                 }
-            ).then((response) => {
-                vm.addingComms = false;
-                vm.close();
-            }, (error) => {
-                vm.errors = true;
-                vm.addingComms = false;
-                vm.errorString = helpers.apiVueResourceError(error);
-            });
+            );
         },
         addFormValidations: function () {
             let vm = this;
             vm.validation_form = $(vm.form).validate({
                 rules: {
-                    to: "required",
-                    fromm: "required",
-                    type: "required",
-                    subject: "required",
-                    text: "required",
+                    to: 'required',
+                    fromm: 'required',
+                    type: 'required',
+                    subject: 'required',
+                    text: 'required',
                 },
-                messages: {
-                },
+                messages: {},
                 showErrors: function (errorMap, errorList) {
                     $.each(this.validElements(), function (index, element) {
                         var $element = $(element);
-                        $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
+                        $element
+                            .attr('data-original-title', '')
+                            .parents('.form-group')
+                            .removeClass('has-error');
                     });
                     // destroy tooltips on valid elements
-                    $("." + this.settings.validClass).tooltip("destroy");
+                    $('.' + this.settings.validClass).tooltip('destroy');
                     // add or update tooltips
                     for (var i = 0; i < errorList.length; i++) {
                         var error = errorList[i];
                         $(error.element)
                             .tooltip({
-                                trigger: "focus"
+                                trigger: 'focus',
                             })
-                            .attr("data-original-title", error.message)
-                            .parents('.form-group').addClass('has-error');
+                            .attr('data-original-title', error.message)
+                            .parents('.form-group')
+                            .addClass('has-error');
                     }
-                }
+                },
             });
         },
     },
-    mounted: function () {
-        let vm = this;
-        vm.form = document.forms.commsForm;
-    }
-}
+};
 </script>
 
 <style lang="css">
@@ -286,7 +403,7 @@ export default {
     overflow: hidden;
 }
 
-.btn-file input[type=file] {
+.btn-file input[type='file'] {
     position: absolute;
     top: 0;
     right: 0;
@@ -310,7 +427,7 @@ export default {
     margin-top: 10px;
 }
 
-input[type=text],
+input[type='text'],
 select {
     padding: 0.375rem 2.25rem 0.375rem 0.75rem;
 }
@@ -322,7 +439,7 @@ select {
     display: block;
 }
 
-input[type=text],
+input[type='text'],
 select {
     width: 100%;
     padding: 0.375rem 2.25rem 0.375rem 0.75rem;

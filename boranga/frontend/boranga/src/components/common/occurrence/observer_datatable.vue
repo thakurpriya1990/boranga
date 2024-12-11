@@ -1,58 +1,75 @@
 <template lang="html">
     <div id="observerTable">
         <div v-if="!isReadOnly" class="row mb-3">
-            <label for="" class="col-sm-3 control-label fw-bold">Observation Details: <span class="text-danger">*</span></label>
+            <label for="" class="col-sm-3 control-label fw-bold"
+                >Observation Details: <span class="text-danger">*</span></label
+            >
             <div class="col-sm-9 text-end">
-                <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 "
-                    @click.prevent="newObserverDetail">
+                <button
+                    :disabled="isReadOnly"
+                    type="button"
+                    class="btn btn-primary mb-2"
+                    @click.prevent="newObserverDetail"
+                >
                     <i class="fa-solid fa-circle-plus"></i>
                     Add Observer
                 </button>
             </div>
         </div>
         <div class="row mb-3">
-            <datatable ref="observer_detail_datatable" id="observerDetailTable" :dtOptions="observer_detail_options"
-                :dtHeaders="observer_detail_headers" />
+            <datatable
+                id="observerDetailTable"
+                ref="observer_detail_datatable"
+                :dt-options="observer_detail_options"
+                :dt-headers="observer_detail_headers"
+            />
         </div>
-        <ObserverDetail v-if="occurrence_report_obj" ref="observer_detail" @refreshFromResponse="refreshFromResponse"
-            :url="observer_detail_url" :occurrence_report="occurrence_report_obj">
+        <ObserverDetail
+            v-if="occurrence_report_obj"
+            ref="observer_detail"
+            :url="observer_detail_url"
+            :occurrence_report="occurrence_report_obj"
+            @refresh-from-response="refreshFromResponse"
+        >
         </ObserverDetail>
         <div v-if="ocrObserverDetailHistoryId">
-            <OCRObserverDetailHistory ref="ocr_observer_detail_history" :key="ocrObserverDetailHistoryId"
-                :observer-id="ocrObserverDetailHistoryId" />
+            <OCRObserverDetailHistory
+                ref="ocr_observer_detail_history"
+                :key="ocrObserverDetailHistoryId"
+                :observer-id="ocrObserverDetailHistoryId"
+            />
         </div>
     </div>
 </template>
 <script>
-;
 import datatable from '@vue-utils/datatable.vue';
-import ObserverDetail from './add_observer_detail.vue'
+import ObserverDetail from './add_observer_detail.vue';
 import OCRObserverDetailHistory from '../../internal/occurrence/ocr_observer_detail_history.vue';
-import {
-    constants,
-    api_endpoints,
-    helpers,
-}
-    from '@/utils/hooks'
+import { constants, api_endpoints, helpers } from '@/utils/hooks';
 
 export default {
     name: 'ObserverTable',
+    components: {
+        datatable,
+        ObserverDetail,
+        OCRObserverDetailHistory,
+    },
     props: {
         occurrence_report_obj: {
             type: Object,
-            required: true
+            required: true,
         },
         is_external: {
             type: Boolean,
-            default: false
+            default: false,
         },
         isReadOnly: {
             type: Boolean,
-            default: true
+            default: true,
         },
         show_observer_contact_information: {
             type: Boolean,
-            default: true
+            default: true,
         },
     },
     emits: ['refreshOccurrenceReport'],
@@ -60,12 +77,12 @@ export default {
         let vm = this;
         let columns = [
             {
-                data: "observer_name",
+                data: 'observer_name',
                 orderable: true,
                 searchable: true,
             },
             {
-                data: "contact",
+                data: 'contact',
                 orderable: true,
                 searchable: true,
                 mRender: function (data, type, full) {
@@ -75,25 +92,25 @@ export default {
                 },
             },
             {
-                data: "role",
+                data: 'role',
                 orderable: true,
                 searchable: true,
             },
             {
-                data: "organisation",
+                data: 'organisation',
                 orderable: true,
                 searchable: true,
             },
             {
-                data: "main_observer",
+                data: 'main_observer',
                 orderable: true,
                 searchable: true,
                 render: function (data, type, full) {
                     return full.main_observer ? 'Yes' : 'No';
-                }
+                },
             },
             {
-                data: "id",
+                data: 'id',
                 mRender: function (data, type, full) {
                     let links = '';
                     if (full.visible) {
@@ -106,38 +123,61 @@ export default {
                     } else if (!vm.isReadOnly) {
                         links += `<a href='#' data-reinstate-observer_det='${full.id}'>Reinstate</a><br>`;
                     }
-                    if(full.can_action && !vm.is_external){
+                    if (full.can_action && !vm.is_external) {
                         links += `<a href='#' data-history-observer='${full.id}'>History</a><br>`;
                     }
                     return links;
-                }
+                },
             },
-        ]
+        ];
         if (!vm.show_observer_contact_information) {
             columns.splice(1, 1);
         }
         return {
             ocrObserverDetailHistoryId: null,
             observer_detail_url: api_endpoints.observer_detail,
-            observer_detail_headers: vm.show_observer_contact_information ? ['Contact Name', 'Contact Detail', 'Observer Role', 'Organisation', 'Main Observer', 'Action'] : ['Contact Name', 'Observer Role', 'Organisation', 'Main Observer', 'Action'],
+            observer_detail_headers: vm.show_observer_contact_information
+                ? [
+                      'Contact Name',
+                      'Contact Detail',
+                      'Observer Role',
+                      'Organisation',
+                      'Main Observer',
+                      'Action',
+                  ]
+                : [
+                      'Contact Name',
+                      'Observer Role',
+                      'Organisation',
+                      'Main Observer',
+                      'Action',
+                  ],
             observer_detail_options: {
                 autowidth: false,
                 language: {
-                    processing: constants.DATATABLE_PROCESSING_HTML
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 searching: true,
                 //  to show the "workflow Status","Action" columns always in the last position
                 columnDefs: [
                     { responsivePriority: 1, targets: 0 },
-                    { responsivePriority: 2, className: 'actions', targets: -1 },
+                    {
+                        responsivePriority: 2,
+                        className: 'actions',
+                        targets: -1,
+                    },
                 ],
                 ajax: {
-                    "url": helpers.add_endpoint_json(api_endpoints.occurrence_report, vm.occurrence_report_obj.id + '/observer_details'),
-                    "dataSrc": ''
+                    url: helpers.add_endpoint_json(
+                        api_endpoints.occurrence_report,
+                        vm.occurrence_report_obj.id + '/observer_details'
+                    ),
+                    dataSrc: '',
                 },
                 order: [],
-                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                dom:
+                    "<'d-flex align-items-center'<'me-auto'l>fB>" +
                     "<'row'<'col-sm-12'tr>>" +
                     "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons: [
@@ -147,8 +187,8 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> Excel',
                         className: 'btn btn-primary me-2 rounded',
                         exportOptions: {
-                            orthogonal: 'export'
-                        }
+                            orthogonal: 'export',
+                        },
                     },
                     {
                         extend: 'csv',
@@ -156,15 +196,17 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> CSV',
                         className: 'btn btn-primary rounded',
                         exportOptions: {
-                            orthogonal: 'export'
-                        }
+                            orthogonal: 'export',
+                        },
                     },
                 ],
                 columns: columns,
                 processing: true,
                 rowCallback: function (row, data, index) {
                     if (!data.visible) {
-                        $(row).children('td:not(.actions)').addClass('text-decoration-line-through');
+                        $(row)
+                            .children('td:not(.actions)')
+                            .addClass('text-decoration-line-through');
                     }
                 },
                 drawCallback: function () {
@@ -177,51 +219,75 @@ export default {
                         vm.adjust_table_width();
                     }, 100);
                 },
-            }
-        }
-    },
-    components: {
-        datatable,
-        ObserverDetail,
-        OCRObserverDetailHistory,
+            },
+        };
     },
     watch: {
         isReadOnly: function (newVal, oldVal) {
             this.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
-        }
+        },
+    },
+    mounted: function () {
+        let vm = this;
+        this.$nextTick(() => {
+            vm.eventListeners();
+        });
     },
     methods: {
         eventListeners: function () {
             let vm = this;
-            vm.$refs.observer_detail_datatable.vmDataTable.on('click', 'a[data-edit-observer_det]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-edit-observer_det');
-                vm.editObserverDetail(id);
-            });
-            vm.$refs.observer_detail_datatable.vmDataTable.on('click', 'a[data-view-observer_det]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-view-observer_det');
-                vm.viewObserverDetail(id);
-            });
+            vm.$refs.observer_detail_datatable.vmDataTable.on(
+                'click',
+                'a[data-edit-observer_det]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-edit-observer_det');
+                    vm.editObserverDetail(id);
+                }
+            );
+            vm.$refs.observer_detail_datatable.vmDataTable.on(
+                'click',
+                'a[data-view-observer_det]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-view-observer_det');
+                    vm.viewObserverDetail(id);
+                }
+            );
             // External Discard listener
-            vm.$refs.observer_detail_datatable.vmDataTable.on('click', 'a[data-delete-observer_det]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-delete-observer_det');
-                vm.deleteObserverDetail(id);
-            });
-            vm.$refs.observer_detail_datatable.vmDataTable.on('click', 'a[data-reinstate-observer_det]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-reinstate-observer_det');
-                vm.reinstateObserverDetail(id);
-            });
-            vm.$refs.observer_detail_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
-                helpers.enablePopovers();
-            });
-            vm.$refs.observer_detail_datatable.vmDataTable.on('click', 'a[data-history-observer]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-history-observer');
-                vm.historyObserverDetail(id);
-            });
+            vm.$refs.observer_detail_datatable.vmDataTable.on(
+                'click',
+                'a[data-delete-observer_det]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-delete-observer_det');
+                    vm.deleteObserverDetail(id);
+                }
+            );
+            vm.$refs.observer_detail_datatable.vmDataTable.on(
+                'click',
+                'a[data-reinstate-observer_det]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-reinstate-observer_det');
+                    vm.reinstateObserverDetail(id);
+                }
+            );
+            vm.$refs.observer_detail_datatable.vmDataTable.on(
+                'childRow.dt',
+                function (e, settings) {
+                    helpers.enablePopovers();
+                }
+            );
+            vm.$refs.observer_detail_datatable.vmDataTable.on(
+                'click',
+                'a[data-history-observer]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-history-observer');
+                    vm.historyObserverDetail(id);
+                }
+            );
         },
         refreshFromResponse: function () {
             let vm = this;
@@ -229,7 +295,11 @@ export default {
         },
         adjust_table_width: function () {
             let vm = this;
-            if (vm.$refs.observer_detail_datatable !== undefined) { vm.$refs.observer_detail_datatable.vmDataTable.columns.adjust().responsive.recalc(); }
+            if (vm.$refs.observer_detail_datatable !== undefined) {
+                vm.$refs.observer_detail_datatable.vmDataTable.columns
+                    .adjust()
+                    .responsive.recalc();
+            }
         },
         newObserverDetail: function () {
             let vm = this;
@@ -242,40 +312,50 @@ export default {
                 contact: '',
                 organisation: '',
                 main_observer: false,
-            }
+            };
             this.$refs.observer_detail.observerObj = new_observer_detail;
             this.$refs.observer_detail.observer_detail_action = 'add';
             this.$refs.observer_detail.isModalOpen = true;
         },
         editObserverDetail: async function (id) {
             this.$refs.observer_detail.observer_detail_action = 'edit';
-            await fetch(helpers.add_endpoint_json(api_endpoints.observer_detail, id)).then(async (response) => {
-                this.$refs.observer_detail.observerObj = await response.json();
-                this.$refs.observer_detail.observerObj.id = id;
-            },
-                err => {
+            await fetch(
+                helpers.add_endpoint_json(api_endpoints.observer_detail, id)
+            ).then(
+                async (response) => {
+                    this.$refs.observer_detail.observerObj =
+                        await response.json();
+                    this.$refs.observer_detail.observerObj.id = id;
+                },
+                (err) => {
                     console.log(err);
-                });
+                }
+            );
             this.$refs.observer_detail.isModalOpen = true;
         },
         viewObserverDetail: async function (id) {
             this.$refs.observer_detail.observer_detail_id = id;
             this.$refs.observer_detail.observer_detail_action = 'view';
-            await fetch(helpers.add_endpoint_json(api_endpoints.observer_detail, id)).then(async (response) => {
-                this.$refs.observer_detail.observerObj = await response.json();
-                this.$refs.observer_detail.observerObj.id = id;
-            },
-                err => {
+            await fetch(
+                helpers.add_endpoint_json(api_endpoints.observer_detail, id)
+            ).then(
+                async (response) => {
+                    this.$refs.observer_detail.observerObj =
+                        await response.json();
+                    this.$refs.observer_detail.observerObj.id = id;
+                },
+                (err) => {
                     console.log(err);
-                });
+                }
+            );
             this.$refs.observer_detail.isModalOpen = true;
         },
         deleteObserverDetail: function (id) {
             let vm = this;
             swal.fire({
-                title: "Discard Observer",
-                text: "Are you sure you want to discard this Observer?",
-                icon: "question",
+                title: 'Discard Observer',
+                text: 'Are you sure you want to discard this Observer?',
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Discard Observer',
                 customClass: {
@@ -283,42 +363,60 @@ export default {
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    fetch(helpers.add_endpoint_json(api_endpoints.observer_detail, id + '/discard'), {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json', }
-                    })
-                        .then((response) => {
-                            swal.fire({
-                                title: 'Discarded',
-                                text: 'The Observer has been discarded',
-                                icon: 'success',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
-                                },
-                            }).then((result) => {
-                                vm.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
-                                vm.$emit('refreshOccurrenceReport');
-                                if (vm.occurrence_report_obj.processing_status == "Unlocked") {
-                                    vm.$router.go();
-                                }
-                            });
-                        }, (error) => {
-                            console.log(error);
-                        });
-                }
-            }, (error) => {
-
-            });
+            }).then(
+                (result) => {
+                    if (result.isConfirmed) {
+                        fetch(
+                            helpers.add_endpoint_json(
+                                api_endpoints.observer_detail,
+                                id + '/discard'
+                            ),
+                            {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                            }
+                        ).then(
+                            (response) => {
+                                swal.fire({
+                                    title: 'Discarded',
+                                    text: 'The Observer has been discarded',
+                                    icon: 'success',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                }).then((result) => {
+                                    vm.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
+                                    vm.$emit('refreshOccurrenceReport');
+                                    if (
+                                        vm.occurrence_report_obj
+                                            .processing_status == 'Unlocked'
+                                    ) {
+                                        vm.$router.go();
+                                    }
+                                });
+                            },
+                            (error) => {
+                                console.log(error);
+                            }
+                        );
+                    }
+                },
+                (error) => {}
+            );
         },
         reinstateObserverDetail: function (id) {
             let vm = this;
-            fetch(helpers.add_endpoint_json(api_endpoints.observer_detail, id + '/reinstate'), {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json', }
-                    })
-                .then((response) => {
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.observer_detail,
+                    id + '/reinstate'
+                ),
+                {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                }
+            ).then(
+                (response) => {
                     swal.fire({
                         title: 'Reinstated',
                         text: 'The Observer has been reinstated',
@@ -329,11 +427,15 @@ export default {
                     }).then((result) => {
                         vm.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
                         vm.$emit('refreshOccurrenceReport');
-                        if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+                        if (
+                            vm.occurrence_report_obj.processing_status ==
+                            'Unlocked'
+                        ) {
                             vm.$router.go();
                         }
                     });
-                }, (error) => {
+                },
+                (error) => {
                     var errorText = helpers.apiVueResourceError(error);
                     swal.fire({
                         title: 'Error',
@@ -343,13 +445,14 @@ export default {
                             confirmButton: 'btn btn-primary',
                         },
                     });
-                });
+                }
+            );
         },
         updatedObserverDetails() {
             let vm = this;
             this.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
             vm.$emit('refreshOccurrenceReport');
-            if (vm.occurrence_report_obj.processing_status == "Unlocked") {
+            if (vm.occurrence_report_obj.processing_status == 'Unlocked') {
                 vm.$router.go();
             }
         },
@@ -360,11 +463,5 @@ export default {
             });
         },
     },
-    mounted: function () {
-        let vm = this;
-        this.$nextTick(() => {
-            vm.eventListeners();
-        });
-    },
-}
+};
 </script>

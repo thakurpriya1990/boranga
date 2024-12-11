@@ -1,29 +1,58 @@
 <template id="occurrence-fauna-dashboard">
     <div>
-        <CollapsibleFilters component_title="Filters" ref="collapsible_filters" @created="collapsible_component_mounted"
-            class="mb-2">
+        <CollapsibleFilters
+            ref="collapsible_filters"
+            component_title="Filters"
+            class="mb-2"
+            @created="collapsible_component_mounted"
+        >
             <div class="row">
                 <div class="col-md-4">
-                    <div class="form-group" id="occurrence_name_lookup_form_group_id">
-                        <label for="occurrence_name_lookup">Name of Occurrence:</label>
-                        <select id="occurrence_name_lookup" name="occurrence_name_lookup" ref="occurrence_name_lookup"
-                            class="form-control" />
+                    <div
+                        id="occurrence_name_lookup_form_group_id"
+                        class="form-group"
+                    >
+                        <label for="occurrence_name_lookup"
+                            >Name of Occurrence:</label
+                        >
+                        <select
+                            id="occurrence_name_lookup"
+                            ref="occurrence_name_lookup"
+                            name="occurrence_name_lookup"
+                            class="form-control"
+                        />
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="form-group" id="select_scientific_name_by_groupname_occ">
-                        <label for="occ_scientific_name_lookup_by_groupname">Scientific Name:</label>
-                        <select id="occ_scientific_name_lookup_by_groupname"
-                            name="occ_scientific_name_lookup_by_groupname" ref="occ_scientific_name_lookup_by_groupname"
-                            class="form-control" />
+                    <div
+                        id="select_scientific_name_by_groupname_occ"
+                        class="form-group"
+                    >
+                        <label for="occ_scientific_name_lookup_by_groupname"
+                            >Scientific Name:</label
+                        >
+                        <select
+                            id="occ_scientific_name_lookup_by_groupname"
+                            ref="occ_scientific_name_lookup_by_groupname"
+                            name="occ_scientific_name_lookup_by_groupname"
+                            class="form-control"
+                        />
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="form-group" id="select_status">
+                    <div id="select_status" class="form-group">
                         <label for="">Status:</label>
-                        <select class="form-select" v-model="filterOCCFaunaStatus">
+                        <select
+                            v-model="filterOCCFaunaStatus"
+                            class="form-select"
+                        >
                             <option value="all">All</option>
-                            <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
+                            <option
+                                v-for="status in proposal_status"
+                                :value="status.value"
+                            >
+                                {{ status.name }}
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -32,39 +61,50 @@
 
         <div v-if="show_add_button" class="col-md-12">
             <div class="text-end">
-                <button type="button" class="btn btn-primary mb-2 " @click.prevent="createFaunaOccurrence"><i
-                        class="fa-solid fa-circle-plus"></i> Add Fauna Occurrence</button>
+                <button
+                    type="button"
+                    class="btn btn-primary mb-2"
+                    @click.prevent="createFaunaOccurrence"
+                >
+                    <i class="fa-solid fa-circle-plus"></i> Add Fauna Occurrence
+                </button>
             </div>
         </div>
 
         <div class="row">
             <div class="col-lg-12">
-                <datatable ref="fauna_occ_datatable" :id="datatable_id" :dtOptions="datatable_options"
-                    :dtHeaders="datatable_headers" />
+                <datatable
+                    :id="datatable_id"
+                    ref="fauna_occ_datatable"
+                    :dt-options="datatable_options"
+                    :dt-headers="datatable_headers"
+                />
             </div>
         </div>
         <div v-if="occurrenceHistoryId">
-            <OccurrenceHistory ref="occurrence_history" :key="occurrenceHistoryId"
-                :occurrence-id="occurrenceHistoryId" />
+            <OccurrenceHistory
+                ref="occurrence_history"
+                :key="occurrenceHistoryId"
+                :occurrence-id="occurrenceHistoryId"
+            />
         </div>
     </div>
 </template>
 <script>
-
-
-import datatable from '@/utils/vue/datatable.vue'
-import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
-import FormSection from '@/components/forms/section_toggle.vue'
+import datatable from '@/utils/vue/datatable.vue';
+import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
+import FormSection from '@/components/forms/section_toggle.vue';
 import OccurrenceHistory from '../internal/occurrence/species_occurrence_history.vue';
 
-
-import {
-    api_endpoints,
-    constants,
-    helpers
-} from '@/utils/hooks'
+import { api_endpoints, constants, helpers } from '@/utils/hooks';
 export default {
     name: 'OccurrenceFaunaDashboard',
+    components: {
+        datatable,
+        CollapsibleFilters,
+        FormSection,
+        OccurrenceHistory,
+    },
     props: {
         level: {
             type: String,
@@ -72,29 +112,29 @@ export default {
             validator: function (val) {
                 let options = ['internal', 'external'];
                 return options.indexOf(val) != -1 ? true : false;
-            }
+            },
         },
         group_type_name: {
             type: String,
-            required: true
+            required: true,
         },
         group_type_id: {
             type: Number,
             required: true,
-            default: 0
+            default: 0,
         },
         url: {
             type: String,
-            required: true
+            required: true,
         },
         profile: {
             type: Object,
-            default: null
+            default: null,
         },
         // for adding agendaitems for the meeting_obj.id
         meeting_obj: {
             type: Object,
-            required: false
+            required: false,
         },
         filterOCCFaunaOccurrenceName_cache: {
             type: String,
@@ -130,19 +170,38 @@ export default {
             datatable_id: 'occurrence-fauna-datatable-' + vm._uid,
 
             // selected values for filtering
-            filterOCCFaunaOccurrenceName: sessionStorage.getItem(this.filterOCCFaunaOccurrenceName_cache) ?
-                sessionStorage.getItem(this.filterOCCFaunaOccurrenceName_cache) : 'all',
+            filterOCCFaunaOccurrenceName: sessionStorage.getItem(
+                this.filterOCCFaunaOccurrenceName_cache
+            )
+                ? sessionStorage.getItem(
+                      this.filterOCCFaunaOccurrenceName_cache
+                  )
+                : 'all',
 
-            filterOCCFaunaScientificName: sessionStorage.getItem(this.filterOCCFaunaScientificName_cache) ?
-                sessionStorage.getItem(this.filterOCCFaunaScientificName_cache) : 'all',
+            filterOCCFaunaScientificName: sessionStorage.getItem(
+                this.filterOCCFaunaScientificName_cache
+            )
+                ? sessionStorage.getItem(
+                      this.filterOCCFaunaScientificName_cache
+                  )
+                : 'all',
 
-            filterOCCFaunaStatus: sessionStorage.getItem(this.filterOCCFaunaStatus_cache) ?
-                sessionStorage.getItem(this.filterOCCFaunaStatus_cache) : 'all',
+            filterOCCFaunaStatus: sessionStorage.getItem(
+                this.filterOCCFaunaStatus_cache
+            )
+                ? sessionStorage.getItem(this.filterOCCFaunaStatus_cache)
+                : 'all',
 
-            filterOCCFromFaunaDueDate: sessionStorage.getItem(this.filterOCCFromFaunaDueDate_cache) ?
-                sessionStorage.getItem(this.filterOCCFromFaunaDueDate_cache) : '',
-            filterOCCToFaunaDueDate: sessionStorage.getItem(this.filterOCCToFaunaDueDate_cache) ?
-                sessionStorage.getItem(this.filterOCCToFaunaDueDate_cache) : '',
+            filterOCCFromFaunaDueDate: sessionStorage.getItem(
+                this.filterOCCFromFaunaDueDate_cache
+            )
+                ? sessionStorage.getItem(this.filterOCCFromFaunaDueDate_cache)
+                : '',
+            filterOCCToFaunaDueDate: sessionStorage.getItem(
+                this.filterOCCToFaunaDueDate_cache
+            )
+                ? sessionStorage.getItem(this.filterOCCToFaunaDueDate_cache)
+                : '',
 
             filterListsSpecies: {},
             occurrence_list: [],
@@ -161,67 +220,35 @@ export default {
             ],
 
             proposal_status: [],
-        }
-    },
-    components: {
-        datatable,
-        CollapsibleFilters,
-        FormSection,
-        OccurrenceHistory,
-    },
-    watch: {
-        filterOCCFaunaOccurrenceName: function () {
-            let vm = this;
-            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCCFaunaOccurrenceName_cache, vm.filterOCCFaunaOccurrenceName);
-        },
-        filterOCCFaunaScientificName: function () {
-            let vm = this;
-            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCCFaunaScientificName_cache, vm.filterOCCFaunaScientificName);
-        },
-        filterOCCFaunaStatus: function () {
-            let vm = this;
-            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCCFaunaStatus_cache, vm.filterOCCFaunaStatus);
-        },
-        filterApplied: function () {
-            if (this.$refs.collapsible_filters) {
-                // Collapsible component exists
-                this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
-            }
-        },
-        filterOCCFromFaunaDueDate: function () {
-            let vm = this;
-            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCCFromFaunaDueDate_cache, vm.filterOCCFromFaunaDueDate);
-        },
-        filterOCCToFaunaDueDate: function () {
-            let vm = this;
-            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCCToFaunaDueDate_cache, vm.filterOCCToFaunaDueDate);
-        },
+        };
     },
     computed: {
         show_add_button: function () {
-            return this.profile && this.profile.groups.includes(constants.GROUPS.OCCURRENCE_APPROVERS);
+            return (
+                this.profile &&
+                this.profile.groups.includes(
+                    constants.GROUPS.OCCURRENCE_APPROVERS
+                )
+            );
         },
         filterApplied: function () {
-            if (this.filterOCCFaunaOccurrenceName === 'all' &&
+            if (
+                this.filterOCCFaunaOccurrenceName === 'all' &&
                 this.filterOCCFaunaScientificName === 'all' &&
                 this.filterOCCFaunaStatus === 'all' &&
                 this.filterOCCFromFaunaDueDate === '' &&
-                this.filterOCCToFaunaDueDate === '') {
-                return false
+                this.filterOCCToFaunaDueDate === ''
+            ) {
+                return false;
             } else {
-                return true
+                return true;
             }
         },
         is_external: function () {
             return this.level == 'external';
         },
         is_internal: function () {
-            return this.level == 'internal'
+            return this.level == 'internal';
         },
         addFaunaOCCVisibility: function () {
             let visibility = false;
@@ -232,109 +259,120 @@ export default {
         },
         datatable_headers: function () {
             if (this.is_internal) {
-                return ['ID', 'Number', 'Name of Occurrence', 'Scientific Name', 'Wild Status', 'Number of Reports', 'Migrated From ID', 'Review Due', 'Status', 'Action']
+                return [
+                    'ID',
+                    'Number',
+                    'Name of Occurrence',
+                    'Scientific Name',
+                    'Wild Status',
+                    'Number of Reports',
+                    'Migrated From ID',
+                    'Review Due',
+                    'Status',
+                    'Action',
+                ];
             }
         },
         column_id: function () {
             return {
-                data: "id",
+                data: 'id',
                 orderable: true,
                 searchable: false,
                 visible: false,
-            }
+            };
         },
         column_number: function () {
             return {
-                data: "occurrence_number",
+                data: 'occurrence_number',
                 orderable: true,
                 searchable: true,
                 visible: true,
-            }
+            };
         },
         column_occurrence_name: function () {
             return {
-                data: "occurrence_name",
+                data: 'occurrence_name',
                 orderable: true,
                 searchable: true,
                 visible: true,
-                name: "occurrence_name",
-                'render': function (data, type, full) {
+                name: 'occurrence_name',
+                render: function (data, type, full) {
                     if (full.occurrence_name) {
                         let value = full.occurrence_name;
                         let result = helpers.dtPopover(value, 30, 'hover');
                         return type == 'export' ? value : result;
                     }
-                    return ''
+                    return '';
                 },
-            }
+            };
         },
         column_scientific_name: function () {
             return {
-                data: "scientific_name",
+                data: 'scientific_name',
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function (data, type, full) {
+                render: function (data, type, full) {
                     if (full.scientific_name) {
                         let value = full.scientific_name;
                         let result = helpers.dtPopover(value, 30, 'hover');
                         return type == 'export' ? value : result;
                     }
-                    return ''
+                    return '';
                 },
-                name: "species__taxonomy__scientific_name",
-            }
+                name: 'species__taxonomy__scientific_name',
+            };
         },
         column_wild_status: function () {
             return {
-                data: "wild_status",
+                data: 'wild_status',
                 orderable: true,
                 searchable: true,
                 visible: true,
-                name: "wild_status__name",
-            }
+                name: 'wild_status__name',
+            };
         },
         column_number_of_reports: function () {
             return {
-                data: "number_of_reports",
+                data: 'number_of_reports',
                 orderable: false,
                 searchable: false,
-            }
+            };
         },
         column_migrated_from_id: function () {
             return {
-                data: "migrated_from_id",
+                data: 'migrated_from_id',
                 orderable: false,
                 searchable: true,
-            }
+            };
         },
         column_review_due_date: function () {
             return {
-                data: "review_due_date",
+                data: 'review_due_date',
                 orderable: true,
                 searchable: true,
                 visible: true,
-                name: "review_due_date",
-            }
+                name: 'review_due_date',
+            };
         },
         column_status: function () {
             return {
-                data: "processing_status_display",
+                data: 'processing_status_display',
                 orderable: true,
                 searchable: true,
                 visible: true,
-                name: "processing_status",
-            }
+                name: 'processing_status',
+            };
         },
         column_action: function () {
-            let vm = this
+            let vm = this;
             return {
-                data: "id",
+                data: 'id',
                 orderable: false,
                 searchable: false,
                 visible: true,
-                'render': function (data, type, full) {
-                    let links = "";
+                render: function (data, type, full) {
+                    let links = '';
                     if (vm.is_internal) {
                         if (full.can_user_edit) {
                             if (full.processing_status == 'discarded') {
@@ -352,14 +390,14 @@ export default {
                         links += `<a href='#' data-history-occurrence='${full.id}'>History</a><br>`;
                     }
                     return links;
-                }
-            }
+                },
+            };
         },
         datatable_options: function () {
-            let vm = this
+            let vm = this;
 
-            let columns = []
-            let search = null
+            let columns = [];
+            let search = null;
             let buttons = [
                 {
                     extend: 'excel',
@@ -368,7 +406,7 @@ export default {
                     className: 'btn btn-primary me-2 rounded',
                     exportOptions: {
                         columns: ':not(.no-export)',
-                    }
+                    },
                 },
                 {
                     extend: 'csv',
@@ -377,9 +415,9 @@ export default {
                     className: 'btn btn-primary rounded',
                     exportOptions: {
                         columns: ':not(.no-export)',
-                    }
-                }
-            ]
+                    },
+                },
+            ];
             if (vm.is_internal) {
                 columns = [
                     vm.column_id,
@@ -392,44 +430,52 @@ export default {
                     vm.column_review_due_date,
                     vm.column_status,
                     vm.column_action,
-                ]
-                search = true
+                ];
+                search = true;
             }
 
             return {
                 autoWidth: false,
                 language: {
-                    processing: constants.DATATABLE_PROCESSING_HTML
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
-                order: [
-                    [0, 'desc']
+                order: [[0, 'desc']],
+                lengthMenu: [
+                    [10, 25, 50, 100, 100000000],
+                    [10, 25, 50, 100, 'All'],
                 ],
-                lengthMenu: [[10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"]],
                 responsive: true,
                 serverSide: true,
                 searching: search,
                 //  to show the "workflow Status","Action" columns always in the last position
                 columnDefs: [
                     { responsivePriority: 1, targets: 1 },
-                    { responsivePriority: 3, targets: -1, className: 'no-export' },
-                    { responsivePriority: 2, targets: -2 }
+                    {
+                        responsivePriority: 3,
+                        targets: -1,
+                        className: 'no-export',
+                    },
+                    { responsivePriority: 2, targets: -2 },
                 ],
                 ajax: {
-                    "url": this.url,
-                    "dataSrc": 'data',
+                    url: this.url,
+                    dataSrc: 'data',
 
                     // adding extra GET params for Custom filtering
-                    "data": function (d) {
+                    data: function (d) {
                         d.filter_group_type = vm.group_type_name;
-                        d.filter_occurrence_name = vm.filterOCCFaunaOccurrenceName;
-                        d.filter_scientific_name = vm.filterOCCFaunaScientificName;
+                        d.filter_occurrence_name =
+                            vm.filterOCCFaunaOccurrenceName;
+                        d.filter_scientific_name =
+                            vm.filterOCCFaunaScientificName;
                         d.filter_status = vm.filterOCCFaunaStatus;
                         d.filter_from_due_date = vm.filterOCCFromFaunaDueDate;
                         d.filter_to_due_date = vm.filterOCCToFaunaDueDate;
                         d.is_internal = vm.is_internal;
-                    }
+                    },
                 },
-                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                dom:
+                    "<'d-flex align-items-center'<'me-auto'l>fB>" +
                     "<'row'<'col-sm-12'tr>>" +
                     "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons: buttons,
@@ -441,9 +487,118 @@ export default {
                 initComplete: function () {
                     helpers.enablePopovers();
                 },
+            };
+        },
+    },
+    watch: {
+        filterOCCFaunaOccurrenceName: function () {
+            let vm = this;
+            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(
+                helpers.enablePopovers,
+                false
+            ); // This calls ajax() backend call.
+            sessionStorage.setItem(
+                vm.filterOCCFaunaOccurrenceName_cache,
+                vm.filterOCCFaunaOccurrenceName
+            );
+        },
+        filterOCCFaunaScientificName: function () {
+            let vm = this;
+            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(
+                helpers.enablePopovers,
+                false
+            ); // This calls ajax() backend call.
+            sessionStorage.setItem(
+                vm.filterOCCFaunaScientificName_cache,
+                vm.filterOCCFaunaScientificName
+            );
+        },
+        filterOCCFaunaStatus: function () {
+            let vm = this;
+            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(
+                helpers.enablePopovers,
+                false
+            ); // This calls ajax() backend call.
+            sessionStorage.setItem(
+                vm.filterOCCFaunaStatus_cache,
+                vm.filterOCCFaunaStatus
+            );
+        },
+        filterApplied: function () {
+            if (this.$refs.collapsible_filters) {
+                // Collapsible component exists
+                this.$refs.collapsible_filters.show_warning_icon(
+                    this.filterApplied
+                );
             }
-        }
+        },
+        filterOCCFromFaunaDueDate: function () {
+            let vm = this;
+            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(
+                helpers.enablePopovers,
+                false
+            ); // This calls ajax() backend call.
+            sessionStorage.setItem(
+                vm.filterOCCFromFaunaDueDate_cache,
+                vm.filterOCCFromFaunaDueDate
+            );
+        },
+        filterOCCToFaunaDueDate: function () {
+            let vm = this;
+            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(
+                helpers.enablePopovers,
+                false
+            ); // This calls ajax() backend call.
+            sessionStorage.setItem(
+                vm.filterOCCToFaunaDueDate_cache,
+                vm.filterOCCToFaunaDueDate
+            );
+        },
+    },
 
+    mounted: function () {
+        this.fetchFilterLists();
+        let vm = this;
+        $('a[data-toggle="collapse"]').on('click', function () {
+            var chev = $(this).children()[0];
+            window.setTimeout(function () {
+                $(chev).toggleClass(
+                    'glyphicon-chevron-down glyphicon-chevron-up'
+                );
+            }, 100);
+        });
+        this.$nextTick(() => {
+            vm.initialiseOccurrenceLookupName();
+            vm.initialiseScientificNameLookup();
+            vm.addEventListeners();
+
+            if (
+                sessionStorage.getItem('filterOCCFaunaOccurrenceName') !=
+                    'all' &&
+                sessionStorage.getItem('filterOCCFaunaOccurrenceName') != null
+            ) {
+                var newOption = new Option(
+                    sessionStorage.getItem('filterOCCFaunaOccurrenceNameText'),
+                    vm.filterOCCFaunaOccurrenceName,
+                    false,
+                    true
+                );
+                $('#occ_occurrence_lookup').append(newOption);
+            }
+            if (
+                sessionStorage.getItem('filterOCCFaunaScientificName') !=
+                    'all' &&
+                sessionStorage.getItem('filterOCCFaunaScientificName') != null
+            ) {
+                var newOption = new Option(
+                    sessionStorage.getItem('filterOCCFaunaScientificNameText'),
+                    vm.filterOCCFaunaScientificName,
+                    false,
+                    true
+                );
+                $('#occ_scientific_name_lookup_by_groupname').append(newOption);
+            }
+        });
     },
     methods: {
         historyDocument: function (id) {
@@ -454,104 +609,138 @@ export default {
             });
         },
         collapsible_component_mounted: function () {
-            this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
+            this.$refs.collapsible_filters.show_warning_icon(
+                this.filterApplied
+            );
         },
         initialiseOccurrenceLookupName: function () {
             let vm = this;
-            $(vm.$refs.occurrence_name_lookup).select2({
-                minimumInputLength: 2,
-                dropdownParent: $("#occurrence_name_lookup_form_group_id"),
-                "theme": "bootstrap-5",
-                allowClear: true,
-                placeholder: "Select Occurrence Name",
-                ajax: {
-                    url: api_endpoints.occurrence_name_lookup,
-                    dataType: 'json',
-                    data: function (params) {
-                        var query = {
-                            term: params.term,
-                            type: 'public',
-                            group_type_id: vm.group_type_id,
-                        }
-                        return query;
+            $(vm.$refs.occurrence_name_lookup)
+                .select2({
+                    minimumInputLength: 2,
+                    dropdownParent: $('#occurrence_name_lookup_form_group_id'),
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: 'Select Occurrence Name',
+                    ajax: {
+                        url: api_endpoints.occurrence_name_lookup,
+                        dataType: 'json',
+                        data: function (params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.group_type_id,
+                            };
+                            return query;
+                        },
                     },
-                },
-            }).
-                on("select2:select", function (e) {
+                })
+                .on('select2:select', function (e) {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.text;
                     vm.filterOCCFaunaOccurrenceName = data;
-                    sessionStorage.setItem("filterOCCFaunaOccurrenceNameText", e.params.data.text);
-                }).
-                on("select2:unselect", function (e) {
+                    sessionStorage.setItem(
+                        'filterOCCFaunaOccurrenceNameText',
+                        e.params.data.text
+                    );
+                })
+                .on('select2:unselect', function (e) {
                     var selected = $(e.currentTarget);
                     vm.filterOCCFaunaOccurrenceName = 'all';
-                    sessionStorage.setItem("filterOCCFaunaOccurrenceNameText", '');
-                }).
-                on("select2:open", function (e) {
-                    const searchField = $('[aria-controls="select2-occurrence_name_lookup-results"]')
+                    sessionStorage.setItem(
+                        'filterOCCFaunaOccurrenceNameText',
+                        ''
+                    );
+                })
+                .on('select2:open', function (e) {
+                    const searchField = $(
+                        '[aria-controls="select2-occurrence_name_lookup-results"]'
+                    );
                     searchField[0].focus();
                 });
         },
         initialiseScientificNameLookup: function () {
             let vm = this;
-            $(vm.$refs.occ_scientific_name_lookup_by_groupname).select2({
-                minimumInputLength: 2,
-                dropdownParent: $("#select_scientific_name_by_groupname_occ"),
-                theme: 'bootstrap-5',
-                allowClear: true,
-                placeholder: "Select Scientific Name",
-                ajax: {
-                    url: api_endpoints.scientific_name_lookup,
-                    dataType: 'json',
-                    data: function (params) {
-                        var query = {
-                            term: params.term,
-                            type: 'public',
-                            group_type_id: vm.group_type_id,
-                        }
-                        return query;
+            $(vm.$refs.occ_scientific_name_lookup_by_groupname)
+                .select2({
+                    minimumInputLength: 2,
+                    dropdownParent: $(
+                        '#select_scientific_name_by_groupname_occ'
+                    ),
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: 'Select Scientific Name',
+                    ajax: {
+                        url: api_endpoints.scientific_name_lookup,
+                        dataType: 'json',
+                        data: function (params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.group_type_id,
+                            };
+                            return query;
+                        },
                     },
-                },
-            }).
-                on("select2:select", function (e) {
+                })
+                .on('select2:select', function (e) {
                     var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterOCCFaunaScientificName = data;
-                    sessionStorage.setItem("filterOCCFaunaScientificNameText", e.params.data.text);
-                }).
-                on("select2:unselect", function (e) {
+                    sessionStorage.setItem(
+                        'filterOCCFaunaScientificNameText',
+                        e.params.data.text
+                    );
+                })
+                .on('select2:unselect', function (e) {
                     var selected = $(e.currentTarget);
                     vm.filterOCCFaunaScientificName = 'all';
-                    sessionStorage.setItem("filterOCCFaunaScientificNameText", '');
-                }).
-                on("select2:open", function (e) {
-                    const searchField = $('[aria-controls="select2-occ_scientific_name_lookup_by_groupname-results"]')
+                    sessionStorage.setItem(
+                        'filterOCCFaunaScientificNameText',
+                        ''
+                    );
+                })
+                .on('select2:open', function (e) {
+                    const searchField = $(
+                        '[aria-controls="select2-occ_scientific_name_lookup_by_groupname-results"]'
+                    );
                     searchField[0].focus();
                 });
         },
         fetchFilterLists: function () {
             let vm = this;
             //large FilterList of Species Values object
-            fetch(api_endpoints.filter_lists_species + '?group_type_name=' + vm.group_type_name).then(async (response) => {
-                vm.filterListsSpecies = await response.json();
-                vm.occurrence_list = vm.filterListsSpecies.occurrence_list;
-                vm.scientific_name_list = vm.filterListsSpecies.scientific_name_list;
-                vm.status_list = vm.filterListsSpecies.status_list;
-                vm.submissions_from_list = vm.filterListsSpecies.submissions_from_list;
-                vm.submissions_to_list = vm.filterListsSpecies.submissions_to_list;
-                vm.proposal_status = vm.internal_status.slice().sort((a, b) => {
-                    return a.name.trim().localeCompare(b.name.trim());
-                });
-            }, (error) => {
-                console.log(error);
-            })
+            fetch(
+                api_endpoints.filter_lists_species +
+                    '?group_type_name=' +
+                    vm.group_type_name
+            ).then(
+                async (response) => {
+                    vm.filterListsSpecies = await response.json();
+                    vm.occurrence_list = vm.filterListsSpecies.occurrence_list;
+                    vm.scientific_name_list =
+                        vm.filterListsSpecies.scientific_name_list;
+                    vm.status_list = vm.filterListsSpecies.status_list;
+                    vm.submissions_from_list =
+                        vm.filterListsSpecies.submissions_from_list;
+                    vm.submissions_to_list =
+                        vm.filterListsSpecies.submissions_to_list;
+                    vm.proposal_status = vm.internal_status
+                        .slice()
+                        .sort((a, b) => {
+                            return a.name.trim().localeCompare(b.name.trim());
+                        });
+                },
+                (error) => {
+                    console.log(error);
+                }
+            );
         },
         createFaunaOccurrence: async function () {
             swal.fire({
                 title: `Add ${this.group_type_name} Occurrence`,
-                text: "Are you sure you want to add a new fauna occurrence?",
-                icon: "question",
+                text: 'Are you sure you want to add a new fauna occurrence?',
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Add Occurrence',
                 reverseButtons: true,
@@ -561,12 +750,12 @@ export default {
                 },
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
-                    let newFaunaOCRId = null
+                    let newFaunaOCRId = null;
                     try {
                         const createUrl = api_endpoints.occurrence;
                         let payload = new Object();
-                        payload.group_type_id = this.group_type_id
-                        payload.internal_application = true
+                        payload.group_type_id = this.group_type_id;
+                        payload.internal_application = true;
                         let response = await fetch(createUrl, {
                             method: 'POST',
                             headers: {
@@ -578,8 +767,7 @@ export default {
                         if (data) {
                             newFaunaOCRId = data.id;
                         }
-                    }
-                    catch (err) {
+                    } catch (err) {
                         console.log(err);
                         if (this.is_internal) {
                             return err;
@@ -595,9 +783,9 @@ export default {
         discardOCC: function (occurrence_id) {
             let vm = this;
             swal.fire({
-                title: "Discard Occurrence",
-                text: "Are you sure you want to discard this occurrence?",
-                icon: "question",
+                title: 'Discard Occurrence',
+                text: 'Are you sure you want to discard this occurrence?',
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Discard Occurrence',
                 customClass: {
@@ -605,36 +793,47 @@ export default {
                     cancelButton: 'btn btn-secondary',
                 },
                 reverseButtons: true,
-            }).then((swalresult) => {
-                if (swalresult.isConfirmed) {
-                    fetch(api_endpoints.discard_occ_proposal(occurrence_id), {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json', }
-                    })
-                        .then((response) => {
-                            swal.fire({
-                                title: 'Discarded',
-                                text: 'Your report has been discarded',
-                                icon: 'success',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
-                                },
-                            });
-                            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
-                        }, (error) => {
-                            console.log(error);
-                        });
+            }).then(
+                (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        fetch(
+                            api_endpoints.discard_occ_proposal(occurrence_id),
+                            {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                            }
+                        ).then(
+                            (response) => {
+                                swal.fire({
+                                    title: 'Discarded',
+                                    text: 'Your report has been discarded',
+                                    icon: 'success',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(
+                                    helpers.enablePopovers,
+                                    false
+                                );
+                            },
+                            (error) => {
+                                console.log(error);
+                            }
+                        );
+                    }
+                },
+                (error) => {
+                    console.log(error);
                 }
-            }, (error) => {
-                console.log(error);
-            });
+            );
         },
         reinstateOCC: function (occurrence_id) {
             let vm = this;
             swal.fire({
-                title: "Reinstate Occurrence",
-                text: "Are you sure you want to reinstate this occurrence?",
-                icon: "question",
+                title: 'Reinstate Occurrence',
+                text: 'Are you sure you want to reinstate this occurrence?',
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Reinstate Occurrence',
                 customClass: {
@@ -642,77 +841,78 @@ export default {
                     cancelButton: 'btn btn-secondary',
                 },
                 reverseButtons: true,
-            }).then((swalresult) => {
-                if (swalresult.isConfirmed) {
-                    fetch(api_endpoints.reinstate_occ_proposal(occurrence_id), {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json', }
-                    })
-                        .then((response) => {
-                            swal.fire({
-                                title: 'Reinstated',
-                                text: 'Your report has been reinstated',
-                                icon: 'success',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
-                                },
-                            });
-                            vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
-                        }, (error) => {
-                            console.log(error);
-                        });
+            }).then(
+                (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        fetch(
+                            api_endpoints.reinstate_occ_proposal(occurrence_id),
+                            {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                            }
+                        ).then(
+                            (response) => {
+                                swal.fire({
+                                    title: 'Reinstated',
+                                    text: 'Your report has been reinstated',
+                                    icon: 'success',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                vm.$refs.fauna_occ_datatable.vmDataTable.ajax.reload(
+                                    helpers.enablePopovers,
+                                    false
+                                );
+                            },
+                            (error) => {
+                                console.log(error);
+                            }
+                        );
+                    }
+                },
+                (error) => {
+                    console.log(error);
                 }
-            }, (error) => {
-                console.log(error);
-            });
+            );
         },
         addEventListeners: function () {
             let vm = this;
             // internal Discard listener
-            vm.$refs.fauna_occ_datatable.vmDataTable.on('click', 'a[data-discard-occ-proposal]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-discard-occ-proposal');
-                vm.discardOCC(id);
-            });
-            vm.$refs.fauna_occ_datatable.vmDataTable.on('click', 'a[data-reinstate-occ-proposal]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-reinstate-occ-proposal');
-                vm.reinstateOCC(id);
-            });
-            vm.$refs.fauna_occ_datatable.vmDataTable.on('click', 'a[data-history-occurrence]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-history-occurrence');
-                vm.historyDocument(id);
-            });
-            vm.$refs.fauna_occ_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
-                helpers.enablePopovers();
-            });
+            vm.$refs.fauna_occ_datatable.vmDataTable.on(
+                'click',
+                'a[data-discard-occ-proposal]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-discard-occ-proposal');
+                    vm.discardOCC(id);
+                }
+            );
+            vm.$refs.fauna_occ_datatable.vmDataTable.on(
+                'click',
+                'a[data-reinstate-occ-proposal]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-reinstate-occ-proposal');
+                    vm.reinstateOCC(id);
+                }
+            );
+            vm.$refs.fauna_occ_datatable.vmDataTable.on(
+                'click',
+                'a[data-history-occurrence]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-history-occurrence');
+                    vm.historyDocument(id);
+                }
+            );
+            vm.$refs.fauna_occ_datatable.vmDataTable.on(
+                'childRow.dt',
+                function (e, settings) {
+                    helpers.enablePopovers();
+                }
+            );
         },
     },
-
-    mounted: function () {
-        this.fetchFilterLists();
-        let vm = this;
-        $('a[data-toggle="collapse"]').on('click', function () {
-            var chev = $(this).children()[0];
-            window.setTimeout(function () {
-                $(chev).toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
-            }, 100);
-        });
-        this.$nextTick(() => {
-            vm.initialiseOccurrenceLookupName();
-            vm.initialiseScientificNameLookup();
-            vm.addEventListeners();
-
-            if (sessionStorage.getItem("filterOCCFaunaOccurrenceName") != 'all' && sessionStorage.getItem("filterOCCFaunaOccurrenceName") != null) {
-                var newOption = new Option(sessionStorage.getItem("filterOCCFaunaOccurrenceNameText"), vm.filterOCCFaunaOccurrenceName, false, true);
-                $('#occ_occurrence_lookup').append(newOption);
-            }
-            if (sessionStorage.getItem("filterOCCFaunaScientificName") != 'all' && sessionStorage.getItem("filterOCCFaunaScientificName") != null) {
-                var newOption = new Option(sessionStorage.getItem("filterOCCFaunaScientificNameText"), vm.filterOCCFaunaScientificName, false, true);
-                $('#occ_scientific_name_lookup_by_groupname').append(newOption);
-            }
-        });
-    }
-}
+};
 </script>

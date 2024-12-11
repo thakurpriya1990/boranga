@@ -2,37 +2,53 @@
     <div id="displayHistory">
         <modal
             transition="modal fade"
-            :title="primary_model + ' ' + primary_model_number + ' History - Revision ' + revision_sequence"
+            :title="
+                primary_model +
+                ' ' +
+                primary_model_number +
+                ' History - Revision ' +
+                revision_sequence
+            "
             :large="true"
             :full="true"
-            :showOK="false"
+            :show-o-k="false"
             cancel-text="Close"
-            @cancel="close()">
-
+            @cancel="close()"
+        >
             <div>
-            <div v-if="revision_sequence > 0">
-                <strong>Modified By:</strong> {{ revision_user }}
-            </div>
-            <div v-else="revision_sequence > 0">
-                <strong>Created By:</strong> {{ revision_user }}
-            </div>
-            <div v-if="revision_sequence > 0">
-                <strong>Date Modified:</strong> {{ revision_date }}
-            </div>
-            <div v-else="revision_sequence > 0">
-                <strong>Date Created:</strong> {{ revision_date }}
-            </div>
-            <!--<div v-for="(data, itemObjKey) in version_data">
+                <div v-if="revision_sequence > 0">
+                    <strong>Modified By:</strong> {{ revision_user }}
+                </div>
+                <div v-else="revision_sequence > 0">
+                    <strong>Created By:</strong> {{ revision_user }}
+                </div>
+                <div v-if="revision_sequence > 0">
+                    <strong>Date Modified:</strong> {{ revision_date }}
+                </div>
+                <div v-else="revision_sequence > 0">
+                    <strong>Date Created:</strong> {{ revision_date }}
+                </div>
+                <!--<div v-for="(data, itemObjKey) in version_data">
                 <strong>{{itemObjKey}}:</strong> <textarea class="form-control">{{ JSON.stringify(data, null, '\t') }}</textarea>
             </div>-->
-            <div>
-                <label for="checkbox" class="control-label"><strong>Show Null Fields:&nbsp;</strong></label>
-                <input type="checkbox" class="form-check-input" id="checkbox" v-model="showNullFields" v-on:change="formatHistoryData()"/>
-            </div>
-            <div>
-            <strong>Data:</strong>
-            </div>
-            <textarea disabled class="form-control" rows="25">{{ JSON.stringify(version_data_formatted, null, '\t') }}</textarea>
+                <div>
+                    <label for="checkbox" class="control-label"
+                        ><strong>Show Null Fields:&nbsp;</strong></label
+                    >
+                    <input
+                        id="checkbox"
+                        v-model="showNullFields"
+                        type="checkbox"
+                        class="form-check-input"
+                        @change="formatHistoryData()"
+                    />
+                </div>
+                <div>
+                    <strong>Data:</strong>
+                </div>
+                <textarea disabled class="form-control" rows="25">{{
+                    JSON.stringify(version_data_formatted, null, '\t')
+                }}</textarea>
             </div>
 
             <!--<div v-for="(data, itemObjKey) in version_data">
@@ -86,33 +102,30 @@
 <script>
 import modal from '@vue-utils/bootstrap-modal.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
-import {
-  api_endpoints,
-}
-from '@/utils/hooks'
+import { api_endpoints } from '@/utils/hooks';
 
 export default {
-    name:'DisplayHistory',
+    name: 'DisplayHistory',
     components: {
         modal,
         FormSection,
     },
-    props:{
-        primary_model:{
+    props: {
+        primary_model: {
             type: String,
-            required:true
+            required: true,
         },
-        primary_model_number:{
+        primary_model_number: {
             type: String,
-            required:true
+            required: true,
         },
-        revision_id:{
+        revision_id: {
             type: Number,
-            required:true
+            required: true,
         },
-        revision_sequence:{
+        revision_sequence: {
             type: Number,
-            required:true
+            required: true,
         },
     },
 
@@ -127,8 +140,14 @@ export default {
             showNullFields: false,
         };
     },
+    mounted: function () {
+        let vm = this;
+        this.$nextTick(() => {
+            vm.fetchHistoryData();
+        });
+    },
 
-    methods:{
+    methods: {
         close: function () {
             this.errorString = '';
             this.isModalOpen = false;
@@ -138,84 +157,93 @@ export default {
             let vm = this;
             const result = {};
             for (const key in values) {
-                if (values[key] !== null && values[key] !== undefined && (typeof values[key]!=='string' && (values[key].isArray || typeof values[key]==='object'))) {
+                if (
+                    values[key] !== null &&
+                    values[key] !== undefined &&
+                    typeof values[key] !== 'string' &&
+                    (values[key].isArray || typeof values[key] === 'object')
+                ) {
                     let subResult = vm.removeNullValues(values[key]);
                     if (Object.keys(subResult).length > 0) {
                         result[key] = subResult;
                     }
-                }
-                else if (values[key] !== null && values[key] !== undefined && values[key] !== "") {
+                } else if (
+                    values[key] !== null &&
+                    values[key] !== undefined &&
+                    values[key] !== ''
+                ) {
                     result[key] = values[key];
                 }
             }
             return result;
         },
-        formatHistoryData: function() {
+        formatHistoryData: function () {
             let vm = this;
-            if (this.showNullFields)
-            {
+            if (this.showNullFields) {
                 vm.version_data_formatted = vm.version_data;
-            }
-            else
-            {
-                vm.version_data_formatted = vm.removeNullValues(vm.version_data);
+            } else {
+                vm.version_data_formatted = vm.removeNullValues(
+                    vm.version_data
+                );
             }
         },
-        fetchHistoryData: function(){
+        fetchHistoryData: function () {
             let vm = this;
-            fetch(api_endpoints.lookup_revision_versions(vm.primary_model,vm.revision_id))
-            .then(async (response) => {
-                const data = await response.json();
-                vm.revision_date = data['date_created'];
-                vm.revision_user = data['revision_user'];
-                vm.version_data = data['version_data'];
-                vm.formatHistoryData();
-            },(error) => {
-                console.log(error);
-            })
+            fetch(
+                api_endpoints.lookup_revision_versions(
+                    vm.primary_model,
+                    vm.revision_id
+                )
+            ).then(
+                async (response) => {
+                    const data = await response.json();
+                    vm.revision_date = data['date_created'];
+                    vm.revision_user = data['revision_user'];
+                    vm.version_data = data['version_data'];
+                    vm.formatHistoryData();
+                },
+                (error) => {
+                    console.log(error);
+                }
+            );
         },
     },
-    mounted: function(){
-        let vm = this;
-        this.$nextTick(() => {
-            vm.fetchHistoryData();
-        });
-    },
-}
+};
 </script>
 
 <style lang="css" scoped>
-    /*ul, li {
+/*ul, li {
         zoom:1;
         display: inline;
     }*/
-    fieldset.scheduler-border {
+fieldset.scheduler-border {
     border: 1px groove #ddd !important;
     padding: 0 1.4em 1.4em 1.4em !important;
     margin: 0 0 1.5em 0 !important;
-    -webkit-box-shadow:  0px 0px 0px 0px #000;
-            box-shadow:  0px 0px 0px 0px #000;
-    }
-    legend.scheduler-border {
-    width:inherit; /* Or auto */
-    padding:0 10px; /* To give a bit of padding on the left and right */
-    border-bottom:none;
-    }
-    input[type=text], select {
-        width: 100%;
-        padding: 0.375rem 2.25rem 0.375rem 0.75rem;
-    }
-    input[type=number]{
-        width: 50%;
-    }
-    .interval-margin{
-       margin-right: -100px;
-    }
-    .interval-range-true-input{
-        width: 20%;
-        margin-left: -80px;
-    }
-    .interval-range-true-choice{
-        width: 20%;
-    }
+    -webkit-box-shadow: 0px 0px 0px 0px #000;
+    box-shadow: 0px 0px 0px 0px #000;
+}
+legend.scheduler-border {
+    width: inherit; /* Or auto */
+    padding: 0 10px; /* To give a bit of padding on the left and right */
+    border-bottom: none;
+}
+input[type='text'],
+select {
+    width: 100%;
+    padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+}
+input[type='number'] {
+    width: 50%;
+}
+.interval-margin {
+    margin-right: -100px;
+}
+.interval-range-true-input {
+    width: 20%;
+    margin-left: -80px;
+}
+.interval-range-true-choice {
+    width: 20%;
+}
 </style>

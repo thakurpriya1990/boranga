@@ -1,20 +1,45 @@
 <template lang="html">
     <div id="internal-conservation-status-proposal-back-to-assessor">
-        <modal id="back-to-assessor-modal" transition="modal fade" @ok="ok()" @cancel="close()"
-            :title="`Send CS${conservation_status_id} Back to Assessor`" okText="Back to Assessor" large>
+        <modal
+            id="back-to-assessor-modal"
+            transition="modal fade"
+            :title="`Send CS${conservation_status_id} Back to Assessor`"
+            ok-text="Back to Assessor"
+            large
+            @ok="ok()"
+            @cancel="close()"
+        >
             <div class="container-fluid">
                 <div class="row">
-                    <form class="form-horizontal needs-validation" id="back-to-assessor-form" name="back-to-assessor-form" novalidate>
-                        <alert v-if="errors" type="danger"><strong>{{ errors }}</strong></alert>
+                    <form
+                        id="back-to-assessor-form"
+                        class="form-horizontal needs-validation"
+                        name="back-to-assessor-form"
+                        novalidate
+                    >
+                        <alert v-if="errors" type="danger"
+                            ><strong>{{ errors }}</strong></alert
+                        >
                         <div class="col-sm-12">
                             <div class="row mb-3">
                                 <div class="col">
                                     <div class="form-group">
-                                        <label class="control-label mb-3" for="Name">Reason / Comments</label>
-                                        <textarea class="form-control" name="approver_comment" ref="approver_comment"
-                                            required v-model="approver_comment"></textarea>
+                                        <label
+                                            class="control-label mb-3"
+                                            for="Name"
+                                            >Reason / Comments</label
+                                        >
+                                        <textarea
+                                            ref="approver_comment"
+                                            v-model="approver_comment"
+                                            class="form-control"
+                                            name="approver_comment"
+                                            required
+                                        ></textarea>
                                         <div class="invalid-feedback">
-                                            Please enter the reason for sending the Conservation Status Proposal back to the Assessor.
+                                            Please enter the reason for sending
+                                            the Conservation Status Proposal
+                                            back to the Assessor.
                                         </div>
                                     </div>
                                 </div>
@@ -28,12 +53,12 @@
 </template>
 
 <script>
-import modal from '@vue-utils/bootstrap-modal.vue'
-import alert from '@vue-utils/alert.vue'
-import { helpers, api_endpoints } from "@/utils/hooks.js"
+import modal from '@vue-utils/bootstrap-modal.vue';
+import alert from '@vue-utils/alert.vue';
+import { helpers, api_endpoints } from '@/utils/hooks.js';
 
 export default {
-    name: 'back-to-assessor',
+    name: 'BackToAssessor',
     components: {
         modal,
         alert,
@@ -43,14 +68,14 @@ export default {
             type: Number,
         },
     },
+    emits: ['refreshFromResponse'],
     data: function () {
         return {
             approver_comment: null,
             isModalOpen: false,
             errors: null,
-        }
+        };
     },
-    emits: ['refreshFromResponse'],
     watch: {
         isModalOpen: function (val) {
             if (val) {
@@ -58,7 +83,7 @@ export default {
                     $(this.$refs.approver_comment).focus();
                 });
             }
-        }
+        },
     },
     methods: {
         ok: function () {
@@ -80,18 +105,28 @@ export default {
         backToAssessor: function () {
             let vm = this;
             vm.errors = null;
-            let data = { 'status': 'with_assessor', 'approver_comment': vm.approver_comment }
-            fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_id + '/switch_status')), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            })
-                .then((response) => {
+            let data = {
+                status: 'with_assessor',
+                approver_comment: vm.approver_comment,
+            };
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.conservation_status,
+                    vm.conservation_status_id + '/switch_status'
+                ),
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                }
+            ).then(
+                (response) => {
                     vm.$emit('refreshFromResponse', response);
                     this.close();
-                }, (error) => {
+                },
+                (error) => {
                     swal.fire({
                         title: 'Application Error',
                         text: helpers.apiVueResourceError(error),
@@ -100,8 +135,9 @@ export default {
                             confirmButton: 'btn btn-primary',
                         },
                     });
-                });
+                }
+            );
         },
     },
-}
+};
 </script>

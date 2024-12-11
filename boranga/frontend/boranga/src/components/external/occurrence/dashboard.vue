@@ -1,7 +1,7 @@
 <template>
-    <div class="container" id="externalOCRDash">
+    <div id="externalOCRDash" class="container">
         <FormSection
-            :formCollapse="false"
+            :form-collapse="false"
             :profile="profile"
             label="Occurrence Report"
             subtitle="- submit and view your reported occurrences"
@@ -12,8 +12,9 @@
                 :url="occurrence_report_url"
             />
         </FormSection>
-        <FormSection v-if="profile && profile.ocr_referral_count > 0"
-            :formCollapse="false"
+        <FormSection
+            v-if="profile && profile.ocr_referral_count > 0"
+            :form-collapse="false"
             label="Occurrence Reports Referred to Me"
             Index="ocr_referred_to_me"
         >
@@ -26,44 +27,46 @@
 </template>
 
 <script>
-import FormSection from "@/components/forms/section_toggle.vue"
-import OccurrenceReportTable from './occurrence_report_table.vue'
-import OccurrenceReportExternalReferralsDashboard from '@common-utils/ocr_external_referrals_dashboard.vue'
+import FormSection from '@/components/forms/section_toggle.vue';
+import OccurrenceReportTable from './occurrence_report_table.vue';
+import OccurrenceReportExternalReferralsDashboard from '@common-utils/ocr_external_referrals_dashboard.vue';
 
-import { api_endpoints } from '@/utils/hooks'
+import { api_endpoints } from '@/utils/hooks';
 
 export default {
     name: 'ExternalOccurrenceReportDashboard',
-    data() {
-        return {
-            profile: null,
-            occurrence_report_url: api_endpoints.occurrence_report_paginated_external,
-            ocr_external_referrals_url: api_endpoints.occurrence_report_paginated_referred_to_me,
-        }
-    },
-    components:{
+    components: {
         FormSection,
         OccurrenceReportTable,
         OccurrenceReportExternalReferralsDashboard,
     },
-    computed: {
-        is_external: function() {
-            return this.level == 'external'
-        },
+    data() {
+        return {
+            profile: null,
+            occurrence_report_url:
+                api_endpoints.occurrence_report_paginated_external,
+            ocr_external_referrals_url:
+                api_endpoints.occurrence_report_paginated_referred_to_me,
+        };
     },
-    methods: {
-        fetchProfile() {
-            fetch(api_endpoints.profile)
-                .then(async (response) => {
-                    this.profile = await response.json()
-                })
-                .catch(error => {
-                    console.log(error)
-                })
+    computed: {
+        is_external: function () {
+            return this.level == 'external';
         },
     },
     created: function () {
         this.fetchProfile();
     },
-}
+    methods: {
+        fetchProfile() {
+            fetch(api_endpoints.profile)
+                .then(async (response) => {
+                    this.profile = await response.json();
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        },
+    },
+};
 </script>

@@ -7,15 +7,24 @@
                         &nbsp;
                     </span>
                     <span v-else class="fa fa-file"> &nbsp; </span>
-                    <a :href="Object.hasOwn(v, 'secure_url')
-                            ? v.secure_url
-                            : v.file
-                        " target="_blank">
+                    <a
+                        :href="
+                            Object.hasOwn(v, 'secure_url')
+                                ? v.secure_url
+                                : v.file
+                        "
+                        target="_blank"
+                    >
                         {{ v.name }}
                     </a>
                     <span v-if="!readonly">
-                        &nbsp;<a class="bi bi-trash3" title="Remove file" :filename="v.name"
-                            style="cursor: pointer; color: red" @click="delete_document(v)"></a>
+                        &nbsp;<a
+                            class="bi bi-trash3"
+                            title="Remove file"
+                            :filename="v.name"
+                            style="cursor: pointer; color: red"
+                            @click="delete_document(v)"
+                        ></a>
                     </span>
                 </div>
             </li>
@@ -25,17 +34,33 @@
                 <span class="visually-hidden">Loading...</span>
             </div>
         </div>
-        <div v-if="
-            (isRepeatable || (!isRepeatable && numDocuments === 0)) &&
-            !show_spinner &&
-            !readonly
-        ">
-            <input :id="name" :key="name" :name="name" :multiple="multiple" type="file" :accept="fileTypes" class=""
-                :class="ffu_input_element_classname" @change="handleChangeWrapper" />
+        <div
+            v-if="
+                (isRepeatable || (!isRepeatable && numDocuments === 0)) &&
+                !show_spinner &&
+                !readonly
+            "
+        >
+            <input
+                :id="name"
+                :key="name"
+                :name="name"
+                :multiple="multiple"
+                type="file"
+                :accept="fileTypes"
+                class=""
+                :class="ffu_input_element_classname"
+                @change="handleChangeWrapper"
+            />
             <div v-if="replace_button_by_text">
-                <span :id="'button-' + name" class="btn btn-primary ffu-input-text" @click="button_clicked(name)">
+                <span
+                    :id="'button-' + name"
+                    class="btn btn-primary ffu-input-text"
+                    @click="button_clicked(name)"
+                >
                     <i class="fa fa-upload" aria-hidden="true"></i>&nbsp;
-                    {{ text_string }}</span>
+                    {{ text_string }}</span
+                >
             </div>
         </div>
     </div>

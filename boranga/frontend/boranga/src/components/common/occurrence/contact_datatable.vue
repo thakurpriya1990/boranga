@@ -1,54 +1,71 @@
 <template lang="html">
     <div id="contactTable">
         <div class="row mb-3">
-            <label for="" class="col-sm-3 control-label fw-bold">Key Contacts:</label>
+            <label for="" class="col-sm-3 control-label fw-bold"
+                >Key Contacts:</label
+            >
             <div class="col-sm-9 text-end">
-                <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 "
-                    @click.prevent="newContactDetail">
+                <button
+                    :disabled="isReadOnly"
+                    type="button"
+                    class="btn btn-primary mb-2"
+                    @click.prevent="newContactDetail"
+                >
                     <i class="fa-solid fa-circle-plus"></i>
                     Add Contact
                 </button>
             </div>
         </div>
         <div class="row mb-3">
-            <datatable ref="contact_detail_datatable" id="contactDetailTable" :dtOptions="contact_detail_options"
-                :dtHeaders="contact_detail_headers" />
+            <datatable
+                id="contactDetailTable"
+                ref="contact_detail_datatable"
+                :dt-options="contact_detail_options"
+                :dt-headers="contact_detail_headers"
+            />
         </div>
-        <ContactDetail v-if="occurrence_obj" ref="contact_detail" @refreshFromResponse="refreshFromResponse"
-            :url="contact_detail_url" :occurrence="occurrence_obj">
+        <ContactDetail
+            v-if="occurrence_obj"
+            ref="contact_detail"
+            :url="contact_detail_url"
+            :occurrence="occurrence_obj"
+            @refresh-from-response="refreshFromResponse"
+        >
         </ContactDetail>
         <div v-if="occContactDetailHistoryId">
-            <OCCContactDetailHistory ref="occ_contact_detail_history" :key="occContactDetailHistoryId"
-                :contact-id="occContactDetailHistoryId" />
+            <OCCContactDetailHistory
+                ref="occ_contact_detail_history"
+                :key="occContactDetailHistoryId"
+                :contact-id="occContactDetailHistoryId"
+            />
         </div>
     </div>
 </template>
 <script>
-;
 import datatable from '@vue-utils/datatable.vue';
-import ContactDetail from './add_contact_detail.vue'
+import ContactDetail from './add_contact_detail.vue';
 import OCCContactDetailHistory from '../../internal/occurrence/occ_contact_detail_history.vue';
-import {
-    constants,
-    api_endpoints,
-    helpers,
-}
-    from '@/utils/hooks'
+import { constants, api_endpoints, helpers } from '@/utils/hooks';
 
 export default {
     name: 'ContactTable',
+    components: {
+        datatable,
+        ContactDetail,
+        OCCContactDetailHistory,
+    },
     props: {
         occurrence_obj: {
             type: Object,
-            required: true
+            required: true,
         },
         is_external: {
             type: Boolean,
-            default: false
+            default: false,
         },
         isReadOnly: {
             type: Boolean,
-            default: true
+            default: true,
         },
     },
     emits: ['refreshOccurrenceReport'],
@@ -57,11 +74,18 @@ export default {
         return {
             occContactDetailHistoryId: null,
             contact_detail_url: api_endpoints.contact_detail,
-            contact_detail_headers: ['Contact Name', 'Contact Role', 'Contact Details', 'Organisation', 'Notes', 'Action'],
+            contact_detail_headers: [
+                'Contact Name',
+                'Contact Role',
+                'Contact Details',
+                'Organisation',
+                'Notes',
+                'Action',
+            ],
             contact_detail_options: {
                 autowidth: false,
                 language: {
-                    processing: constants.DATATABLE_PROCESSING_HTML
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 searching: true,
@@ -71,11 +95,15 @@ export default {
                     { responsivePriority: 2, targets: -1 },
                 ],
                 ajax: {
-                    "url": helpers.add_endpoint_json(api_endpoints.occurrence, vm.occurrence_obj.id + '/contact_details'),
-                    "dataSrc": ''
+                    url: helpers.add_endpoint_json(
+                        api_endpoints.occurrence,
+                        vm.occurrence_obj.id + '/contact_details'
+                    ),
+                    dataSrc: '',
                 },
                 order: [],
-                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                dom:
+                    "<'d-flex align-items-center'<'me-auto'l>fB>" +
                     "<'row'<'col-sm-12'tr>>" +
                     "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons: [
@@ -85,8 +113,8 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> Excel',
                         className: 'btn btn-primary me-2 rounded',
                         exportOptions: {
-                            orthogonal: 'export'
-                        }
+                            orthogonal: 'export',
+                        },
                     },
                     {
                         extend: 'csv',
@@ -94,65 +122,75 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> CSV',
                         className: 'btn btn-primary rounded',
                         exportOptions: {
-                            orthogonal: 'export'
-                        }
+                            orthogonal: 'export',
+                        },
                     },
                 ],
                 columns: [
                     {
-                        data: "contact_name",
+                        data: 'contact_name',
                         orderable: true,
                         searchable: true,
                         mRender: function (data, type, full) {
                             if (full.visible) {
                                 return full.contact_name;
                             } else {
-                                return '<s>' + full.contact_name + '</s>'
+                                return '<s>' + full.contact_name + '</s>';
                             }
                         },
                     },
                     {
-                        data: "role",
+                        data: 'role',
                         orderable: true,
                         searchable: true,
                         mRender: function (data, type, full) {
                             if (full.visible) {
                                 return full.role;
                             } else {
-                                return '<s>' + full.role + '</s>'
+                                return '<s>' + full.role + '</s>';
                             }
                         },
                     },
                     {
-                        data: "contact",
+                        data: 'contact',
                         orderable: true,
                         searchable: true,
                         mRender: function (data, type, full) {
                             if (full.visible) {
                                 let value = full.contact;
-                                let result = helpers.dtPopover(value, 30, 'hover');
+                                let result = helpers.dtPopover(
+                                    value,
+                                    30,
+                                    'hover'
+                                );
                                 return type == 'export' ? value : result;
                             } else {
                                 let value = full.contact;
-                                let result = helpers.dtPopover(value, 30, 'hover');
-                                return '<s>' + type == 'export' ? value : result + '</s>'
+                                let result = helpers.dtPopover(
+                                    value,
+                                    30,
+                                    'hover'
+                                );
+                                return '<s>' + type == 'export'
+                                    ? value
+                                    : result + '</s>';
                             }
                         },
                     },
                     {
-                        data: "organisation",
+                        data: 'organisation',
                         orderable: true,
                         searchable: true,
                         mRender: function (data, type, full) {
                             if (full.visible) {
                                 return full.organisation;
                             } else {
-                                return '<s>' + full.organisation + '</s>'
+                                return '<s>' + full.organisation + '</s>';
                             }
                         },
                     },
                     {
-                        data: "notes",
+                        data: 'notes',
                         orderable: true,
                         searchable: true,
                         mRender: function (data, type, full) {
@@ -160,14 +198,13 @@ export default {
                             let result = helpers.dtPopover(value, 60, 'hover');
                             if (full.visible) {
                                 return result;
-                            }
-                            else {
+                            } else {
                                 return '<s>' + result + '</s>';
                             }
                         },
                     },
                     {
-                        data: "id",
+                        data: 'id',
                         mRender: function (data, type, full) {
                             let links = '';
                             if (full.visible) {
@@ -182,7 +219,7 @@ export default {
                             }
                             links += `<a href='#' data-history-contact='${full.id}'>History</a><br>`;
                             return links;
-                        }
+                        },
                     },
                 ],
                 processing: true,
@@ -196,51 +233,75 @@ export default {
                         vm.adjust_table_width();
                     }, 100);
                 },
-            }
-        }
-    },
-    components: {
-        datatable,
-        ContactDetail,
-        OCCContactDetailHistory,
+            },
+        };
     },
     watch: {
         isReadOnly: function (newVal, oldVal) {
             this.$refs.contact_detail_datatable.vmDataTable.ajax.reload();
-        }
+        },
+    },
+    mounted: function () {
+        let vm = this;
+        this.$nextTick(() => {
+            vm.eventListeners();
+        });
     },
     methods: {
         eventListeners: function () {
             let vm = this;
-            vm.$refs.contact_detail_datatable.vmDataTable.on('click', 'a[data-edit-contact_det]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-edit-contact_det');
-                vm.editContactDetail(id);
-            });
-            vm.$refs.contact_detail_datatable.vmDataTable.on('click', 'a[data-view-contact_det]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-view-contact_det');
-                vm.viewContactDetail(id);
-            });
+            vm.$refs.contact_detail_datatable.vmDataTable.on(
+                'click',
+                'a[data-edit-contact_det]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-edit-contact_det');
+                    vm.editContactDetail(id);
+                }
+            );
+            vm.$refs.contact_detail_datatable.vmDataTable.on(
+                'click',
+                'a[data-view-contact_det]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-view-contact_det');
+                    vm.viewContactDetail(id);
+                }
+            );
             // External Discard listener
-            vm.$refs.contact_detail_datatable.vmDataTable.on('click', 'a[data-delete-contact_det]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-delete-contact_det');
-                vm.deleteContactDetail(id);
-            });
-            vm.$refs.contact_detail_datatable.vmDataTable.on('click', 'a[data-reinstate-contact_det]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-reinstate-contact_det');
-                vm.reinstateContactDetail(id);
-            });
-            vm.$refs.contact_detail_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
-                helpers.enablePopovers();
-            });
-            vm.$refs.contact_detail_datatable.vmDataTable.on('click', 'a[data-history-contact]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-history-contact');
-                vm.historyContactDetail(id);
-            });
+            vm.$refs.contact_detail_datatable.vmDataTable.on(
+                'click',
+                'a[data-delete-contact_det]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-delete-contact_det');
+                    vm.deleteContactDetail(id);
+                }
+            );
+            vm.$refs.contact_detail_datatable.vmDataTable.on(
+                'click',
+                'a[data-reinstate-contact_det]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-reinstate-contact_det');
+                    vm.reinstateContactDetail(id);
+                }
+            );
+            vm.$refs.contact_detail_datatable.vmDataTable.on(
+                'childRow.dt',
+                function (e, settings) {
+                    helpers.enablePopovers();
+                }
+            );
+            vm.$refs.contact_detail_datatable.vmDataTable.on(
+                'click',
+                'a[data-history-contact]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-history-contact');
+                    vm.historyContactDetail(id);
+                }
+            );
         },
         refreshFromResponse: function () {
             let vm = this;
@@ -248,7 +309,11 @@ export default {
         },
         adjust_table_width: function () {
             let vm = this;
-            if (vm.$refs.contact_detail_datatable !== undefined) { vm.$refs.contact_detail_datatable.vmDataTable.columns.adjust().responsive.recalc(); }
+            if (vm.$refs.contact_detail_datatable !== undefined) {
+                vm.$refs.contact_detail_datatable.vmDataTable.columns
+                    .adjust()
+                    .responsive.recalc();
+            }
         },
         newContactDetail: function () {
             let vm = this;
@@ -261,7 +326,7 @@ export default {
                 contact: '',
                 organisation: '',
                 notes: '',
-            }
+            };
             this.$refs.contact_detail.contactObj = new_contact_detail;
             this.$refs.contact_detail.contact_detail_action = 'add';
             this.$refs.contact_detail.isModalOpen = true;
@@ -270,32 +335,42 @@ export default {
             let vm = this;
             this.$refs.contact_detail.contact_detail_id = id;
             this.$refs.contact_detail.contact_detail_action = 'edit';
-            fetch(helpers.add_endpoint_json(api_endpoints.contact_detail, id)).then(async (response) => {
-                this.$refs.contact_detail.contactObj = await response.json();
-            },
-                err => {
+            fetch(
+                helpers.add_endpoint_json(api_endpoints.contact_detail, id)
+            ).then(
+                async (response) => {
+                    this.$refs.contact_detail.contactObj =
+                        await response.json();
+                },
+                (err) => {
                     console.log(err);
-                });
+                }
+            );
             this.$refs.contact_detail.isModalOpen = true;
         },
         viewContactDetail: function (id) {
             let vm = this;
             this.$refs.contact_detail.contact_detail_id = id;
             this.$refs.contact_detail.contact_detail_action = 'view';
-            fetch(helpers.add_endpoint_json(api_endpoints.contact_detail, id)).then(async (response) => {
-                this.$refs.contact_detail.contactObj = await response.json();
-            },
-                err => {
+            fetch(
+                helpers.add_endpoint_json(api_endpoints.contact_detail, id)
+            ).then(
+                async (response) => {
+                    this.$refs.contact_detail.contactObj =
+                        await response.json();
+                },
+                (err) => {
                     console.log(err);
-                });
+                }
+            );
             this.$refs.contact_detail.isModalOpen = true;
         },
         deleteContactDetail: function (id) {
             let vm = this;
             swal.fire({
-                title: "Discard Contact",
-                text: "Are you sure you want to discard this Contact?",
-                icon: "question",
+                title: 'Discard Contact',
+                text: 'Are you sure you want to discard this Contact?',
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Discard Contact',
                 customClass: {
@@ -303,42 +378,60 @@ export default {
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    fetch(helpers.add_endpoint_json(api_endpoints.contact_detail, id + '/discard'), {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json', }
-                    })
-                        .then((response) => {
-                            swal.fire({
-                                title: 'Discarded',
-                                text: 'The Contact has been discarded',
-                                icon: 'success',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
-                                },
-                            }).then((result) => {
-                                vm.$refs.contact_detail_datatable.vmDataTable.ajax.reload();
-                                vm.$emit('refreshOccurrenceReport');
-                                if (vm.occurrence_obj.processing_status == "Unlocked") {
-                                    vm.$router.go();
-                                }
-                            });
-                        }, (error) => {
-                            console.log(error);
-                        });
-                }
-            }, (error) => {
-
-            });
+            }).then(
+                (result) => {
+                    if (result.isConfirmed) {
+                        fetch(
+                            helpers.add_endpoint_json(
+                                api_endpoints.contact_detail,
+                                id + '/discard'
+                            ),
+                            {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                            }
+                        ).then(
+                            (response) => {
+                                swal.fire({
+                                    title: 'Discarded',
+                                    text: 'The Contact has been discarded',
+                                    icon: 'success',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                }).then((result) => {
+                                    vm.$refs.contact_detail_datatable.vmDataTable.ajax.reload();
+                                    vm.$emit('refreshOccurrenceReport');
+                                    if (
+                                        vm.occurrence_obj.processing_status ==
+                                        'Unlocked'
+                                    ) {
+                                        vm.$router.go();
+                                    }
+                                });
+                            },
+                            (error) => {
+                                console.log(error);
+                            }
+                        );
+                    }
+                },
+                (error) => {}
+            );
         },
         reinstateContactDetail: function (id) {
             let vm = this;
-            fetch(helpers.add_endpoint_json(api_endpoints.contact_detail, id + '/reinstate'), {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json', }
-                    })
-                .then((response) => {
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.contact_detail,
+                    id + '/reinstate'
+                ),
+                {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                }
+            ).then(
+                (response) => {
                     swal.fire({
                         title: 'Reinstated',
                         text: 'The Contact has been reinstated',
@@ -349,11 +442,12 @@ export default {
                     }).then((result) => {
                         vm.$refs.contact_detail_datatable.vmDataTable.ajax.reload();
                         vm.$emit('refreshOccurrenceReport');
-                        if (vm.occurrence_obj.processing_status == "Unlocked") {
+                        if (vm.occurrence_obj.processing_status == 'Unlocked') {
                             vm.$router.go();
                         }
                     });
-                }, (error) => {
+                },
+                (error) => {
                     var errorText = helpers.apiVueResourceError(error);
                     swal.fire({
                         title: 'Error',
@@ -363,7 +457,8 @@ export default {
                             confirmButton: 'btn btn-primary',
                         },
                     });
-                });
+                }
+            );
         },
         updatedContactDetails() {
             let vm = this;
@@ -376,11 +471,5 @@ export default {
             });
         },
     },
-    mounted: function () {
-        let vm = this;
-        this.$nextTick(() => {
-            vm.eventListeners();
-        });
-    },
-}
+};
 </script>

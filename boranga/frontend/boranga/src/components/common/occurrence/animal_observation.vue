@@ -2,335 +2,472 @@
     <div id="animal_observation">
         <form @change="calculateTotalNumberSeen">
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Primary Detection Method:</label>
+                <label for="" class="col-sm-3 control-label"
+                    >Primary Detection Method:</label
+                >
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" style="width:100%;" class="form-select input-sm"
-                        ref="primary_detection_select" v-model="animal_observation.primary_detection_method">
-                        <option v-for="option in primary_detection_method_list" :value="option.id" :key="option.id">
+                    <select
+ref="primary_detection_select" v-model="animal_observation.primary_detection_method" :disabled="isReadOnly"
+                        style="width:100%;" class="form-select input-sm">
+                        <option
+                            v-for="option in primary_detection_method_list"
+                            :key="option.id"
+                            :value="option.id"
+                        >
                             {{ option.name }}
                         </option>
                     </select>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Secondary Signs:</label>
+                <label for="" class="col-sm-3 control-label"
+                    >Secondary Signs:</label
+                >
                 <div class="col-sm-9">
                     <template v-if="!isReadOnly">
                         <template
-                            v-if="secondary_sign_list && secondary_sign_list.length > 0 && animal_observation.secondary_sign && !secondary_sign_list.map((d) => d.id).includes(animal_observation.secondary_sign)">
-                            <input type="text" v-if="animal_observation.secondary_sign_name" class="form-control mb-3"
-                                :value="animal_observation.secondary_sign_name + ' (Now Archived)'" disabled />
+                            v-if="
+                                secondary_sign_list &&
+                                secondary_sign_list.length > 0 &&
+                                animal_observation.secondary_sign &&
+                                !secondary_sign_list
+                                    .map((d) => d.id)
+                                    .includes(animal_observation.secondary_sign)
+                            "
+                        >
+                            <input
+v-if="animal_observation.secondary_sign_name" type="text" class="form-control mb-3"
+                                :value="
+                                    animal_observation.secondary_sign_name +
+                                    ' (Now Archived)'
+                                "
+                                disabled
+                            />
                             <div class="mb-3 text-muted">
                                 Change secondary sign to:
                             </div>
                         </template>
-                        <select class="form-select" v-model="animal_observation.secondary_sign">
-                            <option v-for="secondary_sign in secondary_sign_list" :value="secondary_sign.id" v-bind:key="secondary_sign.id">
+                        <select
+                            v-model="animal_observation.secondary_sign"
+                            class="form-select"
+                        >
+                            <option
+                                v-for="secondary_sign in secondary_sign_list"
+                                :key="secondary_sign.id"
+                                :value="secondary_sign.id"
+                            >
                                 {{ secondary_sign.name }}
                             </option>
                         </select>
                     </template>
                     <template v-else>
-                        <input class="form-control" type="text" :disabled="isReadOnly" v-model="animal_observation.secondary_sign_name" />
+                        <input
+                            v-model="animal_observation.secondary_sign_name"
+                            class="form-control"
+                            type="text"
+                            :disabled="isReadOnly"
+                        />
                     </template>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Reproductive State:</label>
+                <label for="" class="col-sm-3 control-label"
+                    >Reproductive State:</label
+                >
                 <div class="col-sm-9">
                     <template v-if="!isReadOnly">
                         <template
-                            v-if="reprod_state_list && reprod_state_list.length > 0 && animal_observation.reproductive_state && !reprod_state_list.map((d) => d.id).includes(animal_observation.reproductive_state)">
-                            <input type="text" v-if="animal_observation.reproductive_state_name" class="form-control mb-3"
-                                :value="animal_observation.reproductive_state_name + ' (Now Archived)'" disabled />
+                            v-if="
+                                reprod_state_list &&
+                                reprod_state_list.length > 0 &&
+                                animal_observation.reproductive_state &&
+                                !reprod_state_list
+                                    .map((d) => d.id)
+                                    .includes(
+                                        animal_observation.reproductive_state
+                                    )
+                            "
+                        >
+                            <input
+v-if="animal_observation.reproductive_state_name" type="text" class="form-control mb-3"
+                                :value="
+                                    animal_observation.reproductive_state_name +
+                                    ' (Now Archived)'
+                                "
+                                disabled
+                            />
                             <div class="mb-3 text-muted">
                                 Change reproductive state to:
                             </div>
                         </template>
-                        <select class="form-select" v-model="animal_observation.reproductive_state">
-                            <option v-for="reproductive_state in reprod_state_list" :value="reproductive_state.id" v-bind:key="reproductive_state.id">
+                        <select
+                            v-model="animal_observation.reproductive_state"
+                            class="form-select"
+                        >
+                            <option
+                                v-for="reproductive_state in reprod_state_list"
+                                :key="reproductive_state.id"
+                                :value="reproductive_state.id"
+                            >
                                 {{ reproductive_state.name }}
                             </option>
                         </select>
                     </template>
                     <template v-else>
-                        <input class="form-control" type="text" :disabled="isReadOnly" v-model="animal_observation.reproductive_state_name" />
+                        <input
+                            v-model="animal_observation.reproductive_state_name"
+                            class="form-control"
+                            type="text"
+                            :disabled="isReadOnly"
+                        />
                     </template>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Animal Health:</label>
+                <label for="" class="col-sm-3 control-label"
+                    >Animal Health:</label
+                >
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" v-model="animal_observation.animal_health_id">
-                        <option v-for="option in animal_health_list" :value="option.id" v-bind:key="option.id">
+                    <select
+                        v-model="animal_observation.animal_health_id"
+                        :disabled="isReadOnly"
+                        class="form-select"
+                    >
+                        <option
+                            v-for="option in animal_health_list"
+                            :key="option.id"
+                            :value="option.id"
+                        >
                             {{ option.name }}
                         </option>
                     </select>
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Cause of Death:</label>
+                <label for="" class="col-sm-3 control-label"
+                    >Cause of Death:</label
+                >
                 <div class="col-sm-9">
                     <template v-if="!isReadOnly">
                         <template
-                            v-if="death_reason_list && death_reason_list.length > 0 && animal_observation.death_reason_id && !death_reason_list.map((d) => d.id).includes(animal_observation.death_reason_id)">
-                            <input type="text" v-if="animal_observation.death_reason" class="form-control mb-3"
-                                :value="animal_observation.death_reason + ' (Now Archived)'" disabled />
+                            v-if="
+                                death_reason_list &&
+                                death_reason_list.length > 0 &&
+                                animal_observation.death_reason_id &&
+                                !death_reason_list
+                                    .map((d) => d.id)
+                                    .includes(
+                                        animal_observation.death_reason_id
+                                    )
+                            "
+                        >
+                            <input
+v-if="animal_observation.death_reason" type="text" class="form-control mb-3"
+                                :value="
+                                    animal_observation.death_reason +
+                                    ' (Now Archived)'
+                                "
+                                disabled
+                            />
                             <div class="mb-3 text-muted">
                                 Change death reason to:
                             </div>
                         </template>
-                        <select class="form-select" v-model="animal_observation.death_reason_id">
-                            <option v-for="death_reason in death_reason_list" :value="death_reason.id" v-bind:key="death_reason.id">
+                        <select
+                            v-model="animal_observation.death_reason_id"
+                            class="form-select"
+                        >
+                            <option
+                                v-for="death_reason in death_reason_list"
+                                :key="death_reason.id"
+                                :value="death_reason.id"
+                            >
                                 {{ death_reason.name }}
                             </option>
                         </select>
                     </template>
                     <template v-else>
-                        <input class="form-control" type="text" :disabled="isReadOnly" v-model="animal_observation.death_reason" />
+                        <input
+                            v-model="animal_observation.death_reason"
+                            class="form-control"
+                            type="text"
+                            :disabled="isReadOnly"
+                        />
                     </template>
                 </div>
             </div>
 
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Distinctive Features :</label>
+                <label for="" class="col-sm-3 control-label"
+                    >Distinctive Features :</label
+                >
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="distinct_features"
-                        placeholder="" v-model="animal_observation.distinctive_feature" />
+                    <textarea
+id="distinct_features" v-model="animal_observation.distinctive_feature" :disabled="isReadOnly" type="text" row="2"
+                        class="form-control" placeholder="" />
                 </div>
             </div>
 
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Actions Taken :</label>
+                <label for="" class="col-sm-3 control-label"
+                    >Actions Taken :</label
+                >
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="distinct_features"
-                        placeholder="" v-model="animal_observation.action_taken" />
+                    <textarea
+id="distinct_features" v-model="animal_observation.action_taken" :disabled="isReadOnly" type="text" row="2"
+                        class="form-control" placeholder="" />
                 </div>
             </div>
 
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Actions Required :</label>
+                <label for="" class="col-sm-3 control-label"
+                    >Actions Required :</label
+                >
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="distinct_features"
-                        placeholder="" v-model="animal_observation.action_required" />
+                    <textarea
+id="distinct_features" v-model="animal_observation.action_required" :disabled="isReadOnly" type="text" row="2"
+                        class="form-control" placeholder="" />
                 </div>
             </div>
 
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Observation Details :</label>
+                <label for="" class="col-sm-3 control-label"
+                    >Observation Details :</label
+                >
                 <div class="col-sm-9">
-                    <textarea :disabled="isReadOnly" type="text" row="2" class="form-control" id="distinct_features"
-                        placeholder="" v-model="animal_observation.observation_detail_comment" />
+                    <textarea
+id="distinct_features" v-model="animal_observation.observation_detail_comment" :disabled="isReadOnly" type="text" row="2"
+                        class="form-control" placeholder="" />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Animal Count Date: </label>
+                <label for="" class="col-sm-3 control-label"
+                    >Animal Count Date:
+                </label>
                 <div class="col-sm-9">
-                    <input v-model="animal_observation.count_date
-                        " :disabled="true" type="datetime-local" class="form-control" name="animal_count_date" />
+                    <input
+v-model="animal_observation.count_date
+                        :disabled="true"
+                        type="datetime-local"
+                        class="form-control"
+                        name="animal_count_date"
+                    />
                 </div>
             </div>
 
-            <label for="" class="col-lg-3 control-label fs-5 fw-bold">Animal Count :</label>
+            <label for="" class="col-lg-3 control-label fs-5 fw-bold"
+                >Animal Count :</label
+            >
             <div class="row mb-3">
                 <div class="col-sm-2">
-                    <label class="form-check-label fw-bold" for="not-counted">Not Counted</label>
+                    <label class="form-check-label fw-bold" for="not-counted"
+                        >Not Counted</label
+                    >
                 </div>
                 <div class="col-sm-2">
-                    <input type="checkbox" id="not-counted" v-model="animal_observation.counted" true-value="false"
-                        false-value="true" @change="checkboxChanged">
+                    <input
+id="not-counted" v-model="animal_observation.counted" type="checkbox" true-value="false"
+                        false-value="true"
+                        @change="checkboxChanged"
+                    />
                 </div>
             </div>
             <div class="row mb-3">
-                <div class="col-sm-4">
-
-                </div>
-                <div class="col-sm-2 fw-bold">
-                    Adult
-                </div>
-                <div class="col-sm-2 fw-bold">
-                    Juvenile
-                </div>
-                <div class="col-sm-2 fw-bold">
-                    Age Unknown
-                </div>
+                <div class="col-sm-4"></div>
+                <div class="col-sm-2 fw-bold">Adult</div>
+                <div class="col-sm-2 fw-bold">Juvenile</div>
+                <div class="col-sm-2 fw-bold">Age Unknown</div>
             </div>
             <div class="row mb-3">
-                <div class="col-sm-4 fw-bold">
-                    Alive
+                <div class="col-sm-4 fw-bold">Alive</div>
+                <div class="col-sm-2">
+                    Male
+                    <input
+id="alive_adult_male" v-model="animal_observation.alive_adult_male" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
                 <div class="col-sm-2">
                     Male
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="alive_adult_male" placeholder="" min="0" step="1"
-                        v-model="animal_observation.alive_adult_male" />
+                    <input
+id="alive_juvenile_male" v-model="animal_observation.alive_juvenile_male" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
                 <div class="col-sm-2">
                     Male
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="alive_juvenile_male" placeholder="" min="0" step="1"
-                        v-model="animal_observation.alive_juvenile_male" />
-                </div>
-                <div class="col-sm-2">
-                    Male
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="alive_unsure_male" placeholder="" min="0" step="1"
-                        v-model="animal_observation.alive_unsure_male" />
+                    <input
+id="alive_unsure_male" v-model="animal_observation.alive_unsure_male" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
             </div>
             <div class="row mb-3">
-                <div class="col-sm-4 fw-bold">
-
+                <div class="col-sm-4 fw-bold"></div>
+                <div class="col-sm-2">
+                    Female
+                    <input
+id="alive_adult_female" v-model="animal_observation.alive_adult_female" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
                 <div class="col-sm-2">
                     Female
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="alive_adult_female" placeholder="" min="0" step="1"
-                        v-model="animal_observation.alive_adult_female" />
+                    <input
+id="alive_juvenile_female" v-model="animal_observation.alive_juvenile_female" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
                 <div class="col-sm-2">
                     Female
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="alive_juvenile_female" placeholder="" min="0" step="1"
-                        v-model="animal_observation.alive_juvenile_female" />
-                </div>
-                <div class="col-sm-2">
-                    Female
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="alive_unsure_female" placeholder="" min="0" step="1"
-                        v-model="animal_observation.alive_unsure_female" />
+                    <input
+id="alive_unsure_female" v-model="animal_observation.alive_unsure_female" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
             </div>
             <div class="row mb-3">
-                <div class="col-sm-4 fw-bold">
-
+                <div class="col-sm-4 fw-bold"></div>
+                <div class="col-sm-2">
+                    Sex Unknown
+                    <input
+id="alive_adult_unknown" v-model="animal_observation.alive_adult_unknown" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
                 <div class="col-sm-2">
                     Sex Unknown
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="alive_adult_unknown" placeholder="" min="0" step="1"
-                        v-model="animal_observation.alive_adult_unknown" />
+                    <input
+id="alive_juvenile_unknown" v-model="animal_observation.alive_juvenile_unknown" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
                 <div class="col-sm-2">
                     Sex Unknown
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="alive_juvenile_unknown" placeholder="" min="0" step="1"
-                        v-model="animal_observation.alive_juvenile_unknown" />
-                </div>
-                <div class="col-sm-2">
-                    Sex Unknown
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="alive_unsure_unknown" placeholder="" min="0" step="1"
-                        v-model="animal_observation.alive_unsure_unknown" />
+                    <input
+id="alive_unsure_unknown" v-model="animal_observation.alive_unsure_unknown" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
             </div>
 
             <div class="row mb-3">
-                <div class="col-sm-4">
-
+                <div class="col-sm-4"></div>
+                <div class="col-sm-2 fw-bold">Adult</div>
+                <div class="col-sm-2 fw-bold">Juvenile</div>
+                <div class="col-sm-2 fw-bold">Age Unknown</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-4 fw-bold">Dead</div>
+                <div class="col-sm-2">
+                    Male
+                    <input
+id="dead_adult_male" v-model="animal_observation.dead_adult_male" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
-                <div class="col-sm-2 fw-bold">
-                    Adult
+                <div class="col-sm-2">
+                    Male
+                    <input
+id="dead_juvenile_male" v-model="animal_observation.dead_juvenile_male" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
-                <div class="col-sm-2 fw-bold">
-                    Juvenile
-                </div>
-                <div class="col-sm-2 fw-bold">
-                    Age Unknown
+                <div class="col-sm-2">
+                    Male
+                    <input
+id="dead_unsure_male" v-model="animal_observation.dead_unsure_male" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
             </div>
             <div class="row mb-3">
-                <div class="col-sm-4 fw-bold">
-                    Dead
-                </div>
+                <div class="col-sm-4 fw-bold"></div>
                 <div class="col-sm-2">
-                    Male
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="dead_adult_male" placeholder="" min="0" step="1"
-                        v-model="animal_observation.dead_adult_male" />
-                </div>
-                <div class="col-sm-2">
-                    Male
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="dead_juvenile_male" placeholder="" min="0" step="1"
-                        v-model="animal_observation.dead_juvenile_male" />
-                </div>
-                <div class="col-sm-2">
-                    Male
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="dead_unsure_male" placeholder="" min="0" step="1"
-                        v-model="animal_observation.dead_unsure_male" />
-                </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-sm-4 fw-bold">
-
+                    Female
+                    <input
+id="dead_adult_female" v-model="animal_observation.dead_adult_female" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
                 <div class="col-sm-2">
                     Female
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="dead_adult_female" placeholder="" min="0" step="1"
-                        v-model="animal_observation.dead_adult_female" />
+                    <input
+id="dead_juvenile_female" v-model="animal_observation.dead_juvenile_female" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
                 <div class="col-sm-2">
                     Female
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="dead_juvenile_female" placeholder="" min="0" step="1"
-                        v-model="animal_observation.dead_juvenile_female" />
-                </div>
-                <div class="col-sm-2">
-                    Female
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="dead_unsure_female" placeholder="" min="0" step="1"
-                        v-model="animal_observation.dead_unsure_female" />
+                    <input
+id="dead_unsure_female" v-model="animal_observation.dead_unsure_female" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
             </div>
             <div class="row mb-4">
-                <div class="col-sm-4 fw-bold">
-
+                <div class="col-sm-4 fw-bold"></div>
+                <div class="col-sm-2">
+                    Sex Unknown
+                    <input
+id="dead_adult_unknown" v-model="animal_observation.dead_adult_unknown" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
                 <div class="col-sm-2">
                     Sex Unknown
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="dead_adult_unknown" placeholder="" min="0" step="1"
-                        v-model="animal_observation.dead_adult_unknown" />
+                    <input
+id="dead_juvenile_unknown" v-model="animal_observation.dead_juvenile_unknown" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
                 <div class="col-sm-2">
                     Sex Unknown
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="dead_juvenile_unknown" placeholder="" min="0" step="1"
-                        v-model="animal_observation.dead_juvenile_unknown" />
-                </div>
-                <div class="col-sm-2">
-                    Sex Unknown
-                    <input :disabled="isReadOnly || not_counted" type="number" class="form-control animal-count-input"
-                        id="dead_unsure_unknown" placeholder="" min="0" step="1"
-                        v-model="animal_observation.dead_unsure_unknown" />
+                    <input
+id="dead_unsure_unknown" v-model="animal_observation.dead_unsure_unknown" :disabled="isReadOnly || not_counted"
+                        type="number" class="form-control animal-count-input" placeholder="" min="0"
+                        step="1" />
                 </div>
             </div>
 
             <div class="row mb-3">
-                <label for="" class="col-sm-4 control-label">Total Number Seen (alive and dead):</label>
+                <label for="" class="col-sm-4 control-label"
+                    >Total Number Seen (alive and dead):</label
+                >
                 <div class="col-sm-6">
-                    <input readonly type="number" class="form-control ocr_number" id="quadrats_surveyed" placeholder=""
-                        min="0" v-model="total_seen" />
+                    <input
+id="quadrats_surveyed" v-model="total_seen" readonly type="number" class="form-control ocr_number"
+                        placeholder="" min="0" />
                 </div>
             </div>
             <div class="row mb-3">
                 <div class="col-sm-12">
-                    <span v-if="animal_observation.copied_ocr" class="float-end"><b>Sourced from
-                            {{ animal_observation.copied_ocr }}</b></span>
+                    <span v-if="animal_observation.copied_ocr" class="float-end"
+                        ><b
+                            >Sourced from {{ animal_observation.copied_ocr }}</b
+                        ></span
+                    >
                 </div>
             </div>
             <div class="row mb-3">
                 <div class="col-sm-12">
                     <!-- <button v-if="!updatingAnimalOnservationDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
-                    <button v-if="!updatingAnimalOnservationDetails" :disabled="isReadOnly"
+                    <button
+v-if="!updatingAnimalOnservationDetails" :disabled="isReadOnly"
                         class="btn btn-primary btn-sm float-end"
-                        @click.prevent="updateAnimalObservationDetails()">Update</button>
-                    <button v-else disabled class="float-end btn btn-primary">Updating <span
-                            class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        <span class="visually-hidden">Loading...</span></button>
+                        @click.prevent="updateAnimalObservationDetails()"
+                    >
+                        Update
+                    </button>
+                    <button v-else disabled class="float-end btn btn-primary">
+                        Updating
+                        <span
+                            class="spinner-border spinner-border-sm"
+                            role="status"
+                            aria-hidden="true"
+                        ></span>
+                        <span class="visually-hidden">Loading...</span>
+                    </button>
                 </div>
             </div>
         </form>
@@ -338,15 +475,13 @@
 </template>
 
 <script>
-;
 import FormSection from '@/components/forms/section_toggle.vue';
-import {
-    api_endpoints,
-    helpers
-}
-    from '@/utils/hooks'
+import { api_endpoints, helpers } from '@/utils/hooks';
 export default {
     name: 'AnimalObservation',
+    components: {
+        FormSection,
+    },
     props: {
         animal_observation: {
             type: Object,
@@ -393,16 +528,60 @@ export default {
             not_counted: false,
         }
     },
-    components: {
-        FormSection,
-    },
     watch: {
         animal_observation: function () {
             let vm = this;
-            $(vm.$refs.primary_detection_select).val(vm.animal_observation.primary_detection_method).trigger('change.select2');
+            $(vm.$refs.primary_detection_select)
+                .val(vm.animal_observation.primary_detection_method)
+                .trigger('change.select2');
             //$(vm.$refs.secondary_sign_select).val(vm.animal_observation.secondary_sign).trigger('change.select2');
-            $(vm.$refs.reproductive_state_select).val(vm.animal_observation.reproductive_state).trigger('change.select2');
-        }
+            $(vm.$refs.reproductive_state_select)
+                .val(vm.animal_observation.reproductive_state)
+                .trigger('change.select2');
+        },
+    },
+    created: async function () {
+        let vm = this;
+        const response = await fetch(`/api/occurrence/animal_observation_list_of_values.json`);
+        vm.listOfAnimalValuesDict = await response.json();
+        vm.primary_detection_method_list = vm.listOfAnimalValuesDict.primary_detection_method_list;
+        vm.primary_detection_method_list.splice(0, 0,
+            {
+                id: '',
+                name: '',
+            });
+        vm.secondary_sign_list = vm.listOfAnimalValuesDict.secondary_sign_list;
+        vm.secondary_sign_list.splice(0, 0,
+            {
+                id: '',
+                name: '',
+            });
+        vm.reprod_state_list = vm.listOfAnimalValuesDict.reprod_state_list;
+        vm.reprod_state_list.splice(0, 0,
+            {
+                id: '',
+                name: '',
+            });
+        vm.death_reason_list = vm.listOfAnimalValuesDict.death_reason_list;
+        vm.death_reason_list.splice(0, 0,
+            {
+                id: null,
+                name: null,
+            });
+        vm.animal_health_list = vm.listOfAnimalValuesDict.animal_health_list;
+        vm.animal_health_list.splice(0, 0,
+            {
+                id: null,
+                name: null,
+            });
+    },
+    mounted: function () {
+        let vm = this;
+        vm.initialisePrimaryDetectionSelect();
+        vm.initialiseSecondarySignSelect();
+        vm.initialiseReprodStateSelect();
+        vm.calculateTotalNumberSeen();
+        vm.not_counted = !vm.animal_observation.counted;
     },
     methods: {
         calculateTotalNumberSeen: function () {
@@ -511,50 +690,7 @@ export default {
             });
         },
     },
-    created: async function () {
-        let vm = this;
-        const response = await fetch(`/api/occurrence/animal_observation_list_of_values.json`);
-        vm.listOfAnimalValuesDict = await response.json();
-        vm.primary_detection_method_list = vm.listOfAnimalValuesDict.primary_detection_method_list;
-        vm.primary_detection_method_list.splice(0, 0,
-            {
-                id: '',
-                name: '',
-            });
-        vm.secondary_sign_list = vm.listOfAnimalValuesDict.secondary_sign_list;
-        vm.secondary_sign_list.splice(0, 0,
-            {
-                id: '',
-                name: '',
-            });
-        vm.reprod_state_list = vm.listOfAnimalValuesDict.reprod_state_list;
-        vm.reprod_state_list.splice(0, 0,
-            {
-                id: '',
-                name: '',
-            });
-        vm.death_reason_list = vm.listOfAnimalValuesDict.death_reason_list;
-        vm.death_reason_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
-        vm.animal_health_list = vm.listOfAnimalValuesDict.animal_health_list;
-        vm.animal_health_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
-    },
-    mounted: function () {
-        let vm = this;
-        vm.initialisePrimaryDetectionSelect();
-        vm.initialiseSecondarySignSelect();
-        vm.initialiseReprodStateSelect();
-        vm.calculateTotalNumberSeen();
-        vm.not_counted = !vm.animal_observation.counted;
-    },
-}
+};
 </script>
 
 <style lang="css" scoped>
@@ -578,13 +714,13 @@ legend.scheduler-border {
     border-bottom: none;
 }
 
-input[type=text],
+input[type='text'],
 select {
     width: 100%;
     padding: 0.375rem 2.25rem 0.375rem 0.75rem;
 }
 
-input[type=number] {
+input[type='number'] {
     width: 50%;
 }
 

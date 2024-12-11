@@ -1,71 +1,173 @@
 <template lang="html">
-    <div v-if="conservation_status_obj" class="container" id="internalConservationStatus">
-        <div class="row" style="padding-bottom: 50px;">
-            <h3><span class="text-capitalize">{{ conservation_status_obj.group_type }}</span> {{
-                conservation_status_obj.conservation_status_number }} <span class="text-capitalize" v-if="identifier"> -
-                    {{ identifier
-                    }}</span>
+    <div
+        v-if="conservation_status_obj"
+        id="internalConservationStatus"
+        class="container"
+    >
+        <div class="row" style="padding-bottom: 50px">
+            <h3>
+                <span class="text-capitalize">{{
+                    conservation_status_obj.group_type
+                }}</span>
+                {{ conservation_status_obj.conservation_status_number }}
+                <span v-if="identifier" class="text-capitalize">
+                    - {{ identifier }}</span
+                >
             </h3>
             <div class="col-md-3">
-                <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
-                    :disable_add_entry="!conservation_status_obj.can_add_log" class="mb-3" />
+                <CommsLogs
+                    :comms_url="comms_url"
+                    :logs_url="logs_url"
+                    :comms_add_url="comms_add_url"
+                    :disable_add_entry="!conservation_status_obj.can_add_log"
+                    class="mb-3"
+                />
 
-                <Submission :submitter_first_name="submitter_first_name" :submitter_last_name="submitter_last_name"
+                <Submission
+                    :submitter_first_name="submitter_first_name"
+                    :submitter_last_name="submitter_last_name"
                     :lodgement_date="conservation_status_obj.lodgement_date"
-                    :is_new_contributor="conservation_status_obj.is_new_contributor" class="mb-3" />
+                    :is_new_contributor="
+                        conservation_status_obj.is_new_contributor
+                    "
+                    class="mb-3"
+                />
 
                 <div class="card card-default sticky-top">
-                    <div class="card-header">
-                        Workflow
-                    </div>
+                    <div class="card-header">Workflow</div>
                     <div class="card-body">
                         <strong>Status</strong><br />
                         {{ conservation_status_obj.processing_status }}
                         <template
-                            v-if="conservation_status_obj.processing_status == 'On Agenda' && conservation_status_obj.most_recent_meeting">
+                            v-if="
+                                conservation_status_obj.processing_status ==
+                                    'On Agenda' &&
+                                conservation_status_obj.most_recent_meeting
+                            "
+                        >
                             <p class="my-2">
                                 <strong>
-                                    <template v-if="conservation_status_obj.most_recent_meeting_completed">Meeting
-                                        Completed<i class="bi bi-check-circle-fill ms-2 text-success"></i></template>
-                                    <template v-else>Awaiting Meeting<i
-                                            class="bi bi-hourglass-split ms-2 text-secondary"></i></template>
-                                </strong><br />
-                                <a :href="`/internal/meetings/${conservation_status_obj.most_recent_meeting.id}?action=edit`"
-                                    target="_blank">{{
-                                        conservation_status_obj.most_recent_meeting.title ?
-                                            conservation_status_obj.most_recent_meeting.title : 'Meeting Draft' }}<i
-                                        class="bi bi-box-arrow-up-right ms-2"></i></a>
+                                    <template
+                                        v-if="
+                                            conservation_status_obj.most_recent_meeting_completed
+                                        "
+                                        >Meeting Completed<i
+                                            class="bi bi-check-circle-fill ms-2 text-success"
+                                        ></i
+                                    ></template>
+                                    <template v-else
+                                        >Awaiting Meeting<i
+                                            class="bi bi-hourglass-split ms-2 text-secondary"
+                                        ></i
+                                    ></template> </strong
+                                ><br />
+                                <a
+                                    :href="`/internal/meetings/${conservation_status_obj.most_recent_meeting.id}?action=edit`"
+                                    target="_blank"
+                                    >{{
+                                        conservation_status_obj
+                                            .most_recent_meeting.title
+                                            ? conservation_status_obj
+                                                  .most_recent_meeting.title
+                                            : 'Meeting Draft'
+                                    }}<i
+                                        class="bi bi-box-arrow-up-right ms-2"
+                                    ></i
+                                ></a>
                             </p>
                         </template>
                     </div>
-                    <div v-if="conservation_status_obj.processing_status != 'Draft'" class="card-body border-top">
+                    <div
+                        v-if="
+                            conservation_status_obj.processing_status != 'Draft'
+                        "
+                        class="card-body border-top"
+                    >
                         <div class="row">
                             <div class="col-sm-12">
                                 <strong>Currently assigned to</strong><br />
                                 <div class="form-group">
                                     <template
-                                        v-if="['Proposed For Agenda', 'Ready For Agenda', 'On Agenda', 'Proposed DeListed', 'Unlocked', 'Approved', 'Closed', 'DeListed'].includes(conservation_status_obj.processing_status)">
-                                        <select ref="assigned_officer" :disabled="!canAction || canLock"
-                                            class="form-control" v-model="conservation_status_obj.assigned_approver">
-                                            <option v-for="member in conservation_status_obj.allowed_assessors"
-                                                :value="member.id">{{ member.first_name }} {{ member.last_name }}
+                                        v-if="
+                                            [
+                                                'Proposed For Agenda',
+                                                'Ready For Agenda',
+                                                'On Agenda',
+                                                'Proposed DeListed',
+                                                'Unlocked',
+                                                'Approved',
+                                                'Closed',
+                                                'DeListed',
+                                            ].includes(
+                                                conservation_status_obj.processing_status
+                                            )
+                                        "
+                                    >
+                                        <select
+                                            ref="assigned_officer"
+                                            v-model="
+                                                conservation_status_obj.assigned_approver
+                                            "
+                                            :disabled="!canAction || canLock"
+                                            class="form-control"
+                                        >
+                                            <option
+                                                v-for="member in conservation_status_obj.allowed_assessors"
+                                                :value="member.id"
+                                            >
+                                                {{ member.first_name }}
+                                                {{ member.last_name }}
                                             </option>
                                         </select>
-                                        <a v-if="conservation_status_obj.can_user_assign_to_self"
-                                            @click.prevent="assignRequestUser()" class="float-end" role="button">Assign
-                                            to me</a>
+                                        <a
+                                            v-if="
+                                                conservation_status_obj.can_user_assign_to_self
+                                            "
+                                            class="float-end"
+                                            role="button"
+                                            @click.prevent="assignRequestUser()"
+                                            >Assign >Assign to me</a
+                                        >
                                     </template>
                                     <template
-                                        v-else-if="['With Assessor', 'With Referral', 'Deferred'].includes(conservation_status_obj.processing_status)">
-                                        <select ref="assigned_officer" :disabled="!canAction" class="form-control"
-                                            v-model="conservation_status_obj.assigned_officer">
-                                            <option v-for="member in conservation_status_obj.allowed_assessors"
-                                                :value="member.id">{{ member.first_name }} {{ member.last_name }}
+                                        v-else-if="
+                                            [
+                                                'With Assessor',
+                                                'With Referral',
+                                                'Deferred',
+                                            ].includes(
+                                                conservation_status_obj.processing_status
+                                            )
+                                        "
+                                    >
+                                        <select
+                                            ref="assigned_officer"
+                                            v-model="
+                                                conservation_status_obj.assigned_officer
+                                            "
+                                            :disabled="!canAction"
+                                            class="form-control"
+                                        >
+                                            <option
+                                                v-for="member in conservation_status_obj.allowed_assessors"
+                                                :value="member.id"
+                                            >
+                                                {{ member.first_name }}
+                                                {{ member.last_name }}
                                             </option>
                                         </select>
-                                        <a v-if="canAssess && conservation_status_obj.assigned_officer != conservation_status_obj.current_assessor.id"
-                                            @click.prevent="assignRequestUser()" class="float-end" role="button">Assign
-                                            to me</a>
+                                        <a
+                                            v-if="
+                                                canAssess &&
+                                                conservation_status_obj.assigned_officer !=
+                                                    conservation_status_obj
+                                                        .current_assessor.id
+                                            "
+                                            class="float-end"
+                                            role="button"
+                                            @click.prevent="assignRequestUser()"
+                                            >Assign >Assign to me</a
+                                        >
                                     </template>
                                 </div>
                             </div>
@@ -76,32 +178,67 @@
                             <div class="col-sm-12">
                                 <strong>Referrals</strong><br />
                                 <div class="form-group mb-3">
-                                    <select :disabled="!canLimitedAction" ref="referees" class="form-control">
-                                    </select>
-                                    <template v-if='!sendingReferral'>
+                                    <select
+                                        ref="referees"
+                                        :disabled="!canLimitedAction"
+                                        class="form-control"
+                                    ></select>
+                                    <template v-if="!sendingReferral">
                                         <template v-if="selected_referral">
-                                            <label class="control-label mt-2" for="referral_text">Comments</label>
-                                            <textarea class="form-control" name="referral_text" ref="referral_text"
-                                                v-model="referral_text"></textarea>
-                                            <a v-if="canLimitedAction" @click.prevent="sendReferral()" class="float-end"
-                                                role="button">Send</a>
+                                            <label
+                                                class="control-label mt-2"
+                                                for="referral_text"
+                                                >Comments</label
+                                            >
+                                            <textarea
+                                                ref="referral_text"
+                                                v-model="referral_text"
+                                                class="form-control"
+                                                name="referral_text"
+                                            ></textarea>
+                                            <a
+                                                v-if="canLimitedAction"
+                                                class="float-end"
+                                                role="button"
+                                                @click.prevent="sendReferral()"
+                                                >Send</a
+                                            >
                                         </template>
                                     </template>
                                     <template v-else>
-                                        <span v-if="canLimitedAction" @click.prevent="sendReferral()" disabled
-                                            class="text-primary float-end" role="button">
-                                            Sending Referral <span class="spinner-border spinner-border-sm"
-                                                role="status" aria-hidden="true"></span>
-                                            <span class="visually-hidden">Loading...</span>
+                                        <span
+                                            v-if="canLimitedAction"
+                                            disabled
+                                            class="text-primary float-end"
+                                            role="button"
+                                            @click.prevent="sendReferral()"
+                                        >
+                                            Sending Referral
+                                            <span
+                                                class="spinner-border spinner-border-sm"
+                                                role="status"
+                                                aria-hidden="true"
+                                            ></span>
+                                            <span class="visually-hidden"
+                                                >Loading...</span
+                                            >
                                         </span>
                                     </template>
                                 </div>
-                                <div v-if="
-                                    conservation_status_obj.external_referral_invites &&
-                                    conservation_status_obj.external_referral_invites.length > 0
-                                ">
-                                    <div class="fw-bold mb-1">External Referee Invites</div>
-                                    <table class="table table-sm table-hover table-referrals">
+                                <div
+                                    v-if="
+                                        conservation_status_obj.external_referral_invites &&
+                                        conservation_status_obj
+                                            .external_referral_invites.length >
+                                            0
+                                    "
+                                >
+                                    <div class="fw-bold mb-1">
+                                        External Referee Invites
+                                    </div>
+                                    <table
+                                        class="table table-sm table-hover table-referrals"
+                                    >
                                         <thead>
                                             <tr>
                                                 <th scope="col">Referee</th>
@@ -110,32 +247,56 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr v-for="external_referee_invite in conservation_status_obj.external_referral_invites"
-                                                :key="external_referee_invite.id">
+                                            <tr
+                                                v-for="external_referee_invite in conservation_status_obj.external_referral_invites"
+                                                :key="
+                                                    external_referee_invite.id
+                                                "
+                                            >
                                                 <td class="truncate-name">
-                                                    {{ external_referee_invite.full_name }}
+                                                    {{
+                                                        external_referee_invite.full_name
+                                                    }}
                                                 </td>
                                                 <td>Pending</td>
                                                 <td class="text-center">
-                                                    <a role="button" data-bs-toggle="popover"
-                                                        data-bs-trigger="hover focus" :data-bs-content="'Send a reminder to ' +
+                                                    <a
+                                                        role="button"
+                                                        data-bs-toggle="popover"
+                                                        data-bs-trigger="hover focus"
+                                                        :data-bs-content="
+                                                            'Send a reminder to ' +
                                                             external_referee_invite.full_name
-                                                            " data-bs-placement="bottom" @click.prevent="
-                                                                remindExternalReferee(
-                                                                    external_referee_invite
-                                                                )
-                                                                "><i class="fa fa-bell text-warning"
-                                                            aria-hidden="true"></i>
+                                                        "
+                                                        data-bs-placement="bottom"
+                                                        @click.prevent="
+                                                            remindExternalReferee(
+                                                                external_referee_invite
+                                                            )
+                                                        "
+                                                        ><i
+                                                            class="fa fa-bell text-warning"
+                                                            aria-hidden="true"
+                                                        ></i>
                                                     </a>
-                                                    <a role="button" data-bs-toggle="popover"
-                                                        data-bs-trigger="hover focus" :data-bs-content="'Retract the external referee invite sent to ' +
+                                                    <a
+                                                        role="button"
+                                                        data-bs-toggle="popover"
+                                                        data-bs-trigger="hover focus"
+                                                        :data-bs-content="
+                                                            'Retract the external referee invite sent to ' +
                                                             external_referee_invite.full_name
-                                                            " data-bs-placement="bottom" @click.prevent="
-                                                                retractExternalRefereeInvite(
-                                                                    external_referee_invite
-                                                                )
-                                                                "><i class="fa fa-times-circle text-danger"
-                                                            aria-hidden="true"></i>
+                                                        "
+                                                        data-bs-placement="bottom"
+                                                        @click.prevent="
+                                                            retractExternalRefereeInvite(
+                                                                external_referee_invite
+                                                            )
+                                                        "
+                                                        ><i
+                                                            class="fa fa-times-circle text-danger"
+                                                            aria-hidden="true"
+                                                        ></i>
                                                     </a>
                                                 </td>
                                             </tr>
@@ -144,15 +305,32 @@
                                 </div>
 
                                 <template
-                                    v-if="conservation_status_obj.latest_referrals && conservation_status_obj.latest_referrals.length > 0">
+                                    v-if="
+                                        conservation_status_obj.latest_referrals &&
+                                        conservation_status_obj.latest_referrals
+                                            .length > 0
+                                    "
+                                >
                                     <div>
                                         <div class="fw-bold mb-1">
                                             Recent Referrals
-                                            <small class="text-secondary fw-lighter">(Showing {{
-                                                conservation_status_obj.latest_referrals.length }} of
-                                                {{ conservation_status_obj.referrals.length }})</small>
+                                            <small
+                                                class="text-secondary fw-lighter"
+                                                >(Showing
+                                                {{
+                                                    conservation_status_obj
+                                                        .latest_referrals.length
+                                                }}
+                                                of
+                                                {{
+                                                    conservation_status_obj
+                                                        .referrals.length
+                                                }})</small
+                                            >
                                         </div>
-                                        <table class="table table-sm table-hover table-referrals">
+                                        <table
+                                            class="table table-sm table-hover table-referrals"
+                                        >
                                             <thead>
                                                 <tr>
                                                     <th>Referee</th>
@@ -161,45 +339,104 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr v-for="r in conservation_status_obj.latest_referrals">
+                                                <tr
+                                                    v-for="r in conservation_status_obj.latest_referrals"
+                                                >
                                                     <td class="truncate-name">
-                                                        {{ r.referral.first_name }} {{
-                                                            r.referral.last_name }}
+                                                        {{
+                                                            r.referral
+                                                                .first_name
+                                                        }}
+                                                        {{
+                                                            r.referral.last_name
+                                                        }}
                                                     </td>
                                                     <td>
-                                                        {{ r.processing_status }}
+                                                        {{
+                                                            r.processing_status
+                                                        }}
                                                     </td>
                                                     <td>
-                                                        <template v-if="r.processing_status == 'Awaiting'">
-                                                            <a v-if="canLimitedAction" role="button"
-                                                                data-bs-toggle="popover" data-bs-trigger="hover"
-                                                                :data-bs-content="'Send a reminder to ' +
-                                                                    r.referral['fullname']
-                                                                    " data-bs-placement="bottom"
+                                                        <template
+                                                            v-if="
+                                                                r.processing_status ==
+                                                                'Awaiting'
+                                                            "
+                                                        >
+                                                            <a
+                                                                v-if="
+                                                                    canLimitedAction
+                                                                "
+                                                                role="button"
+                                                                data-bs-toggle="popover"
+                                                                data-bs-trigger="hover"
+                                                                :data-bs-content="
+                                                                    'Send a reminder to ' +
+                                                                    r.referral[
+                                                                        'fullname'
+                                                                    ]
+                                                                "
+                                                                data-bs-placement="bottom"
                                                                 data-bs-container="body"
-                                                                @click.prevent="remindReferral(r)"><i
+                                                                @click.prevent="
+                                                                    remindReferral(
+                                                                        r
+                                                                    )
+                                                                "
+                                                                ><i
                                                                     class="fa fa-bell text-warning"
-                                                                    aria-hidden="true"></i>
+                                                                    aria-hidden="true"
+                                                                ></i>
                                                             </a>
-                                                            <a role="button" data-bs-toggle="popover"
-                                                                data-bs-trigger="hover" :data-bs-content="'Recall the referral request sent to ' +
-                                                                    r.referral['fullname']
-                                                                    " data-bs-placement="bottom"
+                                                            <a
+                                                                role="button"
+                                                                data-bs-toggle="popover"
+                                                                data-bs-trigger="hover"
+                                                                :data-bs-content="
+                                                                    'Recall the referral request sent to ' +
+                                                                    r.referral[
+                                                                        'fullname'
+                                                                    ]
+                                                                "
+                                                                data-bs-placement="bottom"
                                                                 data-bs-container="body"
-                                                                @click.prevent="recallReferral(r)"><i
+                                                                @click.prevent="
+                                                                    recallReferral(
+                                                                        r
+                                                                    )
+                                                                "
+                                                                ><i
                                                                     class="fa fa-times-circle text-danger"
-                                                                    aria-hidden="true"></i>
+                                                                    aria-hidden="true"
+                                                                ></i>
                                                             </a>
                                                         </template>
                                                         <template v-else>
-                                                            <template v-if="canLimitedAction"><a role="button"
-                                                                    data-bs-toggle="popover" data-bs-trigger="hover"
-                                                                    :data-bs-content="'Resend this referral request to ' +
-                                                                        r.referral['fullname']
-                                                                        " data-bs-container="body"
-                                                                    @click.prevent="resendReferral(r)"><i
+                                                            <template
+                                                                v-if="
+                                                                    canLimitedAction
+                                                                "
+                                                                ><a
+                                                                    role="button"
+                                                                    data-bs-toggle="popover"
+                                                                    data-bs-trigger="hover"
+                                                                    :data-bs-content="
+                                                                        'Resend this referral request to ' +
+                                                                        r
+                                                                            .referral[
+                                                                            'fullname'
+                                                                        ]
+                                                                    "
+                                                                    data-bs-container="body"
+                                                                    @click.prevent="
+                                                                        resendReferral(
+                                                                            r
+                                                                        )
+                                                                    "
+                                                                    ><i
                                                                         class="fa fa-envelope text-primary"
-                                                                        aria-hidden="true"></i>
+                                                                        aria-hidden="true"
+                                                                    ></i>
                                                                 </a>
                                                             </template>
                                                         </template>
@@ -207,16 +444,26 @@
                                                 </tr>
                                             </tbody>
                                         </table>
-                                        <CSMoreReferrals @refreshFromResponse="refreshFromResponse"
-                                            :conservation_status_obj="conservation_status_obj"
-                                            :canAction="canLimitedAction" :isFinalised="isFinalised"
-                                            :referral_url="referralListURL" />
+                                        <CSMoreReferrals
+                                            :conservation_status_obj="
+                                                conservation_status_obj
+                                            "
+                                            :can-action="canLimitedAction"
+                                            :is-finalised="isFinalised"
+                                            :referral_url="referralListURL"
+                                            @refresh-from-response="
+                                                refreshFromResponse
+                                            "
+                                        />
                                     </div>
                                 </template>
                             </div>
                         </div>
                     </div>
-                    <div v-if="show_finalised_actions" class="card-body border-top">
+                    <div
+                        v-if="show_finalised_actions"
+                        class="card-body border-top"
+                    >
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="row mb-2">
@@ -225,34 +472,61 @@
                                     </div>
                                 </div>
                                 <template
-                                    v-if="hasAssessorMode && conservation_status_obj.processing_status == 'Approved'">
+                                    v-if="
+                                        hasAssessorMode &&
+                                        conservation_status_obj.processing_status ==
+                                            'Approved'
+                                    "
+                                >
                                     <div class="row mb-2">
                                         <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary"
-                                                @click.prevent="proposeDelist()">Propose Delist</button><br />
+                                            <button
+                                                style="width: 90%"
+                                                class="btn btn-primary"
+                                                @click.prevent="proposeDelist()"
+                                            >
+                                                Propose Delist</button
+                                            ><br />
                                         </div>
                                     </div>
                                 </template>
                                 <template v-if="canAction && canUnlock">
                                     <div class="row mb-2">
                                         <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary"
-                                                @click.prevent="unlockConservationStatus()">Unlock</button><br />
+                                            <button
+                                                style="width: 90%"
+                                                class="btn btn-primary"
+                                                @click.prevent="
+                                                    unlockConservationStatus()
+                                                "
+                                            >
+                                                Unlock</button
+                                            ><br />
                                         </div>
                                     </div>
                                 </template>
                                 <template v-if="canAction && canLock">
                                     <div class="row mb-2">
                                         <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary"
-                                                @click.prevent="lockConservationStatus()">Lock</button><br />
+                                            <button
+                                                style="width: 90%"
+                                                class="btn btn-primary"
+                                                @click.prevent="
+                                                    lockConservationStatus()
+                                                "
+                                            >
+                                                Lock</button
+                                            ><br />
                                         </div>
                                     </div>
                                 </template>
                             </div>
                         </div>
                     </div>
-                    <div v-if="!isFinalised && canAction" class="card-body border-top">
+                    <div
+                        v-if="!isFinalised && canAction"
+                        class="card-body border-top"
+                    >
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="row mb-2">
@@ -260,96 +534,200 @@
                                         <strong>Action</strong><br />
                                     </div>
                                 </div>
-                                <template v-if="conservation_status_obj.processing_status == 'With Assessor'">
+                                <template
+                                    v-if="
+                                        conservation_status_obj.processing_status ==
+                                        'With Assessor'
+                                    "
+                                >
                                     <div class="row mb-2">
                                         <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary"
-                                                @click.prevent="amendmentRequest()">Request
-                                                Amendment</button><br />
+                                            <button
+                                                style="width: 90%"
+                                                class="btn btn-primary"
+                                                @click.prevent="
+                                                    amendmentRequest()
+                                                "
+                                            >
+                                                Request Amendment</button
+                                            ><br />
                                         </div>
                                     </div>
-                                    <div class="row mb-2"
-                                        v-if="conservation_status_obj.approval_level == 'minister' && conservation_status_obj.processing_status == 'With Assessor'">
+                                    <div
+                                        v-if="
+                                            conservation_status_obj.approval_level ==
+                                                'minister' &&
+                                            conservation_status_obj.processing_status ==
+                                                'With Assessor'
+                                        "
+                                        class="row mb-2"
+                                    >
                                         <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary"
-                                                @click.prevent="proposedReadyForAgenda()">Propose for
-                                                Agenda</button><br />
+                                            <button
+                                                style="width: 90%"
+                                                class="btn btn-primary"
+                                                @click.prevent="
+                                                    proposedReadyForAgenda()
+                                                "
+                                            >
+                                                Propose for Agenda</button
+                                            ><br />
                                         </div>
                                     </div>
-                                    <div class="row mb-2" v-if="conservation_status_obj.approval_level == 'immediate'">
+                                    <div
+                                        v-if="
+                                            conservation_status_obj.approval_level ==
+                                            'immediate'
+                                        "
+                                        class="row mb-2"
+                                    >
                                         <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary"
-                                                @click.prevent="declineProposal()">Decline</button><br />
+                                            <button
+                                                style="width: 90%"
+                                                class="btn btn-primary"
+                                                @click.prevent="
+                                                    declineProposal()
+                                                "
+                                            >
+                                                Decline</button
+                                            ><br />
                                         </div>
                                     </div>
-                                    <div class="row mb-2" v-if="conservation_status_obj.approval_level == 'immediate'">
+                                    <div
+                                        v-if="
+                                            conservation_status_obj.approval_level ==
+                                            'immediate'
+                                        "
+                                        class="row mb-2"
+                                    >
                                         <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary"
-                                                @click.prevent="issueProposal()">Approve</button><br />
+                                            <button
+                                                style="width: 90%"
+                                                class="btn btn-primary"
+                                                @click.prevent="issueProposal()"
+                                            >
+                                                Approve</button
+                                            ><br />
                                         </div>
                                     </div>
                                 </template>
                                 <template
-                                    v-if="conservation_status_obj.processing_status == 'Proposed For Agenda' && conservation_status_obj.approval_level == 'minister'">
+                                    v-if="
+                                        conservation_status_obj.processing_status ==
+                                            'Proposed For Agenda' &&
+                                        conservation_status_obj.approval_level ==
+                                            'minister'
+                                    "
+                                >
                                     <div class="row mb-2">
                                         <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary"
-                                                @click.prevent="readyForAgenda">Confirm Ready for
-                                                Agenda</button><br />
+                                            <button
+                                                style="width: 90%"
+                                                class="btn btn-primary"
+                                                @click.prevent="readyForAgenda"
+                                            >
+                                                Confirm Ready for Agenda</button
+                                            ><br />
                                         </div>
                                     </div>
                                 </template>
                                 <template v-if="canApproveOrDeclineOnAgendaCS">
                                     <div class="row mb-2">
                                         <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary"
-                                                @click.prevent="issueProposal()">Approve</button><br />
+                                            <button
+                                                style="width: 90%"
+                                                class="btn btn-primary"
+                                                @click.prevent="issueProposal()"
+                                            >
+                                                Approve</button
+                                            ><br />
                                         </div>
                                     </div>
                                     <div class="row mb-2">
                                         <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary"
-                                                @click.prevent="declineProposal()">Decline</button><br />
+                                            <button
+                                                style="width: 90%"
+                                                class="btn btn-primary"
+                                                @click.prevent="
+                                                    declineProposal()
+                                                "
+                                            >
+                                                Decline</button
+                                            ><br />
                                         </div>
                                     </div>
                                 </template>
-                                <template v-else-if="conservation_status_obj.processing_status == 'Proposed DeListed'">
+                                <template
+                                    v-else-if="
+                                        conservation_status_obj.processing_status ==
+                                        'Proposed DeListed'
+                                    "
+                                >
                                     <div class="row mb-2">
                                         <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary"
-                                                @click.prevent="switchStatus('approved')">Revert To
-                                                Approved</button><br />
+                                            <button
+                                                style="width: 90%"
+                                                class="btn btn-primary"
+                                                @click.prevent="
+                                                    switchStatus('approved')
+                                                "
+                                            >
+                                                Revert To Approved</button
+                                            ><br />
                                         </div>
                                     </div>
                                     <div class="row mb-2">
                                         <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary"
-                                                @click.prevent="delistProposal()">Confirm Delisting</button><br />
+                                            <button
+                                                style="width: 90%"
+                                                class="btn btn-primary"
+                                                @click.prevent="
+                                                    delistProposal()
+                                                "
+                                            >
+                                                Confirm Delisting</button
+                                            ><br />
                                         </div>
                                     </div>
                                 </template>
                                 <template v-if="canSendBackToAssessor">
                                     <div class="row mb-2">
                                         <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary"
-                                                @click.prevent="backToAssessor">Back To
-                                                Assessor</button><br />
+                                            <button
+                                                style="width: 90%"
+                                                class="btn btn-primary"
+                                                @click.prevent="backToAssessor"
+                                            >
+                                                Back To Assessor</button
+                                            ><br />
                                         </div>
                                     </div>
                                 </template>
                                 <template v-if="canDefer">
                                     <div class="row mb-2">
                                         <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary"
-                                                @click.prevent="deferProposal()">Defer</button><br />
+                                            <button
+                                                style="width: 90%"
+                                                class="btn btn-primary"
+                                                @click.prevent="deferProposal()"
+                                            >
+                                                Defer</button
+                                            ><br />
                                         </div>
                                     </div>
                                 </template>
                                 <template v-if="canDiscard">
                                     <div class="row mb-2">
                                         <div class="col-sm-12">
-                                            <button style="width:90%;" class="btn btn-primary"
-                                                @click.prevent="discardCSProposal()">Discard</button><br />
+                                            <button
+                                                style="width: 90%"
+                                                class="btn btn-primary"
+                                                @click.prevent="
+                                                    discardCSProposal()
+                                                "
+                                            >
+                                                Discard</button
+                                            ><br />
                                         </div>
                                     </div>
                                 </template>
@@ -362,66 +740,188 @@
                 <div class="row">
                     <div class="">
                         <div class="row">
-                            <form :action="species_community_cs_form_url" method="post" name="new_conservation_status"
-                                enctype="multipart/form-data">
-                                <ProposalConservationStatus ref="conservation_status"
-                                    :conservation_status_obj="conservation_status_obj" :canEditStatus="canEditStatus"
-                                    id="ConservationStatusStart" :is_internal="true"
-                                    @saveConservationStatus="save_wo()">
+                            <form
+                                :action="species_community_cs_form_url"
+                                method="post"
+                                name="new_conservation_status"
+                                enctype="multipart/form-data"
+                            >
+                                <ProposalConservationStatus
+                                    id="ConservationStatusStart"
+                                    ref="conservation_status"
+                                    :conservation_status_obj="
+                                        conservation_status_obj
+                                    "
+                                    :can-edit-status="canEditStatus"
+                                    :is_internal="true"
+                                    @save-conservation-status="save_wo()"
+                                >
                                 </ProposalConservationStatus>
-                                <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
-                                <input type='hidden' name="conservation_status_id" :value="1" />
+                                <input
+                                    type="hidden"
+                                    name="csrfmiddlewaretoken"
+                                    :value="csrf_token"
+                                />
+                                <input
+                                    type="hidden"
+                                    name="conservation_status_id"
+                                    :value="1"
+                                />
                                 <div class="row" style="margin-bottom: 50px">
-                                    <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
+                                    <div
+                                        class="navbar fixed-bottom"
+                                        style="background-color: #f5f5f5"
+                                    >
                                         <!--the below as internal proposal submission ELSE just saving proposal changes -->
                                         <div class="container">
                                             <div class="col-md-6">
-                                                <p class="pull-right" style="margin-top:5px;">
-                                                    <router-link class="btn btn-primary"
-                                                        :to="{ name: 'internal-conservation-status-dash' }">Back to
-                                                        Dashboard</router-link>
+                                                <p
+                                                    class="pull-right"
+                                                    style="margin-top: 5px"
+                                                >
+                                                    <router-link
+                                                        class="btn btn-primary"
+                                                        :to="{
+                                                            name: 'internal-conservation-status-dash',
+                                                        }"
+                                                        >Back to
+                                                        Dashboard</router-link
+                                                    >
                                                 </p>
                                             </div>
-                                            <div v-if="conservation_status_obj.internal_user_edit"
-                                                class="col-md-6 text-end">
-                                                <button v-if="savingConservationStatus" class="btn btn-primary me-2"
-                                                    style="margin-top:5px;" disabled>Save and Continue <span
-                                                        class="spinner-border spinner-border-sm" role="status"
-                                                        aria-hidden="true"></span>
-                                                    <span class="visually-hidden">Loading...</span></button>
-                                                <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
+                                            <div
+                                                v-if="
+                                                    conservation_status_obj.internal_user_edit
+                                                "
+                                                class="col-md-6 text-end"
+                                            >
+                                                <button
+                                                    v-if="
+                                                        savingConservationStatus
+                                                    "
+                                                    class="btn btn-primary me-2"
+                                                    style="margin-top: 5px"
+                                                    disabled
+                                                >
+                                                    Save and Continue
+                                                    <span
+                                                        class="spinner-border spinner-border-sm"
+                                                        role="status"
+                                                        aria-hidden="true"
+                                                    ></span>
+                                                    <span
+                                                        class="visually-hidden"
+                                                        >Loading...</span
+                                                    >
+                                                </button>
+                                                <button
+                                                    v-else
+                                                    class="btn btn-primary me-2"
+                                                    style="margin-top: 5px"
+                                                    :disabled="
+                                                        saveExitConservationStatus ||
+                                                        submitConservationStatus
+                                                    "
                                                     @click.prevent="save()"
-                                                    :disabled="saveExitConservationStatus || submitConservationStatus">Save
-                                                    and Continue</button>
+                                                >
+                                                    Save Save and Continue
+                                                </button>
 
-                                                <button v-if="saveExitConservationStatus" class="btn btn-primary me-2"
-                                                    style="margin-top:5px;" disabled>Save and Exit <span
-                                                        class="spinner-border spinner-border-sm" role="status"
-                                                        aria-hidden="true"></span>
-                                                    <span class="visually-hidden">Loading...</span></button>
-                                                <button v-else class="btn btn-primary me-2" style="margin-top:5px;"
+                                                <button
+                                                    v-if="
+                                                        saveExitConservationStatus
+                                                    "
+                                                    class="btn btn-primary me-2"
+                                                    style="margin-top: 5px"
+                                                    disabled
+                                                >
+                                                    Save and Exit
+                                                    <span
+                                                        class="spinner-border spinner-border-sm"
+                                                        role="status"
+                                                        aria-hidden="true"
+                                                    ></span>
+                                                    <span
+                                                        class="visually-hidden"
+                                                        >Loading...</span
+                                                    >
+                                                </button>
+                                                <button
+                                                    v-else
+                                                    class="btn btn-primary me-2"
+                                                    style="margin-top: 5px"
+                                                    :disabled="
+                                                        savingConservationStatus ||
+                                                        submitConservationStatus
+                                                    "
                                                     @click.prevent="save_exit()"
-                                                    :disabled="savingConservationStatus || submitConservationStatus">Save
-                                                    and Exit</button>
+                                                >
+                                                    Save Save and Exit
+                                                </button>
 
-                                                <button v-if="submitConservationStatus" class="btn btn-primary"
-                                                    style="margin-top:5px;" disabled>Submit <span
-                                                        class="spinner-border spinner-border-sm" role="status"
-                                                        aria-hidden="true"></span>
-                                                    <span class="visually-hidden">Loading...</span></button>
-                                                <button v-else class="btn btn-primary" style="margin-top:5px;"
+                                                <button
+                                                    v-if="
+                                                        submitConservationStatus
+                                                    "
+                                                    class="btn btn-primary"
+                                                    style="margin-top: 5px"
+                                                    disabled
+                                                >
+                                                    Submit
+                                                    <span
+                                                        class="spinner-border spinner-border-sm"
+                                                        role="status"
+                                                        aria-hidden="true"
+                                                    ></span>
+                                                    <span
+                                                        class="visually-hidden"
+                                                        >Loading...</span
+                                                    >
+                                                </button>
+                                                <button
+                                                    v-else
+                                                    class="btn btn-primary"
+                                                    style="margin-top: 5px"
+                                                    :disbaled="
+                                                        saveExitConservationStatus ||
+                                                        savingConservationStatus
+                                                    "
                                                     @click.prevent="submit()"
-                                                    :disbaled="saveExitConservationStatus || savingConservationStatus">Submit</button>
+                                                >
+                                                    Submit
+                                                </button>
                                             </div>
-                                            <div v-else-if="hasAssessorMode" class="col-md-6 text-end">
-                                                <button v-if="savingConservationStatus" class="btn btn-primary"
-                                                    style="margin-top:5px;" disabled>Save Changes <span
-                                                        class="spinner-border spinner-border-sm" role="status"
-                                                        aria-hidden="true"></span>
-                                                    <span class="visually-hidden">Loading...</span></button>
-                                                <button v-else class="btn btn-primary" style="margin-top:5px;"
-                                                    @click.prevent="save()">Save
-                                                    Changes</button>
+                                            <div
+                                                v-else-if="hasAssessorMode"
+                                                class="col-md-6 text-end"
+                                            >
+                                                <button
+                                                    v-if="
+                                                        savingConservationStatus
+                                                    "
+                                                    class="btn btn-primary"
+                                                    style="margin-top: 5px"
+                                                    disabled
+                                                >
+                                                    Save Changes
+                                                    <span
+                                                        class="spinner-border spinner-border-sm"
+                                                        role="status"
+                                                        aria-hidden="true"
+                                                    ></span>
+                                                    <span
+                                                        class="visually-hidden"
+                                                        >Loading...</span
+                                                    >
+                                                </button>
+                                                <button
+                                                    v-else
+                                                    class="btn btn-primary"
+                                                    style="margin-top: 5px"
+                                                    @click.prevent="save()"
+                                                >
+                                                    Save Changes
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -432,54 +932,116 @@
                 </div>
             </div>
         </div>
-        <AmendmentRequest ref="amendment_request" :conservation_status_id="conservation_status_obj.id"
-            @refreshFromResponse="refreshFromResponse"></AmendmentRequest>
-        <BackToAssessor ref="back_to_assessor_modal" :conservation_status_id="conservation_status_obj.id"
-            @refreshFromResponse="refreshFromResponse"></BackToAssessor>
-        <Defer ref="defer_modal" :conservation_status="conservation_status_obj"
-            @refreshFromResponse="refreshFromResponse">
+        <AmendmentRequest
+            ref="amendment_request"
+            :conservation_status_id="conservation_status_obj.id"
+            @refresh-from-response="refreshFromResponse"
+        ></AmendmentRequest>
+        <BackToAssessor
+            ref="back_to_assessor_modal"
+            :conservation_status_id="conservation_status_obj.id"
+            @refresh-from-response="refreshFromResponse"
+        ></BackToAssessor>
+        <Defer
+            ref="defer_modal"
+            :conservation_status="conservation_status_obj"
+            @refresh-from-response="refreshFromResponse"
+        >
         </Defer>
-        <ProposeForAgenda ref="propose_for_agenda" :conservation_status_id="conservation_status_obj.id"
-            @refreshFromResponse="refreshFromResponse"></ProposeForAgenda>
-        <ReadyForAgenda ref="ready_for_agenda" :conservation_status_id="conservation_status_obj.id"
-            @refreshFromResponse="refreshFromResponse"></ReadyForAgenda>
-        <ProposedDecline ref="proposed_decline" :processing_status="conservation_status_obj.processing_status"
-            :conservation_status_id="conservation_status_obj.id" @refreshFromResponse="refreshFromResponse">
+        <ProposeForAgenda
+            ref="propose_for_agenda"
+            :conservation_status_id="conservation_status_obj.id"
+            @refresh-from-response="refreshFromResponse"
+        ></ProposeForAgenda>
+        <ReadyForAgenda
+            ref="ready_for_agenda"
+            :conservation_status_id="conservation_status_obj.id"
+            @refresh-from-response="refreshFromResponse"
+        ></ReadyForAgenda>
+        <ProposedDecline
+            ref="proposed_decline"
+            :processing_status="conservation_status_obj.processing_status"
+            :conservation_status_id="conservation_status_obj.id"
+            @refresh-from-response="refreshFromResponse"
+        >
         </ProposedDecline>
-        <ProposedApproval ref="proposed_approval" :processing_status="conservation_status_obj.processing_status"
-            :conservation_status_id="conservation_status_obj.id" :isApprovalLevelDocument="isApprovalLevelDocument"
-            @refreshFromResponse="refreshFromResponse" />
-        <ProposeDelist ref="propose_delist" :processing_status="conservation_status_obj.processing_status"
-            :conservation_status_id="conservation_status_obj.id" @refreshFromResponse="refreshFromResponse">
+        <ProposedApproval
+            ref="proposed_approval"
+            :processing_status="conservation_status_obj.processing_status"
+            :conservation_status_id="conservation_status_obj.id"
+            :is-approval-level-document="isApprovalLevelDocument"
+            @refresh-from-response="refreshFromResponse"
+        />
+        <ProposeDelist
+            ref="propose_delist"
+            :processing_status="conservation_status_obj.processing_status"
+            :conservation_status_id="conservation_status_obj.id"
+            @refresh-from-response="refreshFromResponse"
+        >
         </ProposeDelist>
-        <InviteExternalReferee ref="inviteExternalReferee" :pk="conservation_status_obj.id" model="conservation_status"
-            :email="external_referee_email" @externalRefereeInviteSent="externalRefereeInviteSent" />
+        <InviteExternalReferee
+            ref="inviteExternalReferee"
+            :pk="conservation_status_obj.id"
+            model="conservation_status"
+            :email="external_referee_email"
+            @external-referee-invite-sent="externalRefereeInviteSent"
+        />
     </div>
 </template>
 <script>
-
-import datatable from '@vue-utils/datatable.vue'
-import CommsLogs from '@common-utils/comms_logs.vue'
-import Submission from '@common-utils/submission.vue'
-import AmendmentRequest from './amendment_request.vue'
-import BackToAssessor from './back_to_assessor.vue'
-import Defer from './defer.vue'
-import ProposeForAgenda from './propose_for_agenda.vue'
-import ReadyForAgenda from './ready_for_agenda.vue'
-import ProposedDecline from './proposal_proposed_decline.vue'
-import ProposeDelist from './proposal_propose_delist.vue'
-import ProposedApproval from './proposed_issuance.vue'
-import InviteExternalReferee from '@common-utils/invite_external_referee.vue'
-import CSMoreReferrals from '@common-utils/conservation_status/cs_more_referrals.vue'
-import ProposalConservationStatus from '@/components/form_conservation_status.vue'
-import {
-    api_endpoints,
-    constants,
-    helpers
-}
-    from '@/utils/hooks'
+import datatable from '@vue-utils/datatable.vue';
+import CommsLogs from '@common-utils/comms_logs.vue';
+import Submission from '@common-utils/submission.vue';
+import AmendmentRequest from './amendment_request.vue';
+import BackToAssessor from './back_to_assessor.vue';
+import Defer from './defer.vue';
+import ProposeForAgenda from './propose_for_agenda.vue';
+import ReadyForAgenda from './ready_for_agenda.vue';
+import ProposedDecline from './proposal_proposed_decline.vue';
+import ProposeDelist from './proposal_propose_delist.vue';
+import ProposedApproval from './proposed_issuance.vue';
+import InviteExternalReferee from '@common-utils/invite_external_referee.vue';
+import CSMoreReferrals from '@common-utils/conservation_status/cs_more_referrals.vue';
+import ProposalConservationStatus from '@/components/form_conservation_status.vue';
+import { api_endpoints, constants, helpers } from '@/utils/hooks';
 export default {
     name: 'InternalConservationStatus',
+    components: {
+        datatable,
+        CommsLogs,
+        Defer,
+        Submission,
+        ProposalConservationStatus,
+        AmendmentRequest,
+        BackToAssessor,
+        ProposeForAgenda,
+        CSMoreReferrals,
+        ProposedDecline,
+        ProposeDelist,
+        ProposedApproval,
+        ReadyForAgenda,
+        InviteExternalReferee,
+    },
+    filters: {
+        formatDate: function (data) {
+            return data ? moment(data).format('DD/MM/YYYY HH:mm:ss') : '';
+        },
+    },
+    beforeRouteEnter: function (to, from, next) {
+        fetch(
+            `/api/conservation_status/${to.params.conservation_status_id}/internal_conservation_status.json`
+        ).then(
+            async (response) => {
+                next(async (vm) => {
+                    const data = await response.json();
+                    vm.conservation_status_obj = data.conservation_status_obj;
+                });
+            },
+            (err) => {
+                console.log(err);
+            }
+        );
+    },
     data: function () {
         let vm = this;
         return {
@@ -501,193 +1063,247 @@ export default {
             changingStatus: false,
             external_referee_email: '',
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-            comms_url: helpers.add_endpoint_json(api_endpoints.conservation_status, vm.$route.params.conservation_status_id + '/comms_log'),
-            comms_add_url: helpers.add_endpoint_json(api_endpoints.conservation_status, vm.$route.params.conservation_status_id + '/add_comms_log'),
-            logs_url: helpers.add_endpoint_json(api_endpoints.conservation_status, vm.$route.params.conservation_status_id + '/action_log'),
+            comms_url: helpers.add_endpoint_json(
+                api_endpoints.conservation_status,
+                vm.$route.params.conservation_status_id + '/comms_log'
+            ),
+            comms_add_url: helpers.add_endpoint_json(
+                api_endpoints.conservation_status,
+                vm.$route.params.conservation_status_id + '/add_comms_log'
+            ),
+            logs_url: helpers.add_endpoint_json(
+                api_endpoints.conservation_status,
+                vm.$route.params.conservation_status_id + '/action_log'
+            ),
             initialisedSelects: false,
             cs_proposal_readonly: true,
             isSaved: false,
-        }
-    },
-    components: {
-        datatable,
-        CommsLogs,
-        Defer,
-        Submission,
-        ProposalConservationStatus,
-        AmendmentRequest,
-        BackToAssessor,
-        ProposeForAgenda,
-        CSMoreReferrals,
-        ProposedDecline,
-        ProposeDelist,
-        ProposedApproval,
-        ReadyForAgenda,
-        InviteExternalReferee
-    },
-    filters: {
-        formatDate: function (data) {
-            return data ? moment(data).format('DD/MM/YYYY HH:mm:ss') : '';
-        }
+        };
     },
     computed: {
         identifier: function () {
             if (this.conservation_status_obj) {
                 if (this.conservation_status_obj.group_type == 'community') {
-                    return this.conservation_status_obj.community_name ? this.conservation_status_obj.community_name : '';
+                    return this.conservation_status_obj.community_name
+                        ? this.conservation_status_obj.community_name
+                        : '';
                 } else {
-                    return this.conservation_status_obj.scientific_name ? this.conservation_status_obj.scientific_name : '';
+                    return this.conservation_status_obj.scientific_name
+                        ? this.conservation_status_obj.scientific_name
+                        : '';
                 }
             }
 
             return '';
         },
         csrf_token: function () {
-            return helpers.getCookie('csrftoken')
+            return helpers.getCookie('csrftoken');
         },
         referralListURL: function () {
-            return this.conservation_status_obj != null ? helpers.add_endpoint_json(api_endpoints.cs_referrals, 'datatable_list') + '?conservation_status=' + this.conservation_status_obj.id : '';
+            return this.conservation_status_obj != null
+                ? helpers.add_endpoint_json(
+                      api_endpoints.cs_referrals,
+                      'datatable_list'
+                  ) +
+                      '?conservation_status=' +
+                      this.conservation_status_obj.id
+                : '';
         },
         species_community_cs_form_url: function () {
             return `/api/conservation_status/${this.conservation_status_obj.id}/conservation_status_save.json`;
         },
         submitter_first_name: function () {
             if (this.conservation_status_obj.submitter) {
-                return this.conservation_status_obj.submitter.first_name
+                return this.conservation_status_obj.submitter.first_name;
             } else {
-                return ''
+                return '';
             }
         },
         submitter_last_name: function () {
             if (this.conservation_status_obj.submitter) {
-                return this.conservation_status_obj.submitter.last_name
+                return this.conservation_status_obj.submitter.last_name;
             } else {
-                return ''
+                return '';
             }
         },
         submitter_id: function () {
             if (this.conservation_status_obj.submitter) {
-                return this.conservation_status_obj.submitter.id
+                return this.conservation_status_obj.submitter.id;
             } else {
                 //eturn this.conservation_status_obj.applicant_obj.id
             }
         },
         submitter_email: function () {
             if (this.conservation_status_obj.submitter) {
-                return this.conservation_status_obj.submitter.email
+                return this.conservation_status_obj.submitter.email;
             } else {
                 //return this.conservation_status_obj.applicant_obj.email
             }
         },
         canEditStatus: function () {
-            return this.conservation_status_obj ? this.conservation_status_obj.can_user_edit : 'false';
+            return this.conservation_status_obj
+                ? this.conservation_status_obj.can_user_edit
+                : 'false';
         },
         isFinalised: function () {
-            return this.conservation_status_obj.processing_status == 'Declined' ||
+            return (
+                this.conservation_status_obj.processing_status == 'Declined' ||
                 this.conservation_status_obj.processing_status == 'Approved' ||
                 this.conservation_status_obj.processing_status == 'Closed' ||
                 this.conservation_status_obj.processing_status == 'Unlocked' ||
-                this.conservation_status_obj.processing_status == 'DeListed';
+                this.conservation_status_obj.processing_status == 'DeListed'
+            );
         },
         canLimitedAction: function () {
-            return this.conservation_status_obj
-                && (
-                    this.conservation_status_obj.processing_status == 'With Assessor'
-                    || this.conservation_status_obj.processing_status == 'With Referral'
-                )
-                && !this.isFinalised
-                && (
-                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer)
-                && this.conservation_status_obj.assessor_mode.assessor_can_assess;
+            return (
+                this.conservation_status_obj &&
+                (this.conservation_status_obj.processing_status ==
+                    'With Assessor' ||
+                    this.conservation_status_obj.processing_status ==
+                        'With Referral') &&
+                !this.isFinalised &&
+                this.conservation_status_obj.current_assessor.id ==
+                    this.conservation_status_obj.assigned_officer &&
+                this.conservation_status_obj.assessor_mode.assessor_can_assess
+            );
         },
         canAction: function () {
             if (!this.conservation_status_obj) {
                 return false;
             }
             if (this.isFinalised) {
-                return this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver;
-            }
-            else if (['Proposed For Agenda', 'Ready For Agenda', 'Proposed DeListed', 'Unlocked'].includes(this.conservation_status_obj.processing_status)) {
-                return this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver
-                    && this.conservation_status_obj.assessor_mode.assessor_can_assess;
-            }
-            else if (['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status)) {
-                return this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer
-                    && this.conservation_status_obj.assessor_mode.assessor_can_assess;
-            }
-            else if (this.conservation_status_obj.processing_status == 'Deferred') {
-                return this.conservation_status_obj.assessor_mode.assessor_can_assess &&
-                    (
-                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer
-                    );
-            }
-            else if (this.conservation_status_obj.processing_status == 'On Agenda') {
-                return this.conservation_status_obj.assessor_mode.assessor_can_assess && this.conservation_status_obj.most_recent_meeting_completed &&
-                    (
-                        this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver
-                    );
-            }
-            else {
-                return this.conservation_status_obj.processing_status == 'Draft'
-                    && this.conservation_status_obj.internal_application
-                    && this.conservation_status_obj.internal_user_edit
+                return (
+                    this.conservation_status_obj.current_assessor.id ==
+                    this.conservation_status_obj.assigned_approver
+                );
+            } else if (
+                [
+                    'Proposed For Agenda',
+                    'Ready For Agenda',
+                    'Proposed DeListed',
+                    'Unlocked',
+                ].includes(this.conservation_status_obj.processing_status)
+            ) {
+                return (
+                    this.conservation_status_obj.current_assessor.id ==
+                        this.conservation_status_obj.assigned_approver &&
+                    this.conservation_status_obj.assessor_mode
+                        .assessor_can_assess
+                );
+            } else if (
+                ['With Assessor', 'With Referral'].includes(
+                    this.conservation_status_obj.processing_status
+                )
+            ) {
+                return (
+                    this.conservation_status_obj.current_assessor.id ==
+                        this.conservation_status_obj.assigned_officer &&
+                    this.conservation_status_obj.assessor_mode
+                        .assessor_can_assess
+                );
+            } else if (
+                this.conservation_status_obj.processing_status == 'Deferred'
+            ) {
+                return (
+                    this.conservation_status_obj.assessor_mode
+                        .assessor_can_assess &&
+                    this.conservation_status_obj.current_assessor.id ==
+                        this.conservation_status_obj.assigned_officer
+                );
+            } else if (
+                this.conservation_status_obj.processing_status == 'On Agenda'
+            ) {
+                return (
+                    this.conservation_status_obj.assessor_mode
+                        .assessor_can_assess &&
+                    this.conservation_status_obj
+                        .most_recent_meeting_completed &&
+                    this.conservation_status_obj.current_assessor.id ==
+                        this.conservation_status_obj.assigned_approver
+                );
+            } else {
+                return (
+                    this.conservation_status_obj.processing_status == 'Draft' &&
+                    this.conservation_status_obj.internal_application &&
+                    this.conservation_status_obj.internal_user_edit
+                );
             }
         },
         canRefer: function () {
-            return this.conservation_status_obj && ['With Assessor', 'With Referral'].includes(this.conservation_status_obj.processing_status)
-                && !this.isFinalised &&
-                (
-                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer)
-                && this.conservation_status_obj.assessor_mode.assessor_can_assess;
+            return (
+                this.conservation_status_obj &&
+                ['With Assessor', 'With Referral'].includes(
+                    this.conservation_status_obj.processing_status
+                ) &&
+                !this.isFinalised &&
+                this.conservation_status_obj.current_assessor.id ==
+                    this.conservation_status_obj.assigned_officer &&
+                this.conservation_status_obj.assessor_mode.assessor_can_assess
+            );
         },
         canAssess: function () {
-            return this.conservation_status_obj &&
-                this.conservation_status_obj.assessor_mode.assessor_can_assess ||
-                this.conservation_status_obj.approver_process;
+            return (
+                (this.conservation_status_obj &&
+                    this.conservation_status_obj.assessor_mode
+                        .assessor_can_assess) ||
+                this.conservation_status_obj.approver_process
+            );
         },
         canSendBackToAssessor: function () {
-            return this.conservation_status_obj &&
+            return (
+                this.conservation_status_obj &&
                 this.conservation_status_obj.approval_level == 'minister' &&
                 [
                     constants.PROPOSAL_STATUS.PROPOSED_FOR_AGENDA.TEXT,
                     constants.PROPOSAL_STATUS.READY_FOR_AGENDA.TEXT,
                     constants.PROPOSAL_STATUS.DEFERRED.TEXT,
                 ].includes(this.conservation_status_obj.processing_status) &&
-                this.conservation_status_obj.assessor_mode.assessor_can_assess &&
-                (
-                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer
-                );
+                this.conservation_status_obj.assessor_mode
+                    .assessor_can_assess &&
+                this.conservation_status_obj.current_assessor.id ==
+                    this.conservation_status_obj.assigned_officer
+            );
         },
         canApproveOrDeclineOnAgendaCS: function () {
-            return this.conservation_status_obj &&
+            return (
+                this.conservation_status_obj &&
                 this.conservation_status_obj.approval_level == 'minister' &&
                 this.conservation_status_obj.processing_status == 'On Agenda' &&
                 this.conservation_status_obj.most_recent_meeting_completed &&
-                this.conservation_status_obj.assessor_mode.assessor_can_assess &&
-                (
-                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver
-                );
+                this.conservation_status_obj.assessor_mode
+                    .assessor_can_assess &&
+                this.conservation_status_obj.current_assessor.id ==
+                    this.conservation_status_obj.assigned_approver
+            );
         },
         canDefer: function () {
-            return this.conservation_status_obj &&
-                [
-                    constants.PROPOSAL_STATUS.WITH_ASSESSOR.TEXT,
-                    constants.PROPOSAL_STATUS.READY_FOR_AGENDA.TEXT,
-                ].includes(this.conservation_status_obj.processing_status) ||
-                (
-                    this.conservation_status_obj.processing_status == constants.PROPOSAL_STATUS.ON_AGENDA.TEXT &&
-                    this.conservation_status_obj.most_recent_meeting_completed
-                ) &&
-                this.conservation_status_obj.assessor_mode.assessor_can_assess &&
-                (
-                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_officer ||
-                    this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver
-                );
+            return (
+                (this.conservation_status_obj &&
+                    [
+                        constants.PROPOSAL_STATUS.WITH_ASSESSOR.TEXT,
+                        constants.PROPOSAL_STATUS.READY_FOR_AGENDA.TEXT,
+                    ].includes(
+                        this.conservation_status_obj.processing_status
+                    )) ||
+                (this.conservation_status_obj.processing_status ==
+                    constants.PROPOSAL_STATUS.ON_AGENDA.TEXT &&
+                    this.conservation_status_obj
+                        .most_recent_meeting_completed &&
+                    this.conservation_status_obj.assessor_mode
+                        .assessor_can_assess &&
+                    (this.conservation_status_obj.current_assessor.id ==
+                        this.conservation_status_obj.assigned_officer ||
+                        this.conservation_status_obj.current_assessor.id ==
+                            this.conservation_status_obj.assigned_approver))
+            );
         },
         hasAssessorMode: function () {
-            return this.conservation_status_obj && (
-                this.conservation_status_obj.assessor_mode.has_assessor_mode ||
-                this.conservation_status_obj.assessor_mode.has_unlocked_mode);
+            return (
+                this.conservation_status_obj &&
+                (this.conservation_status_obj.assessor_mode.has_assessor_mode ||
+                    this.conservation_status_obj.assessor_mode
+                        .has_unlocked_mode)
+            );
         },
         isApprovalLevelDocument: function () {
             return false;
@@ -696,18 +1312,31 @@ export default {
             return this.conservation_status_obj.internal_user_edit;
         },
         canUnlock: function () {
-            return this.conservation_status_obj &&
-                this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver &&
-                ['Approved', 'Closed', 'Declined', 'DeListed'].includes(this.conservation_status_obj.processing_status);
+            return (
+                this.conservation_status_obj &&
+                this.conservation_status_obj.current_assessor.id ==
+                    this.conservation_status_obj.assigned_approver &&
+                ['Approved', 'Closed', 'Declined', 'DeListed'].includes(
+                    this.conservation_status_obj.processing_status
+                )
+            );
         },
         canLock: function () {
-            return this.conservation_status_obj &&
-                this.conservation_status_obj.current_assessor.id == this.conservation_status_obj.assigned_approver &&
-                this.conservation_status_obj.processing_status === "Unlocked";
+            return (
+                this.conservation_status_obj &&
+                this.conservation_status_obj.current_assessor.id ==
+                    this.conservation_status_obj.assigned_approver &&
+                this.conservation_status_obj.processing_status === 'Unlocked'
+            );
         },
         show_finalised_actions: function () {
-            return (this.hasAssessorMode && this.conservation_status_obj.processing_status == 'Approved') || this.canAction && (this.canUnlock || this.canLock);
-        }
+            return (
+                (this.hasAssessorMode &&
+                    this.conservation_status_obj.processing_status ==
+                        'Approved') ||
+                (this.canAction && (this.canUnlock || this.canLock))
+            );
+        },
     },
     watch: {
         canRefer: function (newVal, oldVal) {
@@ -718,99 +1347,136 @@ export default {
             }
         },
     },
+    mounted: function () {
+        let vm = this;
+        vm.fetchDeparmentUsers();
+    },
+    created: function () {
+        if (!this.conservation_status_obj) {
+            this.fetchConservationStatus();
+        }
+    },
+    updated: function () {
+        let vm = this;
+        this.$nextTick(() => {
+            vm.initialiseSelects();
+            vm.form = document.forms.new_conservation_status;
+        });
+    },
     methods: {
         commaToNewline(s) {
             return s.replace(/[,;]/g, '\n');
         },
         unlockConservationStatus: async function () {
             let vm = this;
-            await fetch(`/api/conservation_status/${vm.conservation_status_obj.id}/unlock_conservation_status.json`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }).then(async (response) => {
-                const data = await response.json();
-                vm.conservation_status_obj = Object.assign({}, data);
-                swal.fire({
-                    title: 'Conservation Status Unlocked',
-                    icon: 'success',
-                    showConfirmButton: false,
-                    timer: 1500,
-
-                });
-            }, err => {
-                var errorText = helpers.apiVueResourceError(err);
-                swal.fire({
-                    title: 'Unlock Error',
-                    text: errorText,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
+            await fetch(
+                `/api/conservation_status/${vm.conservation_status_obj.id}/unlock_conservation_status.json`,
+                {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                });
-            });
+                }
+            ).then(
+                async (response) => {
+                    const data = await response.json();
+                    vm.conservation_status_obj = Object.assign({}, data);
+                    swal.fire({
+                        title: 'Conservation Status Unlocked',
+                        icon: 'success',
+                        showConfirmButton: false,
+                        timer: 1500,
+                    });
+                },
+                (err) => {
+                    var errorText = helpers.apiVueResourceError(err);
+                    swal.fire({
+                        title: 'Unlock Error',
+                        text: errorText,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                }
+            );
         },
         lockConservationStatus: function () {
             let vm = this;
             swal.fire({
-                title: "Lock Conservation Status",
-                text: "Are you sure you want to lock this approved conservation status?",
-                icon: "question",
+                title: 'Lock Conservation Status',
+                text: 'Are you sure you want to lock this approved conservation status?',
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Lock Conservation Status',
                 customClass: {
                     confirmButton: 'btn btn-primary',
-                    cancelButton: 'btn btn-secondary'
+                    cancelButton: 'btn btn-secondary',
                 },
                 reverseButtons: true,
-            }).then((swalresult) => {
-                if (swalresult.isConfirmed) {
-                    fetch(`/api/conservation_status/${vm.conservation_status_obj.id}/lock_conservation_status.json`, {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    })
-                        .then(async (response) => {
-                            const data = await response.json();
-                            vm.conservation_status_obj = Object.assign({}, data);
-                            swal.fire({
-                                title: 'Conservation Status Locked',
-                                icon: 'success',
-                                showConfirmButton: false,
-                                timer: 1200,
-                            });
-                        }, (error) => {
-                            console.log(error);
-                        });
+            }).then(
+                (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        fetch(
+                            `/api/conservation_status/${vm.conservation_status_obj.id}/lock_conservation_status.json`,
+                            {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                            }
+                        ).then(
+                            async (response) => {
+                                const data = await response.json();
+                                vm.conservation_status_obj = Object.assign(
+                                    {},
+                                    data
+                                );
+                                swal.fire({
+                                    title: 'Conservation Status Locked',
+                                    icon: 'success',
+                                    showConfirmButton: false,
+                                    timer: 1200,
+                                });
+                            },
+                            (error) => {
+                                console.log(error);
+                            }
+                        );
+                    }
+                },
+                (error) => {
+                    console.log(error);
                 }
-            }, (error) => {
-                console.log(error);
-            });
+            );
         },
         discardCSProposal: function () {
             let vm = this;
             swal.fire({
-                title: "Discard Proposal",
-                text: "Are you sure you want to discard this proposal?",
-                icon: "question",
+                title: 'Discard Proposal',
+                text: 'Are you sure you want to discard this proposal?',
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Discard Proposal',
                 customClass: {
                     confirmButton: 'btn btn-primary',
-                    cancelButton: 'btn btn-secondary'
+                    cancelButton: 'btn btn-secondary',
                 },
                 reverseButtons: true,
             }).then((result) => {
                 if (result.isConfirmed) {
-                    fetch(api_endpoints.discard_cs_proposal(vm.conservation_status_obj.id), {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    })
-                        .then((response) => {
+                    fetch(
+                        api_endpoints.discard_cs_proposal(
+                            vm.conservation_status_obj.id
+                        ),
+                        {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        }
+                    ).then(
+                        (response) => {
                             swal.fire({
                                 title: 'Discarded',
                                 text: 'Your proposal has been discarded',
@@ -820,11 +1486,13 @@ export default {
                                 },
                             });
                             vm.$router.push({
-                                name: 'internal-conservation-status-dash'
+                                name: 'internal-conservation-status-dash',
                             });
-                        }, (error) => {
+                        },
+                        (error) => {
                             console.log(error);
-                        });
+                        }
+                    );
                 }
             });
         },
@@ -850,24 +1518,29 @@ export default {
             let vm = this;
             swal.fire({
                 title: `Delist Conservation Status ${this.conservation_status_obj.conservation_status_number}`,
-                text: "Are you sure you want to delist this conservation status?",
-                icon: "question",
+                text: 'Are you sure you want to delist this conservation status?',
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Delist',
                 reverseButtons: true,
                 customClass: {
                     confirmButton: 'btn btn-primary',
-                    cancelButton: 'btn btn-secondary'
-                }
+                    cancelButton: 'btn btn-secondary',
+                },
             }).then((result) => {
                 if (result.isConfirmed) {
-                    fetch(api_endpoints.delist_cs_proposal(vm.conservation_status_obj.id), {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    })
-                        .then((response) => {
+                    fetch(
+                        api_endpoints.delist_cs_proposal(
+                            vm.conservation_status_obj.id
+                        ),
+                        {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        }
+                    ).then(
+                        (response) => {
                             swal.fire({
                                 title: 'Delisted',
                                 text: `Conservation Status ${this.conservation_status_obj.conservation_status_number} has been delisted.`,
@@ -877,32 +1550,49 @@ export default {
                                 },
                             });
                             vm.$router.push({
-                                name: 'internal-conservation-status-dash'
+                                name: 'internal-conservation-status-dash',
                             });
-                        }, (error) => {
+                        },
+                        (error) => {
                             console.log(error);
-                        });
+                        }
+                    );
                 }
             });
         },
         proposedApproval: function () {
-            if (this.conservation_status_obj.conservationstatusissuanceapprovaldetails &&
-                Object.keys(this.conservation_status_obj.conservationstatusissuanceapprovaldetails).length > 0) {
-                this.$refs.proposed_approval.approval = helpers.copyObject(this.conservation_status_obj.conservationstatusissuanceapprovaldetails);
+            if (
+                this.conservation_status_obj
+                    .conservationstatusissuanceapprovaldetails &&
+                Object.keys(
+                    this.conservation_status_obj
+                        .conservationstatusissuanceapprovaldetails
+                ).length > 0
+            ) {
+                this.$refs.proposed_approval.approval = helpers.copyObject(
+                    this.conservation_status_obj
+                        .conservationstatusissuanceapprovaldetails
+                );
             }
             this.$refs.proposed_approval.isModalOpen = true;
         },
         validateConservationStatus: function () {
             let required_fields = [];
-            if (this.conservation_status_obj.processing_status == 'With Assessor') {
+            if (
+                this.conservation_status_obj.processing_status ==
+                'With Assessor'
+            ) {
                 required_fields = [
-                    { 'id': 'change_code_id', 'display': 'Change Type' },
-                    { 'id': 'approval_level', 'display': 'Appplicable Workflow' }
+                    { id: 'change_code_id', display: 'Change Type' },
+                    { id: 'approval_level', display: 'Appplicable Workflow' },
                 ];
             }
             let missing_fields = [];
             for (let field of required_fields) {
-                if (this.conservation_status_obj[field.id] == null || this.conservation_status_obj[field.id] == '') {
+                if (
+                    this.conservation_status_obj[field.id] == null ||
+                    this.conservation_status_obj[field.id] == ''
+                ) {
                     missing_fields.push(field.display);
                 }
             }
@@ -923,35 +1613,59 @@ export default {
             if (!this.validateConservationStatus()) {
                 return;
             }
-            if (this.conservation_status_obj.conservationstatusissuanceapprovaldetails &&
-                Object.keys(this.conservation_status_obj.conservationstatusissuanceapprovaldetails).length > 0) {
-                this.$refs.proposed_approval.approval = helpers.copyObject(this.conservation_status_obj.conservationstatusissuanceapprovaldetails);
+            if (
+                this.conservation_status_obj
+                    .conservationstatusissuanceapprovaldetails &&
+                Object.keys(
+                    this.conservation_status_obj
+                        .conservationstatusissuanceapprovaldetails
+                ).length > 0
+            ) {
+                this.$refs.proposed_approval.approval = helpers.copyObject(
+                    this.conservation_status_obj
+                        .conservationstatusissuanceapprovaldetails
+                );
             }
             this.$refs.proposed_approval.state = 'final_approval';
-            this.$refs.proposed_approval.isApprovalLevelDocument = this.isApprovalLevelDocument;
+            this.$refs.proposed_approval.isApprovalLevelDocument =
+                this.isApprovalLevelDocument;
             this.$refs.proposed_approval.isModalOpen = true;
         },
         proposedDecline: function () {
             this.save_wo();
-            this.$refs.proposed_decline.decline = this.conservation_status_obj.conservationstatusdeclineddetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusdeclineddetails) : {};
+            this.$refs.proposed_decline.decline =
+                this.conservation_status_obj
+                    .conservationstatusdeclineddetails != null
+                    ? helpers.copyObject(
+                          this.conservation_status_obj
+                              .conservationstatusdeclineddetails
+                      )
+                    : {};
             this.$refs.proposed_decline.isModalOpen = true;
         },
         declineProposal: function () {
-            this.$refs.proposed_decline.decline = this.conservation_status_obj.conservationstatusdeclineddetails != null ? helpers.copyObject(this.conservation_status_obj.conservationstatusdeclineddetails) : {};
+            this.$refs.proposed_decline.decline =
+                this.conservation_status_obj
+                    .conservationstatusdeclineddetails != null
+                    ? helpers.copyObject(
+                          this.conservation_status_obj
+                              .conservationstatusdeclineddetails
+                      )
+                    : {};
             this.$refs.proposed_decline.isModalOpen = true;
         },
         save: async function (e) {
             let vm = this;
-            var missing_data = vm.can_submit("");
+            var missing_data = vm.can_submit('');
             if (missing_data != true) {
                 swal.fire({
-                    title: "Please fix following errors before saving",
+                    title: 'Please fix following errors before saving',
                     text: missing_data,
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
                     },
-                })
+                });
                 return false;
             }
             vm.isSaved = false;
@@ -964,50 +1678,53 @@ export default {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-            }).then(async (response) => {
-                swal.fire({
-                    title: 'Saved',
-                    text: 'Your changes have been saved',
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-                vm.savingConservationStatus = false;
-                vm.isSaved = true;
-            }, err => {
-                var errorText = helpers.apiVueResourceError(err);
-                swal.fire({
-                    title: 'Save Error',
-                    text: errorText,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-                vm.savingConservationStatus = false;
-                vm.isSaved = false;
-            });
+            }).then(
+                async (response) => {
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Your changes have been saved',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.savingConservationStatus = false;
+                    vm.isSaved = true;
+                },
+                (err) => {
+                    var errorText = helpers.apiVueResourceError(err);
+                    swal.fire({
+                        title: 'Save Error',
+                        text: errorText,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.savingConservationStatus = false;
+                    vm.isSaved = false;
+                }
+            );
         },
         save_exit: async function (e) {
             let vm = this;
-            var missing_data = vm.can_submit("");
+            var missing_data = vm.can_submit('');
             if (missing_data != true) {
                 swal.fire({
-                    title: "Please fix following errors before saving",
+                    title: 'Please fix following errors before saving',
                     text: missing_data,
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
                     },
-                })
+                });
                 return false;
             }
             vm.saveExitConservationStatus = true;
             await this.save(e).then(() => {
                 if (vm.isSaved === true) {
                     vm.$router.push({
-                        name: 'internal-conservation-status-dash'
+                        name: 'internal-conservation-status-dash',
                     });
                 } else {
                     vm.saveExitConservationStatus = false;
@@ -1026,130 +1743,164 @@ export default {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-            }).then(async (response) => {
-
-            }, err => {
-                var errorText = helpers.apiVueResourceError(err);
-                swal.fire({
-                    title: 'Submit Error',
-                    text: errorText,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-                vm.submitConservationStatus = false;
-                vm.saveError = true;
-            });
+            }).then(
+                async (response) => {},
+                (err) => {
+                    var errorText = helpers.apiVueResourceError(err);
+                    swal.fire({
+                        title: 'Submit Error',
+                        text: errorText,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.submitConservationStatus = false;
+                    vm.saveError = true;
+                }
+            );
             return result;
         },
         validateConservationStatusListsCategories: function (blank_fields) {
             let required_fields = [
-                { 'id': 'wa_legislative_list_id', 'display': 'WA Legislative List' },
-                { 'id': 'wa_priority_list_id', 'display': 'WA Priority List' },
+                {
+                    id: 'wa_legislative_list_id',
+                    display: 'WA Legislative List',
+                },
+                { id: 'wa_priority_list_id', display: 'WA Priority List' },
             ];
             for (let field of required_fields) {
-                if (this.conservation_status_obj[field.id] != null && this.conservation_status_obj[field.id] != '') {
+                if (
+                    this.conservation_status_obj[field.id] != null &&
+                    this.conservation_status_obj[field.id] != ''
+                ) {
                     return blank_fields;
                 }
             }
-            blank_fields.push(`At least one of the following fields are required: ${required_fields.map(f => f.display).join(', ')}`);
+            blank_fields.push(
+                `At least one of the following fields are required: ${required_fields.map((f) => f.display).join(', ')}`
+            );
             return blank_fields;
         },
         can_submit: function (check_action) {
             let vm = this;
-            let blank_fields = []
+            let blank_fields = [];
             blank_fields = vm.can_submit_conservation_status(check_action);
 
             if (blank_fields.length == 0) {
                 return true;
-            }
-            else {
+            } else {
                 return blank_fields;
             }
         },
         can_submit_conservation_status: function (check_action) {
             let vm = this;
-            let blank_fields = []
-            if (vm.conservation_status_obj.group_type == 'flora' || vm.conservation_status_obj.group_type == 'fauna') {
-                if (vm.conservation_status_obj.species_taxonomy_id == null || vm.conservation_status_obj.species_taxonomy_id == '') {
-                    blank_fields.push(' Scientific Name is missing')
+            let blank_fields = [];
+            if (
+                vm.conservation_status_obj.group_type == 'flora' ||
+                vm.conservation_status_obj.group_type == 'fauna'
+            ) {
+                if (
+                    vm.conservation_status_obj.species_taxonomy_id == null ||
+                    vm.conservation_status_obj.species_taxonomy_id == ''
+                ) {
+                    blank_fields.push(' Scientific Name is missing');
+                }
+            } else {
+                if (
+                    vm.conservation_status_obj.community_id == null ||
+                    vm.conservation_status_obj.community_id == ''
+                ) {
+                    blank_fields.push(' Community Name is missing');
                 }
             }
-            else {
-                if (vm.conservation_status_obj.community_id == null || vm.conservation_status_obj.community_id == '') {
-                    blank_fields.push(' Community Name is missing')
+            if (check_action == 'submit') {
+                vm.validateConservationStatusListsCategories(blank_fields);
+                if (
+                    vm.conservation_status_obj.comment == null ||
+                    vm.conservation_status_obj.comment == ''
+                ) {
+                    blank_fields.push(
+                        ' Please enter some comments regarding your conservation status proposal.'
+                    );
                 }
             }
-            if (check_action == "submit") {
-                vm.validateConservationStatusListsCategories(blank_fields)
-                if (vm.conservation_status_obj.comment == null || vm.conservation_status_obj.comment == '') {
-                    blank_fields.push(' Please enter some comments regarding your conservation status proposal.')
-                }
-            }
-            return blank_fields
+            return blank_fields;
         },
         submit: async function () {
             let vm = this;
 
-            var missing_data = vm.can_submit("submit");
+            var missing_data = vm.can_submit('submit');
             if (missing_data != true) {
                 swal.fire({
-                    title: "Please fix following errors before submitting",
+                    title: 'Please fix following errors before submitting',
                     text: missing_data,
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
                     },
-                })
+                });
                 return false;
             }
             vm.submitConservationStatus = true;
             swal.fire({
-                title: "Submit Proposal",
-                text: "Are you sure you want to submit this conservation status proposal?",
-                icon: "question",
+                title: 'Submit Proposal',
+                text: 'Are you sure you want to submit this conservation status proposal?',
+                icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: "Submit Proposal",
+                confirmButtonText: 'Submit Proposal',
                 customClass: {
                     confirmButton: 'btn btn-primary',
-                    cancelButton: 'btn btn-secondary'
+                    cancelButton: 'btn btn-secondary',
                 },
-                reverseButtons: true
-            }).then(async (swalresult) => {
-                if (swalresult.isConfirmed) {
-                    let result = await vm.save_before_submit()
-                    if (!vm.saveError) {
-                        let payload = new Object();
-                        Object.assign(payload, vm.conservation_status_obj);
-                        fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_obj.id + '/submit'), {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(payload),
-                        }).then(async (response) => {
-                            vm.conservation_status_obj = await response.json();
-                            vm.$router.push({
-                                name: 'internal-conservation-status-dash'
-                            });
-                        }, err => {
-                            swal.fire({
-                                title: 'Submit Error',
-                                text: helpers.apiVueResourceError(err),
-                                icon: 'error',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
+                reverseButtons: true,
+            }).then(
+                async (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        let result = await vm.save_before_submit();
+                        if (!vm.saveError) {
+                            let payload = new Object();
+                            Object.assign(payload, vm.conservation_status_obj);
+                            fetch(
+                                helpers.add_endpoint_json(
+                                    api_endpoints.conservation_status,
+                                    vm.conservation_status_obj.id + '/submit'
+                                ),
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify(payload),
+                                }
+                            ).then(
+                                async (response) => {
+                                    vm.conservation_status_obj =
+                                        await response.json();
+                                    vm.$router.push({
+                                        name: 'internal-conservation-status-dash',
+                                    });
                                 },
-                            });
-                        });
+                                (err) => {
+                                    swal.fire({
+                                        title: 'Submit Error',
+                                        text: helpers.apiVueResourceError(err),
+                                        icon: 'error',
+                                        customClass: {
+                                            confirmButton: 'btn btn-primary',
+                                        },
+                                    });
+                                }
+                            );
+                        }
+                    } else {
+                        vm.submitConservationStatus = false;
                     }
-                } else {
+                },
+                (error) => {
                     vm.submitConservationStatus = false;
                 }
-            }, (error) => {
-                vm.submitConservationStatus = false;
-            });
+            );
         },
         save_wo: function () {
             let vm = this;
@@ -1161,9 +1912,10 @@ export default {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-            }).then(async (response) => {
-            }, err => {
-            });
+            }).then(
+                async (response) => {},
+                (err) => {}
+            );
         },
         refreshFromResponse: async function (response) {
             const data = await response.json();
@@ -1179,48 +1931,87 @@ export default {
             let vm = this;
             let unassign = true;
             let data = {};
-            if (['Proposed DeListed', 'Ready For Agenda', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
-                unassign = vm.conservation_status_obj.assigned_approver != null && vm.conservation_status_obj.assigned_approver != 'undefined' ? false : true;
-                data = { 'assessor_id': vm.conservation_status_obj.assigned_approver };
-            }
-            else {
-                unassign = vm.conservation_status_obj.assigned_officer != null && vm.conservation_status_obj.assigned_officer != 'undefined' ? false : true;
-                data = { 'assessor_id': vm.conservation_status_obj.assigned_officer };
+            if (
+                [
+                    'Proposed DeListed',
+                    'Ready For Agenda',
+                    'Approved',
+                    'Closed',
+                    'DeListed',
+                ].includes(vm.conservation_status_obj.processing_status)
+            ) {
+                unassign =
+                    vm.conservation_status_obj.assigned_approver != null &&
+                    vm.conservation_status_obj.assigned_approver != 'undefined'
+                        ? false
+                        : true;
+                data = {
+                    assessor_id: vm.conservation_status_obj.assigned_approver,
+                };
+            } else {
+                unassign =
+                    vm.conservation_status_obj.assigned_officer != null &&
+                    vm.conservation_status_obj.assigned_officer != 'undefined'
+                        ? false
+                        : true;
+                data = {
+                    assessor_id: vm.conservation_status_obj.assigned_officer,
+                };
             }
             if (!unassign) {
-                fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/assign_to')), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data),
-                }).then(async (response) => {
-                    const data = await response.json();
-                    vm.conservation_status_obj = data;
-                    vm.original_conservation_status_obj = helpers.copyObject(data);
-                    vm.updateAssignedOfficerSelect();
-                }, (error) => {
-                    vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
-                    vm.updateAssignedOfficerSelect();
-                    swal.fire({
-                        title: 'Application Error',
-                        text: helpers.apiVueResourceError(error),
-                        icon: 'error',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
+                fetch(
+                    helpers.add_endpoint_json(
+                        api_endpoints.conservation_status,
+                        vm.conservation_status_obj.id + '/assign_to'
+                    ),
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
                         },
-                    });
-                });
-            }
-            else {
-                fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/unassign')))
-                    .then(async (response) => {
+                        body: JSON.stringify(data),
+                    }
+                ).then(
+                    async (response) => {
                         const data = await response.json();
                         vm.conservation_status_obj = data;
-                        vm.original_conservation_status_obj = helpers.copyObject(data);
+                        vm.original_conservation_status_obj =
+                            helpers.copyObject(data);
                         vm.updateAssignedOfficerSelect();
-                    }, (error) => {
-                        vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
+                    },
+                    (error) => {
+                        vm.conservation_status_obj = helpers.copyObject(
+                            vm.original_conservation_status_obj
+                        );
+                        vm.updateAssignedOfficerSelect();
+                        swal.fire({
+                            title: 'Application Error',
+                            text: helpers.apiVueResourceError(error),
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                    }
+                );
+            } else {
+                fetch(
+                    helpers.add_endpoint_json(
+                        api_endpoints.conservation_status,
+                        vm.conservation_status_obj.id + '/unassign'
+                    )
+                ).then(
+                    async (response) => {
+                        const data = await response.json();
+                        vm.conservation_status_obj = data;
+                        vm.original_conservation_status_obj =
+                            helpers.copyObject(data);
+                        vm.updateAssignedOfficerSelect();
+                    },
+                    (error) => {
+                        vm.conservation_status_obj = helpers.copyObject(
+                            vm.original_conservation_status_obj
+                        );
 
                         vm.updateAssignedOfficerSelect();
                         swal.fire({
@@ -1231,34 +2022,55 @@ export default {
                                 confirmButton: 'btn btn-primary',
                             },
                         });
-                    });
+                    }
+                );
             }
         },
         updateAssignedOfficerSelect: function () {
             let vm = this;
-            if (['Proposed DeListed', 'Ready For Agenda', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
-                $(vm.$refs.assigned_officer).val(vm.conservation_status_obj.assigned_approver);
+            if (
+                [
+                    'Proposed DeListed',
+                    'Ready For Agenda',
+                    'Approved',
+                    'Closed',
+                    'DeListed',
+                ].includes(vm.conservation_status_obj.processing_status)
+            ) {
+                $(vm.$refs.assigned_officer).val(
+                    vm.conservation_status_obj.assigned_approver
+                );
                 $(vm.$refs.assigned_officer).trigger('change');
-            }
-            else {
-                $(vm.$refs.assigned_officer).val(vm.conservation_status_obj.assigned_officer);
+            } else {
+                $(vm.$refs.assigned_officer).val(
+                    vm.conservation_status_obj.assigned_officer
+                );
                 $(vm.$refs.assigned_officer).trigger('change');
             }
         },
         assignRequestUser: function () {
             let vm = this;
-            fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/assign_request_user')))
-                .then(async (response) => {
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.conservation_status,
+                    vm.conservation_status_obj.id + '/assign_request_user'
+                )
+            ).then(
+                async (response) => {
                     const data = await response.json();
                     vm.conservation_status_obj = data;
-                    vm.original_conservation_status_obj = helpers.copyObject(data);
+                    vm.original_conservation_status_obj =
+                        helpers.copyObject(data);
                     vm.updateAssignedOfficerSelect();
                     vm.$nextTick(() => {
                         vm.initialisedSelects = false;
                         vm.initialiseSelects();
                     });
-                }, (error) => {
-                    vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
+                },
+                (error) => {
+                    vm.conservation_status_obj = helpers.copyObject(
+                        vm.original_conservation_status_obj
+                    );
                     vm.updateAssignedOfficerSelect();
                     swal.fire({
                         title: 'Application Error',
@@ -1268,39 +2080,61 @@ export default {
                             confirmButton: 'btn btn-primary',
                         },
                     });
-                });
+                }
+            );
         },
         initialiseAssignedOfficerSelect: function (reinit = false) {
             let vm = this;
             if (reinit) {
-                $(vm.$refs.assigned_officer).data('select2') ? $(vm.$refs.assigned_officer).select2('destroy') : '';
+                $(vm.$refs.assigned_officer).data('select2')
+                    ? $(vm.$refs.assigned_officer).select2('destroy')
+                    : '';
             }
             // Assigned officer select
-            $(vm.$refs.assigned_officer).select2({
-                "theme": "bootstrap-5",
-                allowClear: true,
-                placeholder: "Select Officer"
-            }).
-                on("select2:select", function (e) {
+            $(vm.$refs.assigned_officer)
+                .select2({
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: 'Select Officer',
+                })
+                .on('select2:select', function (e) {
                     var selected = $(e.currentTarget);
-                    if (['Ready For Agenda', 'Proposed DeListed', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
-                        vm.conservation_status_obj.assigned_approver = selected.val();
-                    }
-                    else {
-                        vm.conservation_status_obj.assigned_officer = selected.val();
+                    if (
+                        [
+                            'Ready For Agenda',
+                            'Proposed DeListed',
+                            'Approved',
+                            'Closed',
+                            'DeListed',
+                        ].includes(vm.conservation_status_obj.processing_status)
+                    ) {
+                        vm.conservation_status_obj.assigned_approver =
+                            selected.val();
+                    } else {
+                        vm.conservation_status_obj.assigned_officer =
+                            selected.val();
                     }
                     vm.assignTo();
-                }).on("select2:unselecting", function (e) {
+                })
+                .on('select2:unselecting', function (e) {
                     var self = $(this);
                     setTimeout(() => {
                         self.select2('close');
                     }, 0);
-                }).on("select2:unselect", function (e) {
+                })
+                .on('select2:unselect', function (e) {
                     var selected = $(e.currentTarget);
-                    if (['Ready For Agenda', 'Proposed DeListed', 'Approved', 'Closed', 'DeListed'].includes(vm.conservation_status_obj.processing_status)) {
+                    if (
+                        [
+                            'Ready For Agenda',
+                            'Proposed DeListed',
+                            'Approved',
+                            'Closed',
+                            'DeListed',
+                        ].includes(vm.conservation_status_obj.processing_status)
+                    ) {
                         vm.conservation_status_obj.assigned_approver = null;
-                    }
-                    else {
+                    } else {
                         vm.conservation_status_obj.assigned_officer = null;
                     }
                     vm.assignTo();
@@ -1309,73 +2143,78 @@ export default {
         fetchDeparmentUsers: function () {
             let vm = this;
             vm.loading.push('Loading Department Users');
-            fetch(api_endpoints.department_users).then(async (response) => {
-                vm.department_users = await response.json();
-                vm.loading.splice('Loading Department Users', 1);
-            }, (error) => {
-                console.log(error);
-                vm.loading.splice('Loading Department Users', 1);
-            })
+            fetch(api_endpoints.department_users).then(
+                async (response) => {
+                    vm.department_users = await response.json();
+                    vm.loading.splice('Loading Department Users', 1);
+                },
+                (error) => {
+                    console.log(error);
+                    vm.loading.splice('Loading Department Users', 1);
+                }
+            );
         },
         initialiseSelects: function () {
             let vm = this;
             if (!vm.initialisedSelects) {
-                $(vm.$refs.referees).select2({
-                    minimumInputLength: 2,
-                    "theme": "bootstrap-5",
-                    allowClear: true,
-                    placeholder: "Search for a Referree",
-                    ajax: {
-                        url: api_endpoints.users_api + '/get_referees/',
-                        dataType: 'json',
-                        data: function (params) {
-                            var query = {
-                                term: params.term,
-                                type: 'public',
-                            }
-                            return query;
+                $(vm.$refs.referees)
+                    .select2({
+                        minimumInputLength: 2,
+                        theme: 'bootstrap-5',
+                        allowClear: true,
+                        placeholder: 'Search for a Referree',
+                        ajax: {
+                            url: api_endpoints.users_api + '/get_referees/',
+                            dataType: 'json',
+                            data: function (params) {
+                                var query = {
+                                    term: params.term,
+                                    type: 'public',
+                                };
+                                return query;
+                            },
+                            processResults: function (data, params) {
+                                if (Object.keys(data.results).length == 0) {
+                                    swal.fire({
+                                        title: 'No Referee Found',
+                                        text: 'Would you like to invite a new external referee to the system?',
+                                        icon: 'warning',
+                                        showCancelButton: true,
+                                        reverseButtons: true,
+                                        confirmButtonText: 'Yes',
+                                        cancelButtonText: 'No',
+                                        buttonsStyling: false,
+                                        customClass: {
+                                            confirmButton: 'btn btn-primary',
+                                            cancelButton:
+                                                'btn btn-secondary me-2',
+                                        },
+                                    }).then(async (result) => {
+                                        if (result.isConfirmed) {
+                                            vm.external_referee_email =
+                                                params.term;
+                                            vm.$refs.inviteExternalReferee.isModalOpen = true;
+                                            $(vm.$refs.referees).select2(
+                                                'close'
+                                            );
+                                        }
+                                    });
+                                }
+                                return data;
+                            },
                         },
-                        processResults: function (data, params) {
-                            if (Object.keys(data.results).length == 0) {
-                                swal.fire({
-                                    title: 'No Referee Found',
-                                    text: 'Would you like to invite a new external referee to the system?',
-                                    icon: 'warning',
-                                    showCancelButton: true,
-                                    reverseButtons: true,
-                                    confirmButtonText: 'Yes',
-                                    cancelButtonText: 'No',
-                                    buttonsStyling: false,
-                                    customClass: {
-                                        confirmButton: 'btn btn-primary',
-                                        cancelButton: 'btn btn-secondary me-2',
-                                    },
-                                }).then(async (result) => {
-                                    if (result.isConfirmed) {
-                                        vm.external_referee_email =
-                                            params.term;
-                                        vm.$refs.inviteExternalReferee.isModalOpen = true;
-                                        $(vm.$refs.referees).select2(
-                                            'close'
-                                        );
-                                    }
-                                });
-                            }
-                            return data;
-                        },
-                    },
-                })
-                    .on("select2:select", function (e) {
+                    })
+                    .on('select2:select', function (e) {
                         let data = e.params.data.id;
                         vm.selected_referral = data;
                         vm.$nextTick(() => {
                             vm.$refs.referral_text.focus();
                         });
                     })
-                    .on("select2:unselect", function (e) {
+                    .on('select2:unselect', function (e) {
                         var selected = $(e.currentTarget);
                         vm.selected_referral = null;
-                    })
+                    });
                 vm.initialiseAssignedOfficerSelect();
                 vm.initialisedSelects = true;
             }
@@ -1383,7 +2222,7 @@ export default {
         externalRefereeInviteSent: function (response) {
             let vm = this;
             vm.refreshFromResponse(response);
-            $(vm.$refs.referees).val(null).trigger("change");
+            $(vm.$refs.referees).val(null).trigger('change');
             vm.enablePopovers();
             vm.selected_referral = '';
             vm.referral_text = '';
@@ -1433,12 +2272,14 @@ export default {
                         helpers.add_endpoint_join(
                             api_endpoints.cs_external_referee_invites,
                             `/${external_referee_invite.id}/retract/`
-                        ), {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    })
+                        ),
+                        {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        }
+                    )
                         .then((response) => {
                             this.fetchConservationStatus();
                             swal.fire({
@@ -1472,60 +2313,80 @@ export default {
                 },
                 body: JSON.stringify(payload),
             }).then(async (response) => {
-                let data = { 'email': vm.selected_referral, 'text': vm.referral_text };
-                fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/assesor_send_referral')), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
+                let data = {
+                    email: vm.selected_referral,
+                    text: vm.referral_text,
+                };
+                fetch(
+                    helpers.add_endpoint_json(
+                        api_endpoints.conservation_status,
+                        vm.conservation_status_obj.id + '/assesor_send_referral'
+                    ),
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    }
+                ).then(
+                    async (response) => {
+                        const data = await response.json();
+                        vm.sendingReferral = false;
+                        vm.original_conservation_status_obj =
+                            helpers.copyObject(data);
+                        vm.conservation_status_obj = data;
+                        swal.fire({
+                            title: 'Referral Sent',
+                            text: `The referral has been sent to ${vm.selected_referral}`,
+                            icon: 'success',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        vm.enablePopovers();
+                        $(vm.$refs.referees).val(null).trigger('change');
+                        vm.selected_referral = '';
+                        vm.referral_text = '';
                     },
-                    body: JSON.stringify(data),
-                }).then(async (response) => {
+                    (error) => {
+                        console.log(error);
+                        swal.fire({
+                            title: 'Referral Error',
+                            text: helpers.apiVueResourceError(error),
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        vm.sendingReferral = false;
+                    }
+                );
+            });
+        },
+        remindReferral: function (r) {
+            let vm = this;
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.cs_referrals,
+                    r.id + '/remind'
+                )
+            ).then(
+                async (response) => {
                     const data = await response.json();
-                    vm.sendingReferral = false;
-                    vm.original_conservation_status_obj = helpers.copyObject(data);
+                    vm.original_conservation_status_obj =
+                        helpers.copyObject(data);
                     vm.conservation_status_obj = data;
                     swal.fire({
-                        title: 'Referral Sent',
-                        text: `The referral has been sent to ${vm.selected_referral}`,
+                        title: 'Referral Reminder',
+                        text: `A reminder has been sent to ${r.referral.fullname}`,
                         icon: 'success',
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
                     });
-                    vm.enablePopovers();
-                    $(vm.$refs.referees).val(null).trigger("change");
-                    vm.selected_referral = '';
-                    vm.referral_text = '';
-                }, (error) => {
-                    console.log(error);
-                    swal.fire({
-                        title: 'Referral Error',
-                        text: helpers.apiVueResourceError(error),
-                        icon: 'error',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    });
-                    vm.sendingReferral = false;
-                });
-            });
-        },
-        remindReferral: function (r) {
-            let vm = this;
-            fetch(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/remind')).then(async (response) => {
-                const data = await response.json();
-                vm.original_conservation_status_obj = helpers.copyObject(data);
-                vm.conservation_status_obj = data;
-                swal.fire({
-                    title: 'Referral Reminder',
-                    text: `A reminder has been sent to ${r.referral.fullname}`,
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    }
-                });
-            },
-                error => {
+                },
+                (error) => {
                     swal.fire({
                         title: 'Referral Reminder Error',
                         text: helpers.apiVueResourceError(error),
@@ -1534,59 +2395,76 @@ export default {
                             confirmButton: 'btn btn-primary',
                         },
                     });
-                });
+                }
+            );
         },
         recallReferral: function (r) {
             let vm = this;
-            fetch(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/recall'), {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.cs_referrals,
+                    r.id + '/recall'
+                ),
+                {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            ).then(
+                async (response) => {
+                    const data = await response.json();
+                    vm.original_conservation_status_obj =
+                        helpers.copyObject(data);
+                    vm.conservation_status_obj = data;
+                    $('.popover').hide();
+                    vm.enablePopovers();
+                    swal.fire({
+                        title: 'Referral Recall',
+                        text: `The referral has been recalled from ${r.referral.fullname}`,
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
                 },
-            }).then(async (response) => {
-                const data = await response.json();
-                vm.original_conservation_status_obj = helpers.copyObject(data);
-                vm.conservation_status_obj = data;
-                $(".popover").hide()
-                vm.enablePopovers();
-                swal.fire({
-                    title: 'Referral Recall',
-                    text: `The referral has been recalled from ${r.referral.fullname}`,
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    }
-                });
-            },
-                error => {
+                (error) => {
                     swal.fire({
                         title: 'Referral Recall Error',
                         text: helpers.apiVueResourceError(error),
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
-                        }
+                        },
                     });
-                });
+                }
+            );
         },
         resendReferral: function (r) {
             let vm = this;
-            fetch(helpers.add_endpoint_json(api_endpoints.cs_referrals, r.id + '/resend')).then(async (response) => {
-                const data = await response.json();
-                vm.original_conservation_status_obj = helpers.copyObject(data);
-                vm.conservation_status_obj = data;
-                $(".popover").hide()
-                vm.enablePopovers();
-                swal.fire({
-                    title: 'Referral Resent',
-                    text: `The referral has been resent to ${r.referral.fullname}`,
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-            },
-                error => {
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.cs_referrals,
+                    r.id + '/resend'
+                )
+            ).then(
+                async (response) => {
+                    const data = await response.json();
+                    vm.original_conservation_status_obj =
+                        helpers.copyObject(data);
+                    vm.conservation_status_obj = data;
+                    $('.popover').hide();
+                    vm.enablePopovers();
+                    swal.fire({
+                        title: 'Referral Resent',
+                        text: `The referral has been resent to ${r.referral.fullname}`,
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                },
+                (error) => {
                     swal.fire({
                         title: 'Referral Resent Error',
                         text: helpers.apiVueResourceError(error),
@@ -1595,7 +2473,8 @@ export default {
                             confirmButton: 'btn btn-primary',
                         },
                     });
-                });
+                }
+            );
         },
         deferProposal: function () {
             this.$refs.defer_modal.isModalOpen = true;
@@ -1605,27 +2484,46 @@ export default {
         },
         switchStatus: function (status) {
             let vm = this;
-            if (vm.conservation_status_obj.processing_status == 'Proposed DeListed' && status == 'with_assessor') {
-                let data = { 'status': status, 'approver_comment': vm.approver_comment }
-                fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/switch_status')), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data),
-                })
-                    .then(async (response) => {
+            if (
+                vm.conservation_status_obj.processing_status ==
+                    'Proposed DeListed' &&
+                status == 'with_assessor'
+            ) {
+                let data = {
+                    status: status,
+                    approver_comment: vm.approver_comment,
+                };
+                fetch(
+                    helpers.add_endpoint_json(
+                        api_endpoints.conservation_status,
+                        vm.conservation_status_obj.id + '/switch_status'
+                    ),
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    }
+                ).then(
+                    async (response) => {
                         const data = await response.json();
                         vm.conservation_status_obj = data;
-                        vm.original_conservation_status_obj = helpers.copyObject(data);
+                        vm.original_conservation_status_obj =
+                            helpers.copyObject(data);
                         vm.approver_comment = '';
                         vm.$nextTick(() => {
                             vm.initialiseAssignedOfficerSelect(true);
                             vm.updateAssignedOfficerSelect();
                         });
-                        vm.$router.push({ path: '/internal/conservation-status/' });
-                    }, (error) => {
-                        vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
+                        vm.$router.push({
+                            path: '/internal/conservation-status/',
+                        });
+                    },
+                    (error) => {
+                        vm.conservation_status_obj = helpers.copyObject(
+                            vm.original_conservation_status_obj
+                        );
                         swal.fire({
                             title: 'Application Error',
                             text: helpers.apiVueResourceError(error),
@@ -1634,30 +2532,43 @@ export default {
                                 confirmButton: 'btn btn-primary',
                             },
                         });
-                    });
-            }
-            else {
-                let data = { 'status': status, 'approver_comment': vm.approver_comment }
+                    }
+                );
+            } else {
+                let data = {
+                    status: status,
+                    approver_comment: vm.approver_comment,
+                };
                 vm.changingStatus = true;
-                fetch(helpers.add_endpoint_json(api_endpoints.conservation_status, (vm.conservation_status_obj.id + '/switch_status')), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data),
-                })
-                    .then(async (response) => {
+                fetch(
+                    helpers.add_endpoint_json(
+                        api_endpoints.conservation_status,
+                        vm.conservation_status_obj.id + '/switch_status'
+                    ),
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    }
+                ).then(
+                    async (response) => {
                         const data = await response.json();
                         vm.conservation_status_obj = data;
-                        vm.original_conservation_status_obj = helpers.copyObject(data);
+                        vm.original_conservation_status_obj =
+                            helpers.copyObject(data);
                         vm.approver_comment = '';
                         vm.$nextTick(() => {
                             vm.initialiseAssignedOfficerSelect(true);
                             vm.updateAssignedOfficerSelect();
                         });
                         vm.changingStatus = false;
-                    }, (error) => {
-                        vm.conservation_status_obj = helpers.copyObject(vm.original_conservation_status_obj)
+                    },
+                    (error) => {
+                        vm.conservation_status_obj = helpers.copyObject(
+                            vm.original_conservation_status_obj
+                        );
                         swal.fire({
                             title: 'Application Error',
                             text: helpers.apiVueResourceError(error),
@@ -1667,7 +2578,8 @@ export default {
                             },
                         });
                         vm.changingStatus = false;
-                    });
+                    }
+                );
             }
         },
         enablePopovers: function () {
@@ -1675,47 +2587,26 @@ export default {
                 $(function () {
                     $('[data-bs-toggle="popover"]').each(function () {
                         new bootstrap.Popover(this);
-                    })
-                })
+                    });
+                });
             });
         },
         fetchConservationStatus: function () {
             let vm = this;
-            fetch('/api/conservation_status/' + vm.$route.params.conservation_status_id + '/internal_conservation_status.json').then(async (response) => {
-                const data = await response.json();
-                vm.conservation_status_obj = data.conservation_status_obj;
-            },
-                err => {
+            fetch(
+                '/api/conservation_status/' +
+                    vm.$route.params.conservation_status_id +
+                    '/internal_conservation_status.json'
+            ).then(
+                async (response) => {
+                    const data = await response.json();
+                    vm.conservation_status_obj = data.conservation_status_obj;
+                },
+                (err) => {
                     console.log(err);
-                });
+                }
+            );
         },
     },
-    mounted: function () {
-        let vm = this;
-        vm.fetchDeparmentUsers();
-    },
-    created: function () {
-        if (!this.conservation_status_obj) {
-            this.fetchConservationStatus();
-        }
-    },
-    updated: function () {
-        let vm = this;
-        this.$nextTick(() => {
-            vm.initialiseSelects();
-            vm.form = document.forms.new_conservation_status;
-        });
-    },
-    beforeRouteEnter: function (to, from, next) {
-        fetch(`/api/conservation_status/${to.params.conservation_status_id}/internal_conservation_status.json`).then(async (response) => {
-            next(async vm => {
-                const data = await response.json();
-                vm.conservation_status_obj = data.conservation_status_obj;
-            });
-        },
-            err => {
-                console.log(err);
-            });
-    },
-}
+};
 </script>

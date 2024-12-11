@@ -1,83 +1,174 @@
 <template lang="html">
     <div id="speciesOccurrence">
-        <FormSection :formCollapse="false" label="Occurrence" Index="occurrence">
+        <FormSection
+            :form-collapse="false"
+            label="Occurrence"
+            Index="occurrence"
+        >
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label fw-bold">Occurrence Name: <span
-                        class="text-danger">*</span></label>
+                <label for="" class="col-sm-3 control-label fw-bold"
+                    >Occurrence Name: <span class="text-danger">*</span></label
+                >
                 <div class="col-sm-9">
-                    <textarea class="form-control" :disabled="isReadOnly" rows="1" id="occurrence_name" placeholder=""
-                        v-model="occurrence_obj.occurrence_name" />
+                    <textarea
+                        id="occurrence_name"
+                        v-model="occurrence_obj.occurrence_name"
+                        class="form-control"
+                        :disabled="isReadOnly"
+                        rows="1"
+                        placeholder=""
+                    />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label fw-bold">Scientific Name: <span
-                        class="text-danger">*</span></label>
-                <div class="col-sm-9" :id="select_scientific_name">
-                    <select :disabled="isReadOnly" :id="scientific_name_lookup" :name="scientific_name_lookup"
-                        :ref="scientific_name_lookup" class="form-control" />
+                <label for="" class="col-sm-3 control-label fw-bold"
+                    >Scientific Name: <span class="text-danger">*</span></label
+                >
+                <div :id="select_scientific_name" class="col-sm-9">
+                    <select
+                        :id="scientific_name_lookup"
+                        :ref="scientific_name_lookup"
+                        :disabled="isReadOnly"
+                        :name="scientific_name_lookup"
+                        class="form-control"
+                    />
                 </div>
             </div>
             <div v-if="occurrence_obj.migrated_from_id" class="row mb-3">
-                    <label for="migrated_from_id" class="col-sm-3 control-label">Migrated From ID:</label>
-                    <div class="col-sm-9">
-                        <input id="migrated_from_id" :value="occurrence_obj.migrated_from_id" disabled
-                            type="text" class="form-control" />
-                    </div>
-                </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Common Name:</label>
+                <label for="migrated_from_id" class="col-sm-3 control-label"
+                    >Migrated From ID:</label
+                >
                 <div class="col-sm-9">
-                    <textarea :disabled="true" class="form-control" rows="1" id="common_name" placeholder=""
-                        v-model="common_name" />
+                    <input
+                        id="migrated_from_id"
+                        :value="occurrence_obj.migrated_from_id"
+                        disabled
+                        type="text"
+                        class="form-control"
+                    />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Occurrence Source:</label>
-                <div v-for="source in occurrence_source_list" class="col-sm-auto">
-                    <input :disabled="isReadOnly" type="checkbox" v-model="occurrence_obj.occurrence_source"
-                        v-bind:value="source[0]" v-bind:id="source[1]">
+                <label for="" class="col-sm-3 control-label"
+                    >Common Name:</label
+                >
+                <div class="col-sm-9">
+                    <textarea
+                        id="common_name"
+                        v-model="common_name"
+                        :disabled="true"
+                        class="form-control"
+                        rows="1"
+                        placeholder=""
+                    />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label"
+                    >Occurrence Source:</label
+                >
+                <div
+                    v-for="source in occurrence_source_list"
+                    class="col-sm-auto"
+                >
+                    <input
+                        :id="source[1]"
+                        v-model="occurrence_obj.occurrence_source"
+                        :disabled="isReadOnly"
+                        type="checkbox"
+                        :value="source[0]"
+                    />
                     {{ source[1] }}
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Wild Status:</label>
+                <label for="" class="col-sm-3 control-label"
+                    >Wild Status:</label
+                >
                 <div class="col-sm-9">
                     <template
-                        v-if="wild_status_list && wild_status_list.length > 0 && !wild_status_list.map((d) => d.id).includes(occurrence_obj.wild_status)">
-                        <input type="text" v-if="occurrence_obj.wild_status_name" class="form-control mb-3"
-                            :value="occurrence_obj.wild_status_name + ' (Now Archived)'" disabled />
-                        <div v-if="occurrence_obj.wild_status" class="mb-3 text-muted">
+                        v-if="
+                            wild_status_list &&
+                            wild_status_list.length > 0 &&
+                            !wild_status_list
+                                .map((d) => d.id)
+                                .includes(occurrence_obj.wild_status)
+                        "
+                    >
+                        <input
+                            v-if="occurrence_obj.wild_status_name"
+                            type="text"
+                            class="form-control mb-3"
+                            :value="
+                                occurrence_obj.wild_status_name +
+                                ' (Now Archived)'
+                            "
+                            disabled
+                        />
+                        <div
+                            v-if="occurrence_obj.wild_status"
+                            class="mb-3 text-muted"
+                        >
                             Change wild status to:
                         </div>
                     </template>
-                    <select :disabled="isReadOnly" class="form-select" v-model="occurrence_obj.wild_status">
-                        <option :value="null" selected disabled>Select Wild Status</option>
-                        <option v-for="option in wild_status_list" :value="option.id" :key="option.id">
+                    <select
+                        v-model="occurrence_obj.wild_status"
+                        :disabled="isReadOnly"
+                        class="form-select"
+                    >
+                        <option :value="null" selected disabled>
+                            Select Wild Status
+                        </option>
+                        <option
+                            v-for="option in wild_status_list"
+                            :key="option.id"
+                            :value="option.id"
+                        >
                             {{ option.name }}
                         </option>
                     </select>
                 </div>
             </div>
             <div class="row mb-3">
-                <label class="col-sm-3 control-label" for="">Review Due Date:</label>
+                <label class="col-sm-3 control-label" for=""
+                    >Review Due Date:</label
+                >
                 <div class="col-sm-3">
-                    <input type="date" class="form-control" v-model="occurrence_obj.review_due_date"
-                        placeholder="DD/MM/YYYY">
+                    <input
+                        v-model="occurrence_obj.review_due_date"
+                        type="date"
+                        class="form-control"
+                        placeholder="DD/MM/YYYY"
+                    />
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Comments:</label>
                 <div class="col-sm-9">
-                    <textarea class="form-control" :disabled="isReadOnly" id="occurrence_comments" placeholder=""
-                        v-model="occurrence_obj.comment" rows="4" />
+                    <textarea
+                        id="occurrence_comments"
+                        v-model="occurrence_obj.comment"
+                        class="form-control"
+                        :disabled="isReadOnly"
+                        placeholder=""
+                        rows="4"
+                    />
                 </div>
             </div>
 
-            <ContactDatatable ref="contact_datatable" :occurrence_obj="occurrence_obj" :is-read-only="isReadOnly"
-                @refreshOccurrence="refreshOccurrence()">
+            <ContactDatatable
+                ref="contact_datatable"
+                :occurrence_obj="occurrence_obj"
+                :is-read-only="isReadOnly"
+                @refresh-occurrence="refreshOccurrence()"
+            >
             </ContactDatatable>
 
-            <RelatedReports :isReadOnly="isReadOnly" :occurrence_obj=occurrence_obj />
+            <RelatedReports
+                :is-read-only="isReadOnly"
+                :occurrence_obj="occurrence_obj"
+            />
         </FormSection>
     </div>
 </template>
@@ -85,129 +176,66 @@
 <script>
 import FormSection from '@/components/forms/section_toggle.vue';
 import ContactDatatable from './contact_datatable.vue';
-import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue'
-import {
-    api_endpoints,
-    helpers
-}
-    from '@/utils/hooks'
+import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue';
+import { api_endpoints, helpers } from '@/utils/hooks';
 
 export default {
     name: 'SpeciesOccurrence',
+    components: {
+        FormSection,
+        RelatedReports,
+        ContactDatatable,
+    },
     props: {
         occurrence_obj: {
             type: Object,
-            required: true
+            required: true,
         },
     },
     data: function () {
         let vm = this;
         return {
             scientific_name_lookup: 'scientific_name_lookup' + vm._uid,
-            select_scientific_name: "select_scientific_name" + vm._uid,
-            select_wild_status: "select_wild_status" + vm._uid,
+            select_scientific_name: 'select_scientific_name' + vm._uid,
+            select_wild_status: 'select_wild_status' + vm._uid,
             common_name: null,
             occ_profile_dict: {},
             wild_status_list: [],
             occurrence_source_list: [],
-        }
+        };
     },
-    components: {
-        FormSection,
-        RelatedReports,
-        ContactDatatable,
-    },
-    watch: {
-    },
-    methods: {
-        initialiseScientificNameLookup: function () {
-            let vm = this;
-            $(vm.$refs[vm.scientific_name_lookup]).select2({
-                minimumInputLength: 2,
-                dropdownParent: $("#" + vm.select_scientific_name),
-                "theme": "bootstrap-5",
-                allowClear: true,
-                placeholder: "Select Scientific Name",
-                ajax: {
-                    url: api_endpoints.scientific_name_lookup,
-                    dataType: 'json',
-                    data: function (params) {
-                        var query = {
-                            term: params.term,
-                            type: 'public',
-                            group_type_id: vm.occurrence_obj.group_type_id,
-                            has_species: true,
-                        }
-                        return query;
-                    },
-                    // results: function (data, page) { // parse the results into the format expected by Select2.
-                    //     // since we are using custom formatting functions we do not need to alter remote JSON data
-                    //     return {results: data};
-                    // },
-                },
-            }).
-                on("select2:select", function (e) {
-                    var selected = $(e.currentTarget);
-                    let data = e.params.data.id;
-                    vm.occurrence_obj.species = e.params.data.species_id;
-                    //vm.occurrence_obj.species_id = data.species_id;
-                    vm.species_display = e.params.data.text;
-                    vm.taxon_previous_name = e.params.data.taxon_previous_name;
-                    vm.common_name = e.params.data.common_name;
-                }).
-                on("select2:unselect", function (e) {
-                    var selected = $(e.currentTarget);
-                    vm.occurrence_obj.species = null;
-                    //vm.occurrence_obj.species_id = null
-                    vm.species_display = '';
-                    vm.taxon_previous_name = '';
-                    vm.common_name = '';
-                }).
-                on("select2:open", function (e) {
-                    const searchField = $('[aria-controls="select2-' + vm.scientific_name_lookup + '-results"]')
-                    // move focus to select2 field
-                    searchField[0].focus();
-                });
-        },
-        getSpeciesDisplay: function () {
-            let vm = this;
-            if (vm.occurrence_obj.species_taxonomy_id != null) {
-                let species_display_url = api_endpoints.species_display + "?taxon_id=" + vm.occurrence_obj.species_taxonomy_id
-                fetch(species_display_url).then(async (response) => {
-                        const data = await response.json();
-                        var newOption = new Option(data.name, data.id, false, true);
-                        $('#' + vm.scientific_name_lookup).append(newOption);
-                        vm.species_display = data.name
-                        vm.taxon_previous_name = data.taxon_previous_name
-                        vm.common_name = data.common_name
-                    })
-            }
-        },
-        eventListeners: function () {
-            let vm = this;
-
+    computed: {
+        isReadOnly: function () {
+            return !this.occurrence_obj.can_user_edit;
         },
     },
+    watch: {},
     created: async function () {
         let vm = this;
         //------fetch list of values according to action
         let action = this.$route.query.action;
-        let dict_url = action == "view" ? api_endpoints.occ_profile_dict + '?group_type=' + vm.occurrence_obj.group_type + '&action=' + action :
-            api_endpoints.occ_profile_dict + '?group_type=' + vm.occurrence_obj.group_type
-        fetch(dict_url).then(async (response) => {
-            vm.occ_profile_dict = await response.json();
-            vm.wild_status_list = vm.occ_profile_dict.wild_status_list;
-            vm.occurrence_source_list = vm.occ_profile_dict.occurrence_source_list;
-            this.getSpeciesDisplay();
-
-        }, (error) => {
-            console.log(error);
-        })
-    },
-    computed: {
-        isReadOnly: function () {
-            return !(this.occurrence_obj.can_user_edit);
-        },
+        let dict_url =
+            action == 'view'
+                ? api_endpoints.occ_profile_dict +
+                  '?group_type=' +
+                  vm.occurrence_obj.group_type +
+                  '&action=' +
+                  action
+                : api_endpoints.occ_profile_dict +
+                  '?group_type=' +
+                  vm.occurrence_obj.group_type;
+        fetch(dict_url).then(
+            async (response) => {
+                vm.occ_profile_dict = await response.json();
+                vm.wild_status_list = vm.occ_profile_dict.wild_status_list;
+                vm.occurrence_source_list =
+                    vm.occ_profile_dict.occurrence_source_list;
+                this.getSpeciesDisplay();
+            },
+            (error) => {
+                console.log(error);
+            }
+        );
     },
     mounted: function () {
         let vm = this;
@@ -216,7 +244,83 @@ export default {
             vm.initialiseScientificNameLookup();
         });
     },
-}
+    methods: {
+        initialiseScientificNameLookup: function () {
+            let vm = this;
+            $(vm.$refs[vm.scientific_name_lookup])
+                .select2({
+                    minimumInputLength: 2,
+                    dropdownParent: $('#' + vm.select_scientific_name),
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: 'Select Scientific Name',
+                    ajax: {
+                        url: api_endpoints.scientific_name_lookup,
+                        dataType: 'json',
+                        data: function (params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.occurrence_obj.group_type_id,
+                                has_species: true,
+                            };
+                            return query;
+                        },
+                        // results: function (data, page) { // parse the results into the format expected by Select2.
+                        //     // since we are using custom formatting functions we do not need to alter remote JSON data
+                        //     return {results: data};
+                        // },
+                    },
+                })
+                .on('select2:select', function (e) {
+                    var selected = $(e.currentTarget);
+                    let data = e.params.data.id;
+                    vm.occurrence_obj.species = e.params.data.species_id;
+                    //vm.occurrence_obj.species_id = data.species_id;
+                    vm.species_display = e.params.data.text;
+                    vm.taxon_previous_name = e.params.data.taxon_previous_name;
+                    vm.common_name = e.params.data.common_name;
+                })
+                .on('select2:unselect', function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.occurrence_obj.species = null;
+                    //vm.occurrence_obj.species_id = null
+                    vm.species_display = '';
+                    vm.taxon_previous_name = '';
+                    vm.common_name = '';
+                })
+                .on('select2:open', function (e) {
+                    const searchField = $(
+                        '[aria-controls="select2-' +
+                            vm.scientific_name_lookup +
+                            '-results"]'
+                    );
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
+        getSpeciesDisplay: function () {
+            let vm = this;
+            if (vm.occurrence_obj.species_taxonomy_id != null) {
+                let species_display_url =
+                    api_endpoints.species_display +
+                    '?taxon_id=' +
+                    vm.occurrence_obj.species_taxonomy_id;
+                fetch(species_display_url).then(async (response) => {
+                    const data = await response.json();
+                    var newOption = new Option(data.name, data.id, false, true);
+                    $('#' + vm.scientific_name_lookup).append(newOption);
+                    vm.species_display = data.name;
+                    vm.taxon_previous_name = data.taxon_previous_name;
+                    vm.common_name = data.common_name;
+                });
+            }
+        },
+        eventListeners: function () {
+            let vm = this;
+        },
+    },
+};
 </script>
 
 <style lang="css" scoped>
@@ -240,13 +344,13 @@ legend.scheduler-border {
     border-bottom: none;
 }
 
-input[type=text],
+input[type='text'],
 select {
     width: 100%;
     padding: 0.375rem 2.25rem 0.375rem 0.75rem;
 }
 
-input[type=number] {
+input[type='number'] {
     width: 50%;
 }
 </style>

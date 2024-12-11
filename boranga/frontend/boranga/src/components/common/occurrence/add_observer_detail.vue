@@ -1,80 +1,173 @@
 <template lang="html">
     <div id="observerDetail">
-        <modal v-if="observerObj" transition="modal fade" @ok="ok()" @cancel="close()" :title="title" large>
+        <modal
+            v-if="observerObj"
+            transition="modal fade"
+            :title="title"
+            large
+            @ok="ok()"
+            @cancel="close()"
+        >
             <div class="container-fluid">
                 <div class="row">
-                    <form class="form-horizontal needs-validation" name="observerDetailForm" novalidate>
-                        <alert v-if="errorString" type="danger"><strong>{{ errorString }}</strong></alert>
+                    <form
+                        class="form-horizontal needs-validation"
+                        name="observerDetailForm"
+                        novalidate
+                    >
+                        <alert v-if="errorString" type="danger"
+                            ><strong>{{ errorString }}</strong></alert
+                        >
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Name</label>
+                                        <label class="control-label pull-left"
+                                            >Name</label
+                                        >
                                     </div>
                                     <div class="col-sm-9">
-                                        <input type="text" class="form-control" :disabled="isReadOnly"
-                                            v-model="observerObj.observer_name" ref="observer_name" required
-                                            autofocus />
+                                        <input
+                                            ref="observer_name"
+                                            v-model="observerObj.observer_name"
+                                            type="text"
+                                            class="form-control"
+                                            :disabled="isReadOnly"
+                                            required
+                                            autofocus
+                                        />
                                     </div>
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Role</label>
+                                        <label class="control-label pull-left"
+                                            >Role</label
+                                        >
                                     </div>
                                     <div class="col-sm-9">
-                                        <input type="text" class="form-control" :disabled="isReadOnly"
-                                            v-model="observerObj.role" />
+                                        <input
+                                            v-model="observerObj.role"
+                                            type="text"
+                                            class="form-control"
+                                            :disabled="isReadOnly"
+                                        />
                                     </div>
                                 </div>
-                                <div v-if="'contact' in observerObj" class="row mb-3">
+                                <div
+                                    v-if="'contact' in observerObj"
+                                    class="row mb-3"
+                                >
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Contact Details</label>
+                                        <label class="control-label pull-left"
+                                            >Contact Details</label
+                                        >
                                     </div>
                                     <div class="col-sm-9">
-                                        <textarea class="form-control" id="contact_details" :disabled="isReadOnly"
-                                            v-model="observerObj.contact" rows="4" />
+                                        <textarea
+                                            id="contact_details"
+                                            v-model="observerObj.contact"
+                                            class="form-control"
+                                            :disabled="isReadOnly"
+                                            rows="4"
+                                        />
                                     </div>
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Organisation</label>
+                                        <label class="control-label pull-left"
+                                            >Organisation</label
+                                        >
                                     </div>
                                     <div class="col-sm-9">
-                                        <input type="text" class="form-control" :disabled="isReadOnly"
-                                            v-model="observerObj.organisation" />
+                                        <input
+                                            v-model="observerObj.organisation"
+                                            type="text"
+                                            class="form-control"
+                                            :disabled="isReadOnly"
+                                        />
                                     </div>
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">Main Observer</label>
+                                        <label class="control-label pull-left"
+                                            >Main Observer</label
+                                        >
                                     </div>
                                     <div class="col-sm-9">
-                                        <div class="form-check form-check-inline">
+                                        <div
+                                            class="form-check form-check-inline"
+                                        >
                                             <input
-                                                :disabled="isReadOnly || (occurrence_report.has_main_observer && !observerObj.main_observer)"
-                                                id="mainObserverYes" class="form-check-input" type="radio"
-                                                v-model="observerObj.main_observer" value="true">
-                                            <label for="mainObserverYes" class="form-check-label">Yes</label>
+                                                id="mainObserverYes"
+                                                v-model="
+                                                    observerObj.main_observer
+                                                "
+                                                :disabled="
+                                                    isReadOnly ||
+                                                    (occurrence_report.has_main_observer &&
+                                                        !observerObj.main_observer)
+                                                "
+                                                class="form-check-input"
+                                                type="radio"
+                                                value="true"
+                                            />
+                                            <label
+                                                for="mainObserverYes"
+                                                class="form-check-label"
+                                                >Yes</label
+                                            >
                                         </div>
-                                        <div class="form-check form-check-inline">
+                                        <div
+                                            class="form-check form-check-inline"
+                                        >
                                             <input
-                                                :disabled="isReadOnly || (occurrence_report.has_main_observer && !observerObj.main_observer)"
-                                                id="mainObserverNo" class="form-check-input" type="radio"
-                                                v-model="observerObj.main_observer" value="false">
-                                            <label for="mainObserverNo" class="form-check-label">No</label>
+                                                id="mainObserverNo"
+                                                v-model="
+                                                    observerObj.main_observer
+                                                "
+                                                :disabled="
+                                                    isReadOnly ||
+                                                    (occurrence_report.has_main_observer &&
+                                                        !observerObj.main_observer)
+                                                "
+                                                class="form-check-input"
+                                                type="radio"
+                                                value="false"
+                                            />
+                                            <label
+                                                for="mainObserverNo"
+                                                class="form-check-label"
+                                                >No</label
+                                            >
                                         </div>
                                     </div>
                                 </div>
-                                <div v-if="!occurrence_report.has_main_observer" class="row mb-3">
+                                <div
+                                    v-if="!occurrence_report.has_main_observer"
+                                    class="row mb-3"
+                                >
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left">&nbsp;</label>
+                                        <label class="control-label pull-left"
+                                            >&nbsp;</label
+                                        >
                                     </div>
                                     <div v-if="!isReadOnly" class="col-sm-9">
-                                        <button type="button" class="btn btn-primary mb-2" @click="clearForm">Clear
-                                            Form</button><br />
-                                        <button type="button" class="btn btn-primary"
-                                            @click="populateWithSubmitterInformation()">Populate Form with Submitter
-                                            Details</button>
+                                        <button
+                                            type="button"
+                                            class="btn btn-primary mb-2"
+                                            @click="clearForm"
+                                        >
+                                            Clear Form</button
+                                        ><br />
+                                        <button
+                                            type="button"
+                                            class="btn btn-primary"
+                                            @click="
+                                                populateWithSubmitterInformation()
+                                            "
+                                        >
+                                            Populate Form with Submitter Details
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -82,51 +175,99 @@
                     </form>
                 </div>
             </div>
-            <div slot="footer">
+            <template #footer>
                 <div>
-                    <button type="button" class="btn btn-secondary me-2" @click="close()"><template
-                            v-if="isReadOnly">Close</template><template v-else>Cancel</template></button>
-                    <template v-if="!isReadOnly">
-                        <template v-if="observerObj.id">
-                            <button type="button" v-if="updatingObserver" disabled class="btn btn-primary"
-                                @click="ok">Updating <span class="spinner-border spinner-border-sm" role="status"
-                                    aria-hidden="true"></span>
-                                <span class="visually-hidden">Loading...</span></button>
-                            <button type="button" v-else class="btn btn-primary" @click="ok">Update Observer</button>
+                    <div>
+                        <button
+                            type="button"
+                            class="btn btn-secondary me-2"
+                            @click="close()"
+                        >
+                            <template v-if="isReadOnly">Close</template
+                            ><template v-else>Cancel</template>
+                        </button>
+                        <template v-if="!isReadOnly">
+                            <template v-if="observerObj.id">
+                                <button
+                                    v-if="updatingObserver"
+                                    type="button"
+                                    disabled
+                                    class="btn btn-primary"
+                                    @click="ok"
+                                >
+                                    Updating
+                                    <span
+                                        class="spinner-border spinner-border-sm"
+                                        role="status"
+                                        aria-hidden="true"
+                                    ></span>
+                                    <span class="visually-hidden"
+                                        >Loading...</span
+                                    >
+                                </button>
+                                <button
+                                    v-else
+                                    type="button"
+                                    class="btn btn-primary"
+                                    @click="ok"
+                                >
+                                    Update Observer
+                                </button>
+                            </template>
+                            <template v-else>
+                                <button
+                                    v-if="addingObserver"
+                                    type="button"
+                                    disabled
+                                    class="btn btn-primary"
+                                    @click="ok"
+                                >
+                                    Adding
+                                    <span
+                                        class="spinner-border spinner-border-sm"
+                                        role="status"
+                                        aria-hidden="true"
+                                    ></span>
+                                    <span class="visually-hidden"
+                                        >Loading...</span
+                                    >
+                                </button>
+                                <button
+                                    v-else
+                                    type="button"
+                                    class="btn btn-primary"
+                                    @click="ok"
+                                >
+                                    Add Observer
+                                </button>
+                            </template>
                         </template>
-                        <template v-else>
-                            <button type="button" v-if="addingObserver" disabled class="btn btn-primary"
-                                @click="ok">Adding
-                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                <span class="visually-hidden">Loading...</span></button>
-                            <button type="button" v-else class="btn btn-primary" @click="ok">Add Observer</button>
-                        </template>
-                    </template>
+                    </div>
                 </div>
-            </div>
+            </template>
         </modal>
     </div>
 </template>
 
 <script>
-import modal from '@vue-utils/bootstrap-modal.vue'
-import alert from '@vue-utils/alert.vue'
-import { helpers } from "@/utils/hooks.js"
+import modal from '@vue-utils/bootstrap-modal.vue';
+import alert from '@vue-utils/alert.vue';
+import { helpers } from '@/utils/hooks.js';
 
 export default {
     name: 'ObserverDetail',
     components: {
         modal,
-        alert
+        alert,
     },
     props: {
         url: {
             type: String,
-            required: true
+            required: true,
         },
         occurrence_report: {
             type: Object,
-            required: true
+            required: true,
         },
     },
     data: function () {
@@ -138,20 +279,21 @@ export default {
             addingObserver: false,
             updatingObserver: false,
             errorString: '',
-        }
+        };
     },
     computed: {
         title: function () {
             var action = this.observer_detail_action;
-            if (typeof action === "string" && action.length > 0) {
-                var capitalizedAction = action.charAt(0).toUpperCase() + action.slice(1);
+            if (typeof action === 'string' && action.length > 0) {
+                var capitalizedAction =
+                    action.charAt(0).toUpperCase() + action.slice(1);
                 return `${capitalizedAction} Observer of ${this.occurrence_report.occurrence_report_number}`;
             } else {
-                return "Invalid Observer detail action"; // Or handle the error in an appropriate way
+                return 'Invalid Observer detail action'; // Or handle the error in an appropriate way
             }
         },
         isReadOnly: function () {
-            return this.observer_detail_action === "view" ? true : false;
+            return this.observer_detail_action === 'view' ? true : false;
         },
     },
     watch: {
@@ -165,11 +307,12 @@ export default {
                         if (!this.occurrence_report.has_main_observer) {
                             this.populateWithSubmitterInformation();
                         }
-                        this.observerObj.main_observer = !this.occurrence_report.has_main_observer;
+                        this.observerObj.main_observer =
+                            !this.occurrence_report.has_main_observer;
                     }
                 });
             }
-        }
+        },
     },
     methods: {
         ok: function () {
@@ -188,7 +331,7 @@ export default {
             let vm = this;
             vm.errorString = '';
             let observerObj = JSON.parse(JSON.stringify(vm.observerObj));
-            let formData = new FormData()
+            let formData = new FormData();
 
             if (vm.observerObj.id) {
                 vm.updatingObserver = true;
@@ -198,15 +341,18 @@ export default {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(formData)
-                }).then((response) => {
-                    vm.updatingObserver = false;
-                    vm.$parent.updatedObserverDetails();
-                    vm.close();
-                }, (error) => {
-                    vm.errorString = helpers.apiVueResourceError(error);
-                    vm.updatingObserver = false;
-                });
+                    body: JSON.stringify(formData),
+                }).then(
+                    (response) => {
+                        vm.updatingObserver = false;
+                        vm.$parent.updatedObserverDetails();
+                        vm.close();
+                    },
+                    (error) => {
+                        vm.errorString = helpers.apiVueResourceError(error);
+                        vm.updatingObserver = false;
+                    }
+                );
             } else {
                 vm.addingObserver = true;
                 formData.append('data', JSON.stringify(observerObj));
@@ -215,15 +361,18 @@ export default {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(formData)
-                }).then((response) => {
-                    vm.addingObserver = false;
-                    vm.$parent.updatedObserverDetails();
-                    vm.close();
-                }, (error) => {
-                    vm.addingObserver = false;
-                    vm.errorString = helpers.apiVueResourceError(error);
-                });
+                    body: JSON.stringify(formData),
+                }).then(
+                    (response) => {
+                        vm.addingObserver = false;
+                        vm.$parent.updatedObserverDetails();
+                        vm.close();
+                    },
+                    (error) => {
+                        vm.addingObserver = false;
+                        vm.errorString = helpers.apiVueResourceError(error);
+                    }
+                );
             }
         },
         populateWithSubmitterInformation: function () {
@@ -237,13 +386,17 @@ export default {
             };
             observerObj = { ...observerObj, ...this.observerObj };
             console.log(this.occurrence_report.submitter_information);
-            observerObj.observer_name = this.occurrence_report.submitter_information.name;
-            observerObj.contact = this.occurrence_report.submitter_information.contact_details;
+            observerObj.observer_name =
+                this.occurrence_report.submitter_information.name;
+            observerObj.contact =
+                this.occurrence_report.submitter_information.contact_details;
             if (this.occurrence_report.submitter_information.organisation) {
-                observerObj.organisation = this.occurrence_report.submitter_information.organisation;
+                observerObj.organisation =
+                    this.occurrence_report.submitter_information.organisation;
             }
             if (this.occurrence_report.submitter_information.position) {
-                observerObj.role = this.occurrence_report.submitter_information.position;
+                observerObj.role =
+                    this.occurrence_report.submitter_information.position;
             }
             this.observerObj = Object.assign({}, observerObj);
         },
@@ -257,5 +410,5 @@ export default {
             this.$refs.observer_name.focus();
         },
     },
-}
+};
 </script>

@@ -1,14 +1,30 @@
 <template>
     <div id="ReinstateImage">
-        <modal transition="modal fade" @ok="ok()" @cancel="close()" :title="title" :showOK="false" cancelText="Close"
-            large>
+        <modal
+            transition="modal fade"
+            :title="title"
+            :show-o-k="false"
+            cancel-text="Close"
+            large
+            @ok="ok()"
+            @cancel="close()"
+        >
             <template v-if="images && images.length">
-                <div id="image-preview" class="container d-flex align-items-center justify-content-center"
-                    style="min-height:350px;">
-                    <img v-if="selected_image" :src="selected_image.url" alt="image" class="img-thumbnail w-50">
+                <div
+                    id="image-preview"
+                    class="container d-flex align-items-center justify-content-center"
+                    style="min-height: 350px"
+                >
+                    <img
+                        v-if="selected_image"
+                        :src="selected_image.url"
+                        alt="image"
+                        class="img-thumbnail w-50"
+                    />
                 </div>
                 <alert type="info">
-                    <i class="bi bi-info-circle-fill"></i> Click a row in the table below to preview the image
+                    <i class="bi bi-info-circle-fill"></i> Click a row in the
+                    table below to preview the image
                 </alert>
                 <table class="table table-sm table-hover">
                     <thead>
@@ -19,14 +35,39 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="image in images" @click="selected_image = image" role="button"
-                            :class="selected_image == image ? 'selected-row' : ''">
-                            <td><i class="bi bi-image me-3"></i> {{ image.filename }}</td>
-                            <td>{{ new Date(image.uploaded_date).toLocaleDateString() }} at {{ new
-                                Date(image.uploaded_date).toLocaleTimeString() }}</td>
+                        <tr
+                            v-for="image in images"
+                            role="button"
+                            :class="
+                                selected_image == image ? 'selected-row' : ''
+                            "
+                            @click="selected_image = image"
+                        >
                             <td>
-                                <button @click="confirmReinstateImage(image)" class="btn btn-primary btn-sm"><i
-                                        class="bi bi-box-arrow-in-down-left"></i> Reinstate</button>
+                                <i class="bi bi-image me-3"></i>
+                                {{ image.filename }}
+                            </td>
+                            <td>
+                                {{
+                                    new Date(
+                                        image.uploaded_date
+                                    ).toLocaleDateString()
+                                }}
+                                at
+                                {{
+                                    new Date(
+                                        image.uploaded_date
+                                    ).toLocaleTimeString()
+                                }}
+                            </td>
+                            <td>
+                                <button
+                                    class="btn btn-primary btn-sm"
+                                    @click="confirmReinstateImage(image)"
+                                >
+                                    <i class="bi bi-box-arrow-in-down-left"></i>
+                                    Reinstate
+                                </button>
                             </td>
                         </tr>
                     </tbody>
@@ -34,7 +75,8 @@
             </template>
             <template v-else>
                 <alert type="info">
-                    <i class="bi bi-exclamation-triangle-fill"></i> No images to reinstate
+                    <i class="bi bi-exclamation-triangle-fill"></i> No images to
+                    reinstate
                 </alert>
             </template>
         </modal>
@@ -42,19 +84,23 @@
 </template>
 
 <script>
-import modal from '@vue-utils/bootstrap-modal.vue'
-import alert from '@vue-utils/alert.vue'
+import modal from '@vue-utils/bootstrap-modal.vue';
+import alert from '@vue-utils/alert.vue';
 
 export default {
     name: 'ReinstateImage',
+    components: {
+        modal,
+        alert,
+    },
     props: {
         title: {
             type: String,
-            default: 'Reinstate Image'
+            default: 'Reinstate Image',
         },
         imageHistoryUrl: {
             type: String,
-            required: true
+            required: true,
         },
     },
     emits: ['reinstateImage'],
@@ -65,16 +111,15 @@ export default {
             selected_image: null,
         };
     },
-    components: {
-        modal,
-        alert
-    },
     watch: {
         isModalOpen: function (value) {
             if (value) {
                 this.fetchImageHistory();
             }
-        }
+        },
+    },
+    created() {
+        this.fetchImageHistory();
     },
     methods: {
         close: function () {
@@ -82,8 +127,8 @@ export default {
         },
         fetchImageHistory: function () {
             fetch(this.imageHistoryUrl)
-                .then(response => response.json())
-                .then(data => {
+                .then((response) => response.json())
+                .then((data) => {
                     this.images = data;
                     if (this.images && this.images.length) {
                         this.selected_image = this.images[0];
@@ -116,14 +161,11 @@ export default {
             this.$emit('reinstateImage', image);
         },
     },
-    created() {
-        this.fetchImageHistory();
-    },
-}
+};
 </script>
 
 <style>
 .selected-row {
-    background: rgba(51, 170, 51, .5);
+    background: rgba(51, 170, 51, 0.5);
 }
 </style>

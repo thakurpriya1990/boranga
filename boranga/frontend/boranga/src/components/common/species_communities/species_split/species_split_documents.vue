@@ -1,37 +1,56 @@
 <template lang="html">
     <div id="species_split_documents">
-        <FormSection :formCollapse="false" label="Documents" :Index="documentBody">
+        <FormSection
+            :formCollapse="false"
+            label="Documents"
+            :Index="documentBody"
+        >
             <form class="form-horizontal" action="index.html" method="post">
                 <div class="col-sm-12 form-check form-check-inline">
-                    <input class="form-check-input" type="radio" :id="'doc_select_all'+species_community.id" name="documentSelect" value="selectAll" @click="selectDocumentOption($event)"/>
-                    <label class="form-check-label">Copy all documents to Species {{species_community.species_number}}</label>
+                    <input
+                        class="form-check-input"
+                        type="radio"
+                        :id="'doc_select_all' + species_community.id"
+                        name="documentSelect"
+                        value="selectAll"
+                        @click="selectDocumentOption($event)"
+                    />
+                    <label class="form-check-label"
+                        >Copy all documents to Species
+                        {{ species_community.species_number }}</label
+                    >
                 </div>
                 <div class="col-sm-12 form-check form-check-inline mb-3">
-                    <input class="form-check-input" type="radio" :id="'doc_select_individual'+species_community.id" name="documentSelect" value="individual" @click="selectDocumentOption($event)"/>
+                    <input
+                        class="form-check-input"
+                        type="radio"
+                        :id="'doc_select_individual' + species_community.id"
+                        name="documentSelect"
+                        value="individual"
+                        @click="selectDocumentOption($event)"
+                    />
                     <label class="form-check-label">Decide per document</label>
                 </div>
                 <div>
-                    <datatable ref="documents_datatable" :id="panelBody" :dtOptions="documents_options"
-                    :dtHeaders="documents_headers"/>
+                    <datatable
+ref="documents_datatable" :id="panelBody" :dt-options="documents_options"
+                    :dt-headers="documents_headers"/>
                 </div>
             </form>
         </FormSection>
     </div>
 </template>
 <script>
-
 import datatable from '@vue-utils/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
-import {
-    constants,
-    api_endpoints,
-    helpers,
-}
-from '@/utils/hooks'
-
+import { constants, api_endpoints, helpers } from '@/utils/hooks';
 
 export default {
-        name: 'SpeciesSplitDocuments',
+    name: 'SpeciesSplitDocuments',
+        components: {
+            FormSection,
+            datatable,
+        },
         props:{
             species_community:{
                 type: Object,
@@ -210,11 +229,21 @@ export default {
                 }
             }
         },
-        components: {
-            FormSection,
-            datatable,
-        },
-        computed: {
+    computed: {},
+        mounted: function(){
+            let vm = this;
+            this.$nextTick(() => {
+                vm.addEventListeners();
+                if(vm.$parent.document_selection!=null){
+                    if(vm.$parent.document_selection==="selectAll"){
+                        document.getElementById('doc_select_all'+vm.species_community.id).checked=true;
+                    }
+                    else{
+                        document.getElementById('doc_select_individual'+vm.species_community.id).checked=true;
+                    }
+                }
+
+            });
         },
         methods:{
             selectDocumentOption(e){
@@ -261,40 +290,26 @@ export default {
                 if (this.$refs.documents_datatable !== undefined) {this.$refs.documents_datatable.vmDataTable.columns.adjust().responsive.recalc();}
             },
         },
-        mounted: function(){
-            let vm = this;
-            this.$nextTick(() => {
-                vm.addEventListeners();
-                if(vm.$parent.document_selection!=null){
-                    if(vm.$parent.document_selection==="selectAll"){
-                        document.getElementById('doc_select_all'+vm.species_community.id).checked=true;
-                    }
-                    else{
-                        document.getElementById('doc_select_individual'+vm.species_community.id).checked=true;
-                    }
-                }
 
-            });
-        },
-
-    }
+    },
+};
 </script>
 
 <style lang="css" scoped>
-    /*ul, li {
+/*ul, li {
         zoom:1;
         display: inline;
     }*/
-    fieldset.scheduler-border {
+fieldset.scheduler-border {
     border: 1px groove #ddd !important;
     padding: 0 1.4em 1.4em 1.4em !important;
     margin: 0 0 1.5em 0 !important;
-    -webkit-box-shadow:  0px 0px 0px 0px #000;
-            box-shadow:  0px 0px 0px 0px #000;
-    }
-    legend.scheduler-border {
-    width:inherit; /* Or auto */
-    padding:0 10px; /* To give a bit of padding on the left and right */
-    border-bottom:none;
-    }
+    -webkit-box-shadow: 0px 0px 0px 0px #000;
+    box-shadow: 0px 0px 0px 0px #000;
+}
+legend.scheduler-border {
+    width: inherit; /* Or auto */
+    padding: 0 10px; /* To give a bit of padding on the left and right */
+    border-bottom: none;
+}
 </style>

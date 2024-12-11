@@ -1,23 +1,29 @@
 <template lang="html">
-    <div v-if="meeting_obj" class="container" id="internalMeeting">
-        <div class="row" style="padding-bottom: 50px;">
+    <div v-if="meeting_obj" id="internalMeeting" class="container">
+        <div class="row" style="padding-bottom: 50px">
             <h3>Meeting ID# - {{ meeting_obj.meeting_number }}</h3>
 
             <div class="col-md-3">
+                <CommsLogs
+                    :comms_url="comms_url"
+                    :logs_url="logs_url"
+                    :comms_add_url="comms_add_url"
+                    :disable_add_entry="!meeting_obj.can_add_log"
+                />
 
-                <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
-                    :disable_add_entry="!meeting_obj.can_add_log" />
-
-                <MeetingSidePanel v-if="canSeeSidePanel" :submitter_first_name="submitter_first_name"
-                    :submitter_last_name="submitter_last_name" :datetime_created="meeting_obj.datetime_created"
+                <MeetingSidePanel
+                    v-if="canSeeSidePanel"
+                    :submitter_first_name="submitter_first_name"
+                    :submitter_last_name="submitter_last_name"
+                    :datetime_created="meeting_obj.datetime_created"
                     :datetime_scheduled="meeting_obj.datetime_scheduled"
-                    :datetime_completed="meeting_obj.datetime_completed" class="mt-3" />
+                    :datetime_completed="meeting_obj.datetime_completed"
+                    class="mt-3"
+                />
 
                 <div class="mt-3">
                     <div class="card card-default">
-                        <div class="card-header">
-                            Workflow
-                        </div>
+                        <div class="card-header">Workflow</div>
                         <div class="card-body card-collapse">
                             <div class="row">
                                 <div class="col-sm-12">
@@ -35,34 +41,64 @@
                                                 <strong>Action</strong><br />
                                             </div>
                                         </div>
-                                        <div class="row" v-if="userCanSchedule">
+                                        <div v-if="userCanSchedule" class="row">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary"
-                                                    @click.prevent="scheduleMeeting()">Schedule</button><br />
+                                                <button
+                                                    style="width: 80%"
+                                                    class="btn btn-primary"
+                                                    @click.prevent="
+                                                        scheduleMeeting()
+                                                    "
+                                                >
+                                                    Schedule</button
+                                                ><br />
                                             </div>
                                             <div class="col-sm-12">&nbsp;</div>
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary"
-                                                    @click.prevent="discardMeeting()">Discard</button><br />
+                                                <button
+                                                    style="width: 80%"
+                                                    class="btn btn-primary"
+                                                    @click.prevent="
+                                                        discardMeeting()
+                                                    "
+                                                >
+                                                    Discard</button
+                                                ><br />
                                             </div>
                                         </div>
-                                        <div class="row" v-if="userCanComplete">
+                                        <div v-if="userCanComplete" class="row">
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary"
-                                                    @click.prevent="completeMeeting()">Complete</button><br />
+                                                <button
+                                                    style="width: 80%"
+                                                    class="btn btn-primary"
+                                                    @click.prevent="
+                                                        completeMeeting()
+                                                    "
+                                                >
+                                                    Complete</button
+                                                ><br />
                                             </div>
                                         </div>
-                                        <div class="row" v-if="userCanReinstate">
+                                        <div
+                                            v-if="userCanReinstate"
+                                            class="row"
+                                        >
                                             <div class="col-sm-12">
-                                                <button style="width:80%;" class="btn btn-primary"
-                                                    @click.prevent="reinstateMeeting()">Reinstate</button><br />
+                                                <button
+                                                    style="width: 80%"
+                                                    class="btn btn-primary"
+                                                    @click.prevent="
+                                                        reinstateMeeting()
+                                                    "
+                                                >
+                                                    Reinstate</button
+                                                ><br />
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -70,58 +106,160 @@
                 <div class="row">
                     <div class="">
                         <div class="row">
-                            <form :action="meeting_form_url" method="post" name="new_meeting"
-                                enctype="multipart/form-data">
-                                <MeetingSection ref="meeting" :meeting_obj="meeting_obj" :userCanEdit="userCanEdit"
-                                    id="MeetingStart" :is_internal="true">
+                            <form
+                                :action="meeting_form_url"
+                                method="post"
+                                name="new_meeting"
+                                enctype="multipart/form-data"
+                            >
+                                <MeetingSection
+                                    id="MeetingStart"
+                                    ref="meeting"
+                                    :meeting_obj="meeting_obj"
+                                    :user-can-edit="userCanEdit"
+                                    :is_internal="true"
+                                >
                                 </MeetingSection>
-                                <CSQueue ref="cs_queue" :meeting_obj="meeting_obj" id="CSQueue" :is_internal="true">
+                                <CSQueue
+                                    id="CSQueue"
+                                    ref="cs_queue"
+                                    :meeting_obj="meeting_obj"
+                                    :is_internal="true"
+                                >
                                 </CSQueue>
-                                <Minutes ref="minutes" :meeting_obj="meeting_obj" id="Minutes" :is_internal="true">
+                                <Minutes
+                                    id="Minutes"
+                                    ref="minutes"
+                                    :meeting_obj="meeting_obj"
+                                    :is_internal="true"
+                                >
                                 </Minutes>
-                                <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
-                                <input type='hidden' name="meeting_id" :value="1" />
+                                <input
+                                    type="hidden"
+                                    name="csrfmiddlewaretoken"
+                                    :value="csrf_token"
+                                />
+                                <input
+                                    type="hidden"
+                                    name="meeting_id"
+                                    :value="1"
+                                />
                                 <div class="row" style="margin-bottom: 50px">
-                                    <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
+                                    <div
+                                        class="navbar fixed-bottom"
+                                        style="background-color: #f5f5f5"
+                                    >
                                         <!--the below as internal proposal submission ELSE just saving proposal changes -->
                                         <div class="container">
-                                            <div class="col-md-6" style="margin-top:5px">
+                                            <div
+                                                class="col-md-6"
+                                                style="margin-top: 5px"
+                                            >
                                                 <div class="col-md-6">
-                                                    <button class="btn btn-primary me-2 pull-left"
-                                                        style="margin-top:5px;" @click.prevent="returnToDashboard">
-                                                        Return to Dashboard</button>
+                                                    <button
+                                                        class="btn btn-primary me-2 pull-left"
+                                                        style="margin-top: 5px"
+                                                        @click.prevent="
+                                                            returnToDashboard
+                                                        "
+                                                    >
+                                                        Return to Dashboard
+                                                    </button>
                                                 </div>
                                             </div>
-                                            <div v-if="meeting_obj.can_user_edit" class="col-md-6 text-end">
-                                                <button v-if="savingMeeting" class="btn btn-primary me-2 pull-right"
-                                                    style="margin-top:5px;" disabled>Save and Continue <span
-                                                        class="spinner-border spinner-border-sm" role="status"
-                                                        aria-hidden="true"></span>
-                                                    <span class="visually-hidden">Loading...</span></button>
-                                                <button v-else class="btn btn-primary me-2 pull-right"
-                                                    style="margin-top:5px;" @click.prevent="save()"
-                                                    :disabled="saveExitMeeting || submitMeeting">Save and
-                                                    Continue</button>
+                                            <div
+                                                v-if="meeting_obj.can_user_edit"
+                                                class="col-md-6 text-end"
+                                            >
+                                                <button
+                                                    v-if="savingMeeting"
+                                                    class="btn btn-primary me-2 pull-right"
+                                                    style="margin-top: 5px"
+                                                    disabled
+                                                >
+                                                    Save and Continue
+                                                    <span
+                                                        class="spinner-border spinner-border-sm"
+                                                        role="status"
+                                                        aria-hidden="true"
+                                                    ></span>
+                                                    <span
+                                                        class="visually-hidden"
+                                                        >Loading...</span
+                                                    >
+                                                </button>
+                                                <button
+                                                    v-else
+                                                    class="btn btn-primary me-2 pull-right"
+                                                    style="margin-top: 5px"
+                                                    :disabled="
+                                                        saveExitMeeting ||
+                                                        submitMeeting
+                                                    "
+                                                    @click.prevent="save()"
+                                                >
+                                                    Save and Save and Continue
+                                                </button>
 
-                                                <button v-if="saveExitMeeting" class="btn btn-primary me-2 pull-right"
-                                                    style="margin-top:5px;" disabled>Save and Exit <span
-                                                        class="spinner-border spinner-border-sm" role="status"
-                                                        aria-hidden="true"></span>
-                                                    <span class="visually-hidden">Loading...</span></button>
-                                                <button v-else class="btn btn-primary me-2 pull-right"
-                                                    style="margin-top:5px;" @click.prevent="save_exit()"
-                                                    :disabled="savingMeeting || submitMeeting">Save and
-                                                    Exit</button>
+                                                <button
+                                                    v-if="saveExitMeeting"
+                                                    class="btn btn-primary me-2 pull-right"
+                                                    style="margin-top: 5px"
+                                                    disabled
+                                                >
+                                                    Save and Exit
+                                                    <span
+                                                        class="spinner-border spinner-border-sm"
+                                                        role="status"
+                                                        aria-hidden="true"
+                                                    ></span>
+                                                    <span
+                                                        class="visually-hidden"
+                                                        >Loading...</span
+                                                    >
+                                                </button>
+                                                <button
+                                                    v-else
+                                                    class="btn btn-primary me-2 pull-right"
+                                                    style="margin-top: 5px"
+                                                    :disabled="
+                                                        savingMeeting ||
+                                                        submitMeeting
+                                                    "
+                                                    @click.prevent="save_exit()"
+                                                >
+                                                    Save and Save and Exit
+                                                </button>
                                             </div>
-                                            <div v-else-if="userCanEdit" class="col-md-6 text-end">
-                                                <button v-if="savingMeeting" class="btn btn-primary pull-right"
-                                                    style="margin-top:5px;" disabled>Save Changes <span
-                                                        class="spinner-border spinner-border-sm" role="status"
-                                                        aria-hidden="true"></span>
-                                                    <span class="visually-hidden">Loading...</span></button>
-                                                <button v-else class="btn btn-primary pull-right"
-                                                    style="margin-top:5px;" @click.prevent="save_exit()">Save
-                                                    Changes</button>
+                                            <div
+                                                v-else-if="userCanEdit"
+                                                class="col-md-6 text-end"
+                                            >
+                                                <button
+                                                    v-if="savingMeeting"
+                                                    class="btn btn-primary pull-right"
+                                                    style="margin-top: 5px"
+                                                    disabled
+                                                >
+                                                    Save Changes
+                                                    <span
+                                                        class="spinner-border spinner-border-sm"
+                                                        role="status"
+                                                        aria-hidden="true"
+                                                    ></span>
+                                                    <span
+                                                        class="visually-hidden"
+                                                        >Loading...</span
+                                                    >
+                                                </button>
+                                                <button
+                                                    v-else
+                                                    class="btn btn-primary pull-right"
+                                                    style="margin-top: 5px"
+                                                    @click.prevent="save_exit()"
+                                                >
+                                                    Save Changes
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -135,41 +273,15 @@
     </div>
 </template>
 <script>
-
-import datatable from '@vue-utils/datatable.vue'
-import CommsLogs from '@common-utils/comms_logs.vue'
-import MeetingSidePanel from '@common-utils/meeting_side_panel.vue'
-import MeetingSection from './meeting_section.vue'
-import Minutes from './minutes.vue'
+import datatable from '@vue-utils/datatable.vue';
+import CommsLogs from '@common-utils/comms_logs.vue';
+import MeetingSidePanel from '@common-utils/meeting_side_panel.vue';
+import MeetingSection from './meeting_section.vue';
+import Minutes from './minutes.vue';
 import CSQueue from './cs_queue.vue';
-import {
-    api_endpoints,
-    helpers
-}
-    from '@/utils/hooks'
+import { api_endpoints, helpers } from '@/utils/hooks';
 export default {
     name: 'InternalMeeting',
-    data: function () {
-        let vm = this;
-        return {
-            "meeting_obj": null,
-            "original_meeting_obj": null,
-            "loading": [],
-            form: null,
-            savingMeeting: false,
-            saveExitMeeting: false,
-            submitMeeting: false,
-            schedelingMeeting: false,
-            completingMeeting: false,
-            submitting: false,
-            DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-            comms_url: helpers.add_endpoint_json(api_endpoints.meeting, vm.$route.params.meeting_id + '/comms_log'),
-            comms_add_url: helpers.add_endpoint_json(api_endpoints.meeting, vm.$route.params.meeting_id + '/add_comms_log'),
-            logs_url: helpers.add_endpoint_json(api_endpoints.meeting, vm.$route.params.meeting_id + '/action_log'),
-            initialisedSelects: false,
-            isSaved: false,
-        }
-    },
     components: {
         datatable,
         CommsLogs,
@@ -181,50 +293,94 @@ export default {
     filters: {
         formatDate: function (data) {
             return data ? moment(data).format('DD/MM/YYYY HH:mm:ss') : '';
-        }
+        },
+    },
+    beforeRouteEnter: function (to, from, next) {
+        fetch(
+            `/api/meeting/${to.params.meeting_id}/internal_meeting.json`
+        ).then(
+            async (response) => {
+                next(async (vm) => {
+                    vm.meeting_obj = await response.json();
+                    vm.meeting_obj.selected_committee_members = [];
+                });
+            },
+            (err) => {
+                console.log(err);
+            }
+        );
+    },
+    data: function () {
+        let vm = this;
+        return {
+            meeting_obj: null,
+            original_meeting_obj: null,
+            loading: [],
+            form: null,
+            savingMeeting: false,
+            saveExitMeeting: false,
+            submitMeeting: false,
+            schedelingMeeting: false,
+            completingMeeting: false,
+            submitting: false,
+            DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
+            comms_url: helpers.add_endpoint_json(
+                api_endpoints.meeting,
+                vm.$route.params.meeting_id + '/comms_log'
+            ),
+            comms_add_url: helpers.add_endpoint_json(
+                api_endpoints.meeting,
+                vm.$route.params.meeting_id + '/add_comms_log'
+            ),
+            logs_url: helpers.add_endpoint_json(
+                api_endpoints.meeting,
+                vm.$route.params.meeting_id + '/action_log'
+            ),
+            initialisedSelects: false,
+            isSaved: false,
+        };
     },
     computed: {
         csrf_token: function () {
-            return helpers.getCookie('csrftoken')
+            return helpers.getCookie('csrftoken');
         },
         meeting_form_url: function () {
             if (this.meeting_obj.id) {
                 return `/api/meeting/${this.meeting_obj.id}/meeting_save.json`;
-            }
-            else {
+            } else {
                 return `/api/meeting.json`;
             }
         },
         submitter_first_name: function () {
             if (this.meeting_obj.submitter) {
-                return this.meeting_obj.submitter.first_name
+                return this.meeting_obj.submitter.first_name;
             } else {
-                return ''
+                return '';
             }
         },
         submitter_last_name: function () {
             if (this.meeting_obj.submitter) {
-                return this.meeting_obj.submitter.last_name
+                return this.meeting_obj.submitter.last_name;
             } else {
-                return ''
+                return '';
             }
         },
         submitter_id: function () {
             if (this.meeting_obj.submitter) {
-                return this.meeting_obj.submitter.id
+                return this.meeting_obj.submitter.id;
             } else {
                 //eturn this.meeting_obj.applicant_obj.id
             }
         },
         submitter_email: function () {
             if (this.meeting_obj.submitter) {
-                return this.meeting_obj.submitter.email
+                return this.meeting_obj.submitter.email;
             } else {
                 //return this.meeting_obj.applicant_obj.email
             }
         },
         canSeeSidePanel: function () {
-            return this.meeting_obj && this.meeting_obj.submitter
+            return this.meeting_obj && this.meeting_obj.submitter;
         },
         userCanEdit: function () {
             return this.meeting_obj.can_user_edit;
@@ -239,8 +395,39 @@ export default {
             return this.meeting_obj.can_user_reinstate;
         },
         showActions: function () {
-            return this.userCanSchedule || this.userCanComplete || this.userCanReinstate;
+            return (
+                this.userCanSchedule ||
+                this.userCanComplete ||
+                this.userCanReinstate
+            );
+        },
+    },
+    created: function () {
+        let vm = this;
+        if (!this.meeting_obj) {
+            fetch(
+                `/api/meeting/${vm.$route.params.meeting_id}/internal_meeting.json`
+            ).then(
+                async (response) => {
+                    vm.meeting_obj = await response.json();
+                    if (vm.meeting_obj.start_date == null) {
+                        vm.meeting_obj.start_date = vm.$refs.meeting.start_date;
+                    }
+                    if (vm.meeting_obj.end_date == null) {
+                        vm.meeting_obj.end_date = vm.$refs.meeting.end_date;
+                    }
+                },
+                (err) => {
+                    console.log(err);
+                }
+            );
         }
+    },
+    updated: function () {
+        let vm = this;
+        this.$nextTick(() => {
+            vm.form = document.forms.new_meeting;
+        });
     },
     methods: {
         commaToNewline(s) {
@@ -249,21 +436,21 @@ export default {
         returnToDashboard: function () {
             let vm = this;
             vm.$router.push({
-                name: 'internal-meetings-dash'
+                name: 'internal-meetings-dash',
             });
         },
         save: async function (e) {
             let vm = this;
-            var missing_data = vm.can_submit("");
+            var missing_data = vm.can_submit('');
             if (missing_data != true) {
                 swal.fire({
-                    title: "Please fix following errors before saving",
+                    title: 'Please fix following errors before saving',
                     text: missing_data,
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
                     },
-                })
+                });
                 return false;
             }
             vm.isSaved = false;
@@ -275,44 +462,47 @@ export default {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(payload)
-            }).then(async (response) => {
-                swal.fire({
-                    title: 'Saved',
-                    text: 'Your changes have been saved',
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-                vm.savingMeeting = false;
-                vm.isSaved = true;
-            }, err => {
-                var errorText = helpers.apiVueResourceError(err);
-                swal.fire({
-                    title: 'Save Error',
-                    text: errorText,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-                vm.savingMeeting = false;
-                vm.isSaved = false;
-            });
+                body: JSON.stringify(payload),
+            }).then(
+                async (response) => {
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Your changes have been saved',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.savingMeeting = false;
+                    vm.isSaved = true;
+                },
+                (err) => {
+                    var errorText = helpers.apiVueResourceError(err);
+                    swal.fire({
+                        title: 'Save Error',
+                        text: errorText,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.savingMeeting = false;
+                    vm.isSaved = false;
+                }
+            );
         },
         save_exit: async function (e) {
             let vm = this;
-            var missing_data = vm.can_submit("");
+            var missing_data = vm.can_submit('');
             if (missing_data != true) {
                 swal.fire({
-                    title: "Please fix following errors before saving",
+                    title: 'Please fix following errors before saving',
                     text: missing_data,
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
                     },
-                })
+                });
                 return false;
             }
             vm.saveExitMeeting = true;
@@ -320,13 +510,12 @@ export default {
                 if (vm.isSaved === true) {
                     // redirect back to dashboard
                     vm.$router.push({
-                        name: 'internal-meetings-dash'
-
+                        name: 'internal-meetings-dash',
                     });
                 } else {
                     vm.saveExitMeeting = false;
                 }
-            })
+            });
         },
         save_before_submit: async function (e) {
             //console.log('save before submit');
@@ -341,180 +530,221 @@ export default {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(payload)
-            }).then(async (response) => {
-                result = await response.json();
-            }, err => {
-                var errorText = helpers.apiVueResourceError(err);
-                swal.fire({
-                    title: 'Submit Error',
-                    //helpers.apiVueResourceError(err),
-                    text: errorText,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-                vm.submitMeeting = false;
-                vm.saveError = true;
-                //return false;
-            });
+                body: JSON.stringify(payload),
+            }).then(
+                async (response) => {
+                    result = await response.json();
+                },
+                (err) => {
+                    var errorText = helpers.apiVueResourceError(err);
+                    swal.fire({
+                        title: 'Submit Error',
+                        //helpers.apiVueResourceError(err),
+                        text: errorText,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.submitMeeting = false;
+                    vm.saveError = true;
+                    //return false;
+                }
+            );
             return result;
         },
         can_schedule: function (check_action) {
             let vm = this;
-            let blank_fields = []
+            let blank_fields = [];
 
             // blank_fields = vm.can_submit_meeting(check_action);
             if (vm.meeting_obj.title == null || vm.meeting_obj.title == '') {
-                blank_fields.push(' Title is missing')
+                blank_fields.push(' Title is missing');
             }
-            if (vm.meeting_obj.meeting_type == null || vm.meeting_obj.meeting_type == '') {
-                blank_fields.push(' Please select a meeting type')
+            if (
+                vm.meeting_obj.meeting_type == null ||
+                vm.meeting_obj.meeting_type == ''
+            ) {
+                blank_fields.push(' Please select a meeting type');
             }
-            if (vm.meeting_obj.start_date == null || vm.meeting_obj.start_date == '' || vm.meeting_obj.end_date == null || vm.meeting_obj.end_date == '') {
+            if (
+                vm.meeting_obj.start_date == null ||
+                vm.meeting_obj.start_date == '' ||
+                vm.meeting_obj.end_date == null ||
+                vm.meeting_obj.end_date == ''
+            ) {
                 //  to also check the start and end date of meeting validation befor saving
                 blank_fields.push('Start Date and End date cannot be blank');
             }
             if (vm.$refs.meeting.isMeetingDateValid != true) {
                 //  to also check the start and end date of meeting validation befor saving
-                blank_fields.push('Please select End Date that is later than Start Date');
+                blank_fields.push(
+                    'Please select End Date that is later than Start Date'
+                );
             }
             if (vm.$refs.meeting.isCommitteeMeeting) {
-                if (vm.meeting_obj.selected_committee_members == null || vm.meeting_obj.selected_committee_members == '' || vm.meeting_obj.selected_committee_members.length < 2) {
+                if (
+                    vm.meeting_obj.selected_committee_members == null ||
+                    vm.meeting_obj.selected_committee_members == '' ||
+                    vm.meeting_obj.selected_committee_members.length < 2
+                ) {
                     //  to also check the start and end date of meeting validation befor saving
-                    blank_fields.push('Please select at least two committee members who will be attending');
+                    blank_fields.push(
+                        'Please select at least two committee members who will be attending'
+                    );
                 }
             } else {
-                if (vm.meeting_obj.attendees == null || vm.meeting_obj.attendees == '') {
-                    blank_fields.push(' Please enter some attendees')
+                if (
+                    vm.meeting_obj.attendees == null ||
+                    vm.meeting_obj.attendees == ''
+                ) {
+                    blank_fields.push(' Please enter some attendees');
                 }
             }
-            if (vm.meeting_obj.location_id == null || vm.meeting_obj.location_id == '') {
-                blank_fields.push(' Please select Location')
+            if (
+                vm.meeting_obj.location_id == null ||
+                vm.meeting_obj.location_id == ''
+            ) {
+                blank_fields.push(' Please select Location');
             }
             if (blank_fields.length == 0) {
                 return true;
-            }
-            else {
+            } else {
                 return blank_fields;
             }
             //to count if records exists in the minutes table
-            vm.$refs.minutes.$refs.minutes_datatable.vmDataTable.rows().count()
+            vm.$refs.minutes.$refs.minutes_datatable.vmDataTable.rows().count();
         },
         isFutureMeeting: function () {
             let vm = this;
             const meeting_date = new Date(vm.meeting_obj.end_date);
             const now = new Date();
             return meeting_date > now;
-
         },
         can_complete: function () {
             let vm = this;
-            let blank_fields = []
+            let blank_fields = [];
 
-
-            if (vm.$refs.minutes.$refs.minutes_datatable.vmDataTable.rows().count() == 0) {
-                blank_fields.push(' Please add at least one Minutes record')
+            if (
+                vm.$refs.minutes.$refs.minutes_datatable.vmDataTable
+                    .rows()
+                    .count() == 0
+            ) {
+                blank_fields.push(' Please add at least one Minutes record');
             }
             if (vm.isFutureMeeting()) {
-                blank_fields.push('You cannot Complete the meeting before the End Date/Time')
+                blank_fields.push(
+                    'You cannot Complete the meeting before the End Date/Time'
+                );
             }
             if (blank_fields.length == 0) {
                 return true;
-            }
-            else {
+            } else {
                 return blank_fields;
             }
         },
         can_submit: function (check_action) {
             let vm = this;
-            let blank_fields = []
+            let blank_fields = [];
 
             blank_fields = vm.can_submit_meeting(check_action);
 
             if (blank_fields.length == 0) {
                 return true;
-            }
-            else {
+            } else {
                 return blank_fields;
             }
         },
         can_submit_meeting: function (check_action) {
             let vm = this;
-            let blank_fields = []
+            let blank_fields = [];
             if (vm.meeting_obj.title == null || vm.meeting_obj.title == '') {
-                blank_fields.push(' Title is missing')
-            }
-            else if (vm.meeting_obj.meeting_type == null || vm.meeting_obj.meeting_type == '') {
-                blank_fields.push(' Please select meeting type')
-            }
-            else if (vm.$refs.meeting.isMeetingDateValid != true) {
+                blank_fields.push(' Title is missing');
+            } else if (
+                vm.meeting_obj.meeting_type == null ||
+                vm.meeting_obj.meeting_type == ''
+            ) {
+                blank_fields.push(' Please select meeting type');
+            } else if (vm.$refs.meeting.isMeetingDateValid != true) {
                 //  to also check the start and end date of meeting validation befor saving
-                blank_fields.push('Please select End Date that is later than Start Date');
+                blank_fields.push(
+                    'Please select End Date that is later than Start Date'
+                );
             }
-            if (check_action == "submit") {
+            if (check_action == 'submit') {
                 //NOTE add validation for fields required before submit
             }
 
-            return blank_fields
+            return blank_fields;
         },
         scheduleMeeting: function () {
             let vm = this;
 
-            var missing_data = vm.can_schedule("submit");
+            var missing_data = vm.can_schedule('submit');
             if (missing_data != true) {
                 swal.fire({
-                    title: "Please fix following errors before scheduling the meeting",
+                    title: 'Please fix following errors before scheduling the meeting',
                     text: missing_data,
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
                     },
-                })
+                });
                 return false;
             }
             vm.schedelingMeeting = true;
             swal.fire({
-                title: "Schedule New Meeting",
-                text: "Are you sure you want to schedule this meeting?",
-                icon: "question",
+                title: 'Schedule New Meeting',
+                text: 'Are you sure you want to schedule this meeting?',
+                icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: "schedule",
+                confirmButtonText: 'schedule',
                 customClass: {
                     confirmButton: 'btn btn-primary',
                     cancelButton: 'btn btn-secondary',
                 },
                 reverseButtons: true,
-            }).then(async (swalresult) => {
-                if (swalresult.isConfirmed) {
-                    let result = await vm.save_before_submit()
-                    if (!vm.saveError) {
-                        let payload = new Object();
-                        Object.assign(payload, vm.meeting_obj);
-                        fetch(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/schedule_meeting'), {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(payload)
-                        }).then(async (response) => {
-                            vm.meeting_obj = await response.json();
-                        }, err => {
-                            swal.fire({
-                                title: 'Schedule Error',
-                                text: helpers.apiVueResourceError(err),
-                                icon: 'error',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
+            }).then(
+                async (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        let result = await vm.save_before_submit();
+                        if (!vm.saveError) {
+                            let payload = new Object();
+                            Object.assign(payload, vm.meeting_obj);
+                            fetch(
+                                helpers.add_endpoint_json(
+                                    api_endpoints.meeting,
+                                    vm.meeting_obj.id + '/schedule_meeting'
+                                ),
+                                {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify(payload),
+                                }
+                            ).then(
+                                async (response) => {
+                                    vm.meeting_obj = await response.json();
                                 },
-                            });
-                        });
+                                (err) => {
+                                    swal.fire({
+                                        title: 'Schedule Error',
+                                        text: helpers.apiVueResourceError(err),
+                                        icon: 'error',
+                                        customClass: {
+                                            confirmButton: 'btn btn-primary',
+                                        },
+                                    });
+                                }
+                            );
+                        }
                     }
+                },
+                (error) => {
+                    vm.submitMeeting = false;
                 }
-            }, (error) => {
-                vm.submitMeeting = false;
-            });
+            );
         },
         completeMeeting: function () {
             let vm = this;
@@ -522,81 +752,96 @@ export default {
             var missing_data = vm.can_complete();
             if (missing_data != true) {
                 swal.fire({
-                    title: "Please fix following errors before completing the meeting",
+                    title: 'Please fix following errors before completing the meeting',
                     text: missing_data,
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
                     },
-                })
+                });
                 return false;
             }
             vm.completeMeeting = true;
             swal.fire({
-                title: "Complete Meeting",
-                text: "Are you sure you want to complete this meeting?",
-                icon: "question",
+                title: 'Complete Meeting',
+                text: 'Are you sure you want to complete this meeting?',
+                icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: "complete",
+                confirmButtonText: 'complete',
                 customClass: {
                     confirmButton: 'btn btn-primary',
                     cancelButton: 'btn btn-secondary',
                 },
                 reverseButtons: true,
-            }).then(async (swalresult) => {
-                if (swalresult.isConfirmed) {
-                    let result = await vm.save_before_submit()
-                    if (!vm.saveError) {
-                        let payload = new Object();
-                        Object.assign(payload, vm.meeting_obj);
-                        fetch(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/complete_meeting'), {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(payload)
-                        }).then(async (response) => {
-                            vm.meeting_obj = await response.json();
-                            vm.completingMeeting = false;
-                        }, err => {
-                            swal.fire({
-                                title: 'Complete Error',
-                                text: helpers.apiVueResourceError(err),
-                                icon: 'error',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
+            }).then(
+                async (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        let result = await vm.save_before_submit();
+                        if (!vm.saveError) {
+                            let payload = new Object();
+                            Object.assign(payload, vm.meeting_obj);
+                            fetch(
+                                helpers.add_endpoint_json(
+                                    api_endpoints.meeting,
+                                    vm.meeting_obj.id + '/complete_meeting'
+                                ),
+                                {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify(payload),
+                                }
+                            ).then(
+                                async (response) => {
+                                    vm.meeting_obj = await response.json();
+                                    vm.completingMeeting = false;
                                 },
-                            });
-                        });
+                                (err) => {
+                                    swal.fire({
+                                        title: 'Complete Error',
+                                        text: helpers.apiVueResourceError(err),
+                                        icon: 'error',
+                                        customClass: {
+                                            confirmButton: 'btn btn-primary',
+                                        },
+                                    });
+                                }
+                            );
+                        }
                     }
+                },
+                (error) => {
+                    vm.completingMeeting = false;
                 }
-            }, (error) => {
-                vm.completingMeeting = false;
-            });
+            );
         },
         discardMeeting: function () {
             let vm = this;
             if (vm.userCanSchedule) {
                 swal.fire({
-                    title: "Discard Meeting",
-                    text: "Are you sure you want to discard this meeting?",
-                    icon: "question",
+                    title: 'Discard Meeting',
+                    text: 'Are you sure you want to discard this meeting?',
+                    icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: 'Discard Meeting',
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                        cancelButton: 'btn btn-secondary'
+                        cancelButton: 'btn btn-secondary',
                     },
-                    reverseButtons: true
+                    reverseButtons: true,
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        fetch(api_endpoints.discard_meeting(vm.meeting_obj.id), {
-                            method: 'PATCH',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                        })
-                            .then(async (response) => {
+                        fetch(
+                            api_endpoints.discard_meeting(vm.meeting_obj.id),
+                            {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                            }
+                        ).then(
+                            async (response) => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'Your meeting has been discarded',
@@ -606,21 +851,22 @@ export default {
                                     },
                                 });
                                 vm.meeting_obj = await response.json();
-                            }, (error) => {
+                            },
+                            (error) => {
                                 console.log(error);
-                            });
+                            }
+                        );
                     }
                 });
-            }
-            else {
+            } else {
                 swal.fire({
-                    title: "You do not have access to discard this meeting",
-                    text: "",
+                    title: 'You do not have access to discard this meeting',
+                    text: '',
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
                     },
-                })
+                });
                 return false;
             }
         },
@@ -628,25 +874,28 @@ export default {
             let vm = this;
             if (vm.userCanReinstate) {
                 swal.fire({
-                    title: "Reinstate Meeting",
-                    text: "Are you sure you want to reinstate this meeting?",
-                    icon: "question",
+                    title: 'Reinstate Meeting',
+                    text: 'Are you sure you want to reinstate this meeting?',
+                    icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: 'Reinstate Meeting',
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                        cancelButton: 'btn btn-secondary'
+                        cancelButton: 'btn btn-secondary',
                     },
-                    reverseButtons: true
+                    reverseButtons: true,
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        fetch(api_endpoints.reinstate_meeting(vm.meeting_obj.id), {
-                            method: 'PATCH',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                        })
-                            .then(async (response) => {
+                        fetch(
+                            api_endpoints.reinstate_meeting(vm.meeting_obj.id),
+                            {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                            }
+                        ).then(
+                            async (response) => {
                                 swal.fire({
                                     title: 'Reinstated',
                                     text: 'Your meeting has been reinstated',
@@ -656,83 +905,96 @@ export default {
                                     },
                                 });
                                 vm.meeting_obj = await response.json();
-                            }, (error) => {
+                            },
+                            (error) => {
                                 console.log(error);
-                            });
+                            }
+                        );
                     }
                 });
-            }
-            else {
+            } else {
                 swal.fire({
-                    title: "You do not have access to reinstate this meeting",
-                    text: "",
+                    title: 'You do not have access to reinstate this meeting',
+                    text: '',
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
                     },
-                })
+                });
                 return false;
             }
         },
         submit: async function () {
             let vm = this;
 
-            var missing_data = vm.can_submit("submit");
+            var missing_data = vm.can_submit('submit');
             if (missing_data != true) {
                 swal.fire({
-                    title: "Please fix following errors before submitting",
+                    title: 'Please fix following errors before submitting',
                     text: missing_data,
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
                     },
-                })
+                });
                 return false;
             }
             vm.submitMeeting = true;
             swal.fire({
-                title: "Submit New Meeting",
-                text: "Are you sure you want to submit this meeting?",
-                icon: "question",
+                title: 'Submit New Meeting',
+                text: 'Are you sure you want to submit this meeting?',
+                icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: "submit",
+                confirmButtonText: 'submit',
                 customClass: {
                     confirmButton: 'btn btn-primary',
                     cancelButton: 'btn btn-secondary',
                 },
                 reverseButtons: true,
-            }).then(async (swalresult) => {
-                if (swalresult.isConfirmed) {
-                    let result = await vm.save_before_submit()
-                    if (!vm.saveError) {
-                        let payload = new Object();
-                        Object.assign(payload, vm.meeting_obj);
-                        fetch(helpers.add_endpoint_json(api_endpoints.meeting, vm.meeting_obj.id + '/submit'), {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(payload)
-                        }).then(async (response) => {
-                            vm.meeting_obj = await response.json();
-                            vm.$router.push({
-                                name: 'internal-meetings-dash'
-                            });
-                        }, err => {
-                            swal.fire({
-                                title: 'Submit Error',
-                                text: helpers.apiVueResourceError(err),
-                                icon: 'error',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
+            }).then(
+                async (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        let result = await vm.save_before_submit();
+                        if (!vm.saveError) {
+                            let payload = new Object();
+                            Object.assign(payload, vm.meeting_obj);
+                            fetch(
+                                helpers.add_endpoint_json(
+                                    api_endpoints.meeting,
+                                    vm.meeting_obj.id + '/submit'
+                                ),
+                                {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify(payload),
+                                }
+                            ).then(
+                                async (response) => {
+                                    vm.meeting_obj = await response.json();
+                                    vm.$router.push({
+                                        name: 'internal-meetings-dash',
+                                    });
                                 },
-                            });
-                        });
+                                (err) => {
+                                    swal.fire({
+                                        title: 'Submit Error',
+                                        text: helpers.apiVueResourceError(err),
+                                        icon: 'error',
+                                        customClass: {
+                                            confirmButton: 'btn btn-primary',
+                                        },
+                                    });
+                                }
+                            );
+                        }
                     }
+                },
+                (error) => {
+                    vm.submitMeeting = false;
                 }
-            }, (error) => {
-                vm.submitMeeting = false;
-            });
+            );
         },
         save_wo: function () {
             let vm = this;
@@ -743,45 +1005,12 @@ export default {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(payload)
-            }).then(async (response) => {
-            }, err => {
-            });
+                body: JSON.stringify(payload),
+            }).then(
+                async (response) => {},
+                (err) => {}
+            );
         },
     },
-    created: function () {
-        let vm = this;
-        if (!this.meeting_obj) {
-            fetch(`/api/meeting/${vm.$route.params.meeting_id}/internal_meeting.json`).then(async (response) => {
-                vm.meeting_obj = await response.json();
-                if (vm.meeting_obj.start_date == null) {
-                    vm.meeting_obj.start_date = vm.$refs.meeting.start_date;
-                }
-                if (vm.meeting_obj.end_date == null) {
-                    vm.meeting_obj.end_date = vm.$refs.meeting.end_date;
-                }
-            },
-                err => {
-                    console.log(err);
-                });
-        }
-    },
-    updated: function () {
-        let vm = this;
-        this.$nextTick(() => {
-            vm.form = document.forms.new_meeting;
-        });
-    },
-    beforeRouteEnter: function (to, from, next) {
-        fetch(`/api/meeting/${to.params.meeting_id}/internal_meeting.json`).then(async (response) => {
-            next(async (vm) => {
-                vm.meeting_obj = await response.json();
-                vm.meeting_obj.selected_committee_members = [];
-            });
-        },
-            err => {
-                console.log(err);
-            });
-    },
-}
+};
 </script>
