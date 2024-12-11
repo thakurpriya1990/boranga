@@ -23,7 +23,7 @@ export default [
     ...pluginVue.configs['flat/recommended'],
     eslintConfigPrettier,
     {
-        ignores: ['node_modules/', 'build/*.js', 'config/*.js'],
+        ignores: ['.venv/', '.env/', '.env', 'node_modules/'],
     },
     {
         files: ['**/*.{js,mjs,cjs,ts,mts,jsx,tsx}'],
@@ -51,6 +51,8 @@ export default [
         },
         rules: {
             'prettier/prettier': 'error',
+            'no-redeclare': 'warn',
+            'no-unused-vars': 'warn',
         },
     },
 ];
