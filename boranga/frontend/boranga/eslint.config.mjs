@@ -20,7 +20,7 @@ const projectGlobals = {
 export default [
     jsLint.configs.recommended,
     pluginPrettierRecommended,
-    ...pluginVue.configs['flat/recommended'],
+    ...pluginVue.configs['flat/essential'],
     eslintConfigPrettier,
     {
         ignores: ['.venv/', '.env/', '.env', 'node_modules/'],
@@ -51,6 +51,7 @@ export default [
         },
         rules: {
             'prettier/prettier': 'error',
+            'vue/*': 'warn',
             'no-redeclare': 'warn',
             'no-unused-vars': 'warn',
         },
