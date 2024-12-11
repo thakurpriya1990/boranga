@@ -277,7 +277,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue'
+
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
@@ -1055,7 +1055,7 @@ export default {
                 if (savedSpecies) {
                     newSpeciesId = savedSpecies.body.id;
                     fetch(`/api/species/${newSpeciesId}/internal_species.json`).then(async (response) => {
-                        const data = response.json();
+                        const data = await response.json();
                         let species_obj = data.species_obj;
                         //--- to add empty documents array
                         species_obj.documents = []

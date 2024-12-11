@@ -457,7 +457,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue'
+
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
@@ -466,8 +466,8 @@ import BackToAssessor from './back_to_assessor.vue'
 import Defer from './defer.vue'
 import ProposeForAgenda from './propose_for_agenda.vue'
 import ReadyForAgenda from './ready_for_agenda.vue'
-import ProposedDecline from './proposal_proposed_decline'
-import ProposeDelist from './proposal_propose_delist'
+import ProposedDecline from './proposal_proposed_decline.vue'
+import ProposeDelist from './proposal_propose_delist.vue'
 import ProposedApproval from './proposed_issuance.vue'
 import InviteExternalReferee from '@common-utils/invite_external_referee.vue'
 import CSMoreReferrals from '@common-utils/conservation_status/cs_more_referrals.vue'

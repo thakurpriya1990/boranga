@@ -63,7 +63,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue'
+
 import datatable from '@vue-utils/datatable.vue'
 import ProposalSpeciesCommunities from '@/components/form_species_communities.vue'
 

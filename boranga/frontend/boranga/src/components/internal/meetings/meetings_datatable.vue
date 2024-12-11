@@ -65,11 +65,11 @@ import {
     helpers
 }
     from '@/utils/hooks'
-import "babel-polyfill"
+
 import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import moment from 'moment'
-import Vue from 'vue'
+
 
 export default {
     name: 'MeetingsDatatable',

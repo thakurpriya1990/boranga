@@ -238,7 +238,7 @@
 </template>
 
 <script>
-import Vue from 'vue';
+;
 import { v4 as uuid } from 'uuid';
 // import datatable from '@vue-utils/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
@@ -381,10 +381,6 @@ export default {
             }
         },
         isReadOnly: function () {
-            //override for split reports
-            if (this.is_readonly) {
-                return this.is_readonly;
-            }
             return this.occurrence_report_obj.readonly
         },
         componentMapKey: function () {

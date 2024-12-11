@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import Vue from 'vue'
+
 import datatable from '@/utils/vue/datatable.vue';
 import SiteDetail from '@/components/internal/occurrence/add_site.vue'
 import OCCSiteHistory from '../../internal/occurrence/occ_site_history.vue';

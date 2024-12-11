@@ -85,7 +85,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue'
+
 import datatable from '@vue-utils/datatable.vue';
 import ThreatDetail from '@/components/common/species_communities/add_threat.vue'
 import ConservationThreatHistory from '../../internal/occurrence/occ_conservation_threat_history.vue';

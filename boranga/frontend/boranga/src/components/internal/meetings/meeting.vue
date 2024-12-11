@@ -135,7 +135,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue'
+
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import MeetingSidePanel from '@common-utils/meeting_side_panel.vue'

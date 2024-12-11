@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import Vue from 'vue'
+
 import datatable from '@vue-utils/datatable.vue';
 import {constants,api_endpoints,helpers} from '@/utils/hooks'
 import SectionModal from '@/components/common/occurrence/occ_section_modal.vue'

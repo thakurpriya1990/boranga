@@ -23,8 +23,8 @@ import {
     helpers
 }
     from '@/utils/hooks'
-import Vue from 'vue'
-import "babel-polyfill"
+
+
 import datatable from '@/utils/vue/datatable.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import AgendaModal from './agenda_datatable.vue';

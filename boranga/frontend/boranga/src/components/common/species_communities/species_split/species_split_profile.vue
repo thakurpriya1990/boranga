@@ -1273,7 +1273,7 @@
 </template>
 
 <script>
-import Vue from 'vue';
+;
 import FormSection from '@/components/forms/section_toggle.vue';
 import {
     api_endpoints,

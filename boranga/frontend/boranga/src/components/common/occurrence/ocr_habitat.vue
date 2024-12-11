@@ -363,7 +363,7 @@
 </template>
 
 <script>
-import Vue from 'vue';
+;
 import FormSection from '@/components/forms/section_toggle.vue';
 import RelatedSpecies from '@/components/common/occurrence/ocr_related_species_table.vue'
 import {
@@ -713,7 +713,7 @@ export default {
         let vm = this;
         //------fetch list of values
         const response = await fetch('/api/occurrence_report/list_of_values.json');
-        vm.listOfValuesDict = response.json();
+        vm.listOfValuesDict = await response.json();
         vm.land_form_list = vm.listOfValuesDict.land_form_list;
         vm.land_form_list.splice(0, 0,
             {

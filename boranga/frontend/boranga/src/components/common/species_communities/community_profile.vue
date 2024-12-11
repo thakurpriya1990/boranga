@@ -461,7 +461,7 @@
 </template>
 
 <script>
-import Vue from 'vue';
+;
 import FormSection from '@/components/forms/section_toggle.vue';
 import BasicConservationStatus from './basic_conservation_status.vue';
 import HelpText from '@/components/common/help_text.vue';

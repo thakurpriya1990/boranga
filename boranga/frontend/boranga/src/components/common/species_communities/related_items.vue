@@ -10,9 +10,9 @@
                 </h3>
             </div>
             <div class="panel-body collapse in" :id="lBody">
-                <div class="" >                        
+                <div class="" >
                     <div class="form-horizontal col-sm-12 borderDecoration">
-                        
+
                         <div class="form-group">
                             <div class="row">
                                 <div class="col-sm-3">
@@ -22,10 +22,10 @@
                                     <input type="text" class="form-control" name="Some species data" placeholder="" :disabled="species_community.readonly" >
                                 </div>
                             </div>
-                        </div> 
+                        </div>
                     </div>
                 </div>
-            </div>                
+            </div>
         </div>
     </div>
 
@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import Vue from 'vue' 
+
 import {
   api_endpoints,
   helpers
@@ -71,7 +71,7 @@ export default {
         computed: {
         },
         watch:{
-            
+
         },
         methods:{
             eventListeners:function (){
@@ -106,4 +106,3 @@ export default {
     border-bottom:none;
     }
 </style>
-

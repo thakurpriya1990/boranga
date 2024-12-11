@@ -24,7 +24,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue';
+;
 import datatable from '@vue-utils/datatable.vue';
 import ContactDetail from './add_contact_detail.vue'
 import OCCContactDetailHistory from '../../internal/occurrence/occ_contact_detail_history.vue';

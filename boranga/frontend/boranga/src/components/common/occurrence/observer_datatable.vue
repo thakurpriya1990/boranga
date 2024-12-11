@@ -24,7 +24,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue';
+;
 import datatable from '@vue-utils/datatable.vue';
 import ObserverDetail from './add_observer_detail.vue'
 import OCRObserverDetailHistory from '../../internal/occurrence/ocr_observer_detail_history.vue';

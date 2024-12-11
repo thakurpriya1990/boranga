@@ -14,7 +14,7 @@
 </template>
 <script>
 
-module.exports = {
+export default {
     name: 'DataTable',
     props: {
         dtHeaders: {

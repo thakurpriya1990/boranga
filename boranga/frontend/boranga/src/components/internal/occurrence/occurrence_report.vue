@@ -355,7 +355,7 @@
 
 </template>
 <script>
-import Vue from 'vue'
+
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
@@ -1355,8 +1355,8 @@ export default {
         },
         fetchOccurrenceReport: function (id) {
             let vm = this;
-            fetch(`/api/occurrence_report/${id}/`).then(async (repsonse) => {
-                vm.occurrence_report = await repsonse.json();
+            fetch(`/api/occurrence_report/${id}/`).then(async (response) => {
+                vm.occurrence_report = await response.json();
             },
                 err => {
                     console.log(err);

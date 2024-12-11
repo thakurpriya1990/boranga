@@ -100,7 +100,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue'
+
 import ProposalOccurrenceReport from '@/components/form_occurrence_report.vue'
 import FormSection from '@/components/forms/section_toggle.vue';
 import {

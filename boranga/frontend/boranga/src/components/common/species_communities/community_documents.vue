@@ -26,7 +26,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue'
+
 import alert from '@vue-utils/alert.vue';
 import datatable from '@vue-utils/datatable.vue';
 import DocumentDetail from '../add_document.vue'

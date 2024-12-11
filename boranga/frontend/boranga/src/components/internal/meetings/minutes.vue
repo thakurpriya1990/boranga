@@ -26,7 +26,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue'
+
 import datatable from '@vue-utils/datatable.vue';
 import DocumentDetail from '@/components/common/add_document.vue'
 import FormSection from '@/components/forms/section_toggle.vue';

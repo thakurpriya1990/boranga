@@ -167,7 +167,7 @@ import {
     from '@/utils/hooks'
 
 export default {
-    name: 'SpeciesOccurrenceReport',
+    name: 'OccurrenceReportProfile',
     props: {
         occurrence_report_obj: {
             type: Object,
@@ -464,10 +464,6 @@ export default {
     },
     computed: {
         isReadOnly: function () {
-            //override for split reports
-            if (this.is_readonly) {
-                return this.is_readonly;
-            }
             return this.occurrence_report_obj.readonly
         },
         csrf_token: function () {

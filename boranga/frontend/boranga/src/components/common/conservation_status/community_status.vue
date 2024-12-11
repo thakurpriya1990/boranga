@@ -618,10 +618,8 @@ import FormSection from '@/components/forms/section_toggle.vue';
 import CollapsibleComponent from '@/components/forms/collapsible_component.vue'
 import {
     api_endpoints,
-    helpers
 }
     from '@/utils/hooks'
-import { cs_profile_dict } from '../../../api';
 
 export default {
     name: 'CommunityStatus',

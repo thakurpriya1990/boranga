@@ -84,12 +84,10 @@
 </template>
 
 <script>
-import Vue from 'vue'
 import modal from '@vue-utils/bootstrap-modal.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
 import {
   api_endpoints,
-  helpers
 }
 from '@/utils/hooks'
 

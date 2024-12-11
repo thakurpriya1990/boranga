@@ -47,7 +47,7 @@
 </template>
 <script>
 
-import "babel-polyfill"
+
 import datatable from '@/utils/vue/datatable.vue'
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
 import FormSection from '@/components/forms/section_toggle.vue'

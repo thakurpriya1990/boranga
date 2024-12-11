@@ -220,7 +220,7 @@
 </template>
 
 <script>
-import Vue from 'vue';
+;
 import FormSection from '@/components/forms/section_toggle.vue';
 import PlantCount from './plant_count.vue'
 import AnimalObservation from './animal_observation.vue'

@@ -90,7 +90,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue'
+
 import datatable from '@vue-utils/datatable.vue'
 import Submission from '@common-utils/submission.vue'
 import ProposalConservationStatus from '@/components/form_conservation_status.vue'

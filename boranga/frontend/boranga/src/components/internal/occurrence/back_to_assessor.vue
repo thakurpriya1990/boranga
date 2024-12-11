@@ -25,13 +25,11 @@
 </template>
 
 <script>
-
-import Vue from 'vue'
 import modal from '@vue-utils/bootstrap-modal.vue'
 import alert from '@vue-utils/alert.vue'
 
 import { helpers, api_endpoints } from "@/utils/hooks.js"
-import { occurrence } from '../../../api'
+
 export default {
     name: 'back-to-assessor',
     components: {
@@ -104,15 +102,6 @@ export default {
                 }).then((result) => {
                     vm.$router.go();
                 });
-                /*vm.close();
-
-                fetch(`/api/occurrence_report/${vm.occurrence_report_id}/internal_occurrence_report.json`).then((response) => {
-                    vm.$emit('refreshFromResponse', response);
-
-                }, (error) => {
-                    console.log(error);
-                });
-                vm.$router.push({ path: '/internal/occurrence' });*/
 
             }, (error) => {
                 console.log(error);

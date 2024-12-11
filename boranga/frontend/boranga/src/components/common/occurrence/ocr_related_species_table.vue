@@ -26,7 +26,6 @@
 </template>
 
 <script>
-import Vue, { readonly } from 'vue'
 import { v4 as uuid } from 'uuid'
 import datatable from '@/utils/vue/datatable.vue'
 import {

@@ -246,7 +246,7 @@
 </template>
 
 <script>
-import Vue from 'vue';
+;
 import FormSection from '@/components/forms/section_toggle.vue';
 import PlantCount from './plant_count.vue'
 import AnimalObservation from './animal_observation.vue'
@@ -446,8 +446,8 @@ export default {
     created: async function () {
         let vm = this;
         //------fetch list of values
-        const repsonse = await fetch(`/api/occurrence/observation_list_of_values.json?group_type=${vm.occurrence_obj.group_type}`);
-        vm.listOfValuesDict = await repsonse.json();
+        const response = await fetch(`/api/occurrence/observation_list_of_values.json?group_type=${vm.occurrence_obj.group_type}`);
+        vm.listOfValuesDict = await response.json();
         vm.observation_method_list = vm.listOfValuesDict.observation_method_list;
         vm.observation_method_list.splice(0, 0,
             {

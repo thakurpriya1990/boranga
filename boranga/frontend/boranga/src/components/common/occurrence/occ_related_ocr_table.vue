@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import Vue from 'vue'
+
 import { v4 as uuid } from 'uuid'
 import datatable from '@/utils/vue/datatable.vue'
 import FormSection from '@/components/forms/section_toggle.vue';

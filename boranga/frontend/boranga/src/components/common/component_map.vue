@@ -231,11 +231,11 @@
                                             feature.getProperties().show_on_map
                                         "
                                         :set="
-                                            (displayProperties =
+                                            displayProperties =
                                                 featureGetDisplayProperties(
                                                     feature,
                                                     getLayerByName(name)
-                                                ))
+                                                )
                                         "
                                         class="input-group input-group-sm mb-1 text-nowrap"
                                     >
@@ -1130,15 +1130,13 @@
                                                 "
                                             >
                                                 <img
-                                                    :src="
-                                                        require(`../../assets/${
-                                                            spatialOperationsAvailable.find(
-                                                                (op) =>
-                                                                    op.id ==
-                                                                    selectedSpatialOperation
-                                                            ).icon
-                                                        }`)
-                                                    "
+                                                    :src="`../../static/boranga_vue/src/assets/${
+                                                        spatialOperationsAvailable.find(
+                                                            (op) =>
+                                                                op.id ==
+                                                                selectedSpatialOperation
+                                                        ).icon
+                                                    }.svg`"
                                                 />
                                             </div>
                                         </div>
@@ -1948,6 +1946,7 @@ export default {
         'refreshFromResponse',
         'features-loaded',
         'toggle-show-hide',
+        'crs-select-search',
     ],
     data() {
         return {
@@ -2030,6 +2029,8 @@ export default {
             cursorInLeftHalfOfMap: true,
             cursorInBottomHalfOfMap: true,
             showToastCloseButton: false,
+
+            mapMarker: '../../static/boranga_vue/src/assets/map-marker.svg',
         };
     },
     computed: {
@@ -2204,37 +2205,37 @@ export default {
                 {
                     id: 'buffer_geometries',
                     name: 'Buffer',
-                    icon: 'buffer-geometries.svg',
+                    icon: 'buffer-geometries',
                     number_params: 1,
                 },
                 {
                     id: 'convex_hull',
                     name: 'Convex Hull',
-                    icon: 'convex-hull.svg',
+                    icon: 'convex-hull',
                     number_params: 0,
                 },
                 {
                     id: 'intersect_geometries',
                     name: 'Intersection',
-                    icon: 'intersect-geometries.svg',
+                    icon: 'intersect-geometries',
                     number_params: 0,
                 },
                 {
                     id: 'union_geometries',
                     name: 'Union',
-                    icon: 'union-geometries.svg',
+                    icon: 'union-geometries',
                     number_params: 0,
                 },
                 {
                     id: 'voronoi',
                     name: 'Voronoi',
-                    icon: 'voronoi.svg',
+                    icon: 'voronoi',
                     number_params: 0,
                 },
                 {
                     id: 'centroid',
                     name: 'Centroid',
-                    icon: 'centroid.svg',
+                    icon: 'centroid',
                     number_params: 0,
                 },
                 // Spatial statistics functions below
@@ -2358,7 +2359,7 @@ export default {
                 this.queryLayerDefinition.query_param_key
             ),
             // Tile Layers
-            this.fetchTileLayers(this, this.tileLayerApiUrl),
+            fetchTileLayers(this, this.tileLayerApiUrl),
         ];
         // Addional Layers
         const additionalInitialisers = [];
@@ -2952,7 +2953,7 @@ export default {
                             'Point',
                             null,
                             null,
-                            require('../../assets/map-marker.svg'),
+                            this.mapMarker,
                             rgba[3]
                         );
                     }
@@ -3132,6 +3133,7 @@ export default {
             return proposals;
         },
         initialiseBaseLayers: function (tileLayers) {
+            console.log('initialiseBaseLayers()');
             this.tileLayerMapbox = new TileLayer({
                 title: 'Mapbox Streets',
                 type: 'base',
@@ -3159,6 +3161,7 @@ export default {
                 title: 'Background Maps',
                 layers: [this.tileLayerMapbox, this.tileLayerSat],
             });
+            console.log('baseLayers', baseLayers);
             // Hack
             if (!baseLayers.getSource) {
                 baseLayers.getSource = () => {
@@ -3217,7 +3220,10 @@ export default {
 
                     const img = $('<img>');
                     img.addClass('svg-object');
-                    img.attr('src', require('../../assets/pen-icon.svg'));
+                    img.attr(
+                        'src',
+                        '../../static/boranga_vue/src/assets/pen-icon.svg?raw'
+                    );
 
                     divDraw.append(img);
                     divWrapper.append(divDraw);
@@ -3501,7 +3507,7 @@ export default {
                         'Point',
                         null,
                         null,
-                        require('../../assets/map-marker.svg'),
+                        vm.mapMarker,
                         rgba[3]
                     );
                 }
@@ -3570,7 +3576,7 @@ export default {
                                     type,
                                     null,
                                     null,
-                                    require('../../assets/map-marker.svg'),
+                                    vm.mapMarker,
                                     rgba[3]
                                 )
                             );
@@ -3923,7 +3929,6 @@ export default {
             });
 
             const transformEndCallback = function (evt) {
-                // eslint-disable-next-line no-unused-vars
                 evt.features.forEach((feature) => {
                     vm.emitValidateFeature(feature);
                     const original_srid =
@@ -4376,6 +4381,7 @@ export default {
         addTileLayers: function () {
             let vm = this;
             for (let tileLayer of this.optionalLayers) {
+                console.log('Adding optional layer', tileLayer);
                 vm.map.addLayer(tileLayer);
                 tileLayer.on('change:visible', function (e) {
                     if (e.oldValue == false) {
@@ -4766,6 +4772,7 @@ export default {
                     layers.push(layer);
                 } catch (error) {
                     //
+                    console.log(error);
                 }
             }, layers);
 
@@ -5107,7 +5114,7 @@ export default {
                     type,
                     null,
                     null,
-                    require('../../assets/map-marker.svg'),
+                    this.mapMarker,
                     rgba[3]
                 );
             }
@@ -5455,11 +5462,11 @@ export default {
                 document.querySelectorAll('[data-bs-toggle="tooltip"]')
             );
             // eslint-disable-next-line no-unused-vars
-            var tooltipList = tooltipTriggerList.map(function (
-                tooltipTriggerEl
-            ) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
+            var tooltipList = tooltipTriggerList.map(
+                function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                }
+            );
         },
         /**
          * Returns the type of a feature
@@ -5470,10 +5477,10 @@ export default {
                 'getGeometry' in feature
                     ? feature.getGeometry().getType()
                     : feature.geometry
-                    ? feature.geometry.type
-                    : feature.type
-                    ? feature.type
-                    : null;
+                      ? feature.geometry.type
+                      : feature.type
+                        ? feature.type
+                        : null;
             if (!type) {
                 console.error('Unknown feature type: ' + feature);
             }

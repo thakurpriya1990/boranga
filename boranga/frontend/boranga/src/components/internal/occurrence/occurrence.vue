@@ -124,7 +124,7 @@
 
 </template>
 <script>
-import Vue from 'vue'
+
 import datatable from '@vue-utils/datatable.vue'
 import CommsLogs from '@common-utils/comms_logs.vue'
 import Submission from '@common-utils/submission.vue'
@@ -433,8 +433,8 @@ export default {
                                 'Content-Type': 'application/json',
                             },
                             body: JSON.stringify(payload)
-                        }).then(async (repsonse) => {
-                            vm.occurrence = await repsonse.json();
+                        }).then(async (response) => {
+                            vm.occurrence = await response.json();
                             vm.$router.push({
                                 name: 'internal-occurrence-dash'
                             });
@@ -474,7 +474,7 @@ export default {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-            }).then(async (repsonse) => {
+            }).then(async (response) => {
                 swal.fire({
                     title: "Activated",
                     text: "Occurrence has been Activated",
@@ -504,7 +504,7 @@ export default {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-            }).then(async (repsonse) => {
+            }).then(async (response) => {
                 swal.fire({
                     title: "Locked",
                     text: "Occurrence has been Locked",
@@ -534,7 +534,7 @@ export default {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-            }).then(async (repsonse) => {
+            }).then(async (response) => {
                 swal.fire({
                     title: "Unlocked",
                     text: "Occurrence has been Unlocked",
@@ -577,7 +577,7 @@ export default {
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                    }).then(async (repsonse) => {
+                    }).then(async (response) => {
                         swal.fire({
                             title: "Closed",
                             text: "Occurrence has been Closed",
@@ -624,7 +624,7 @@ export default {
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                    }).then(async (repsonse) => {
+                    }).then(async (response) => {
                         swal.fire({
                             title: "Reopened",
                             text: "Occurrence has been Reopened",
@@ -657,7 +657,7 @@ export default {
         },
         fetchOccurrence: function () {
             let vm = this;
-            fetch(`/api/occurrence/${this.$route.params.occurrence_id}/`).then(async (repsonse) => {
+            fetch(`/api/occurrence/${this.$route.params.occurrence_id}/`).then(async (response) => {
                 vm.occurrence = await response.json();
             },
                 err => {
@@ -678,7 +678,7 @@ export default {
     },
     beforeRouteEnter: function (to, from, next) {
         //if (to.query.group_type_name === 'flora' || to.query.group_type_name === "fauna") {
-        fetch(`/api/occurrence/${to.params.occurrence_id}/`).then(async (repsonse) => {
+        fetch(`/api/occurrence/${to.params.occurrence_id}/`).then(async (response) => {
             next(async vm => {
                 vm.occurrence = await response.json();
             });

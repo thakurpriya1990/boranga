@@ -93,7 +93,7 @@
     </div>
 </template>
 <script>
-import Vue from 'vue'
+
 import datatable from '@vue-utils/datatable.vue'
 import Submission from '@common-utils/submission.vue'
 import ProposalOccurrenceReport from '@/components/form_occurrence_report.vue'

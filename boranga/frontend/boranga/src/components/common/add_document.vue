@@ -277,7 +277,7 @@ export default {
                 fetch(helpers.add_endpoint_json(vm.url, documentObj.id), {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'multipart/form-data',
                     },
                     body: JSON.stringify(formData)
                 }).then((response) => {
