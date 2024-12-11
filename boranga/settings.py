@@ -5,7 +5,6 @@ import sys
 
 import confy
 from confy import env
-from django.core.exceptions import ImproperlyConfigured
 
 logger = logging.getLogger(__name__)
 
@@ -130,6 +129,7 @@ INSTALLED_APPS += [
     "colorfield",
     "django_filters",
     "ordered_model",
+    "django_vite",
 ]
 
 ADD_REVERSION_ADMIN = True
@@ -186,10 +186,9 @@ CACHES = {
 }
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_DIRS.append(os.path.join(os.path.join(BASE_DIR, "boranga", "static")))
-DEV_STATIC = env("DEV_STATIC", False)
-DEV_STATIC_URL = env("DEV_STATIC_URL")
-if DEV_STATIC and not DEV_STATIC_URL:
-    raise ImproperlyConfigured("If running in DEV_STATIC, DEV_STATIC_URL has to be set")
+STATICFILES_DIRS.append(
+    os.path.join(os.path.join(BASE_DIR, "boranga", "static", "boranga_vue"))
+)
 DATA_UPLOAD_MAX_NUMBER_FIELDS = None
 DATA_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024
 
@@ -266,10 +265,6 @@ if DEBUG:
     }
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
-DEV_APP_BUILD_URL = env(
-    "DEV_APP_BUILD_URL"
-)  # URL of the Dev app.js served by webpack & express
-
 
 # Use git commit hash for purging cache in browser for deployment changes
 GIT_COMMIT_HASH = os.popen(
@@ -337,6 +332,23 @@ BASIC_AUTH_PROXY_PREFIX = env("BASIC_AUTH_PROXY_PREFIX", "kb-proxy/")
 USE_X_FORWARDED_HOST = env("USE_X_FORWARDED_HOST", False)
 if USE_X_FORWARDED_HOST:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+DJANGO_VITE = {
+    "default": {
+        "dev_mode": True,
+        "dev_server_host": "localhost",  # Default host for vite (can change if needed)
+        "dev_server_port": 5173,  # Default port for vite (can change if needed)
+        "static_url_prefix": "/static/boranga_vue/",
+    }
+}
+VUE3_ENTRY_SCRIPT = env(
+    "VUE3_ENTRY_SCRIPT",
+    default="src/main.js",  # This path will be auto prefixed with the static_url_prefix from DJANGO_VITE above
+)  # Path of the vue3 entry point script served by vite
+
+# Highly recommended to make sure this returns true when in local development
+USE_VITE_DEV_SERVER = RUNNING_DEVSERVER and EMAIL_INSTANCE == "DEV"
+
 
 # ---------- Identifier fields for logging ----------
 
