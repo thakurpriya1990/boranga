@@ -346,7 +346,8 @@ VUE3_ENTRY_SCRIPT = env(
     default="src/main.js",  # This path will be auto prefixed with the static_url_prefix from DJANGO_VITE above
 )  # Path of the vue3 entry point script served by vite
 
-# Highly recommended to make sure this returns true when in local development
+# Make sure this returns true when in local development
+# so you can use the vite dev server with hot module reloading
 USE_VITE_DEV_SERVER = RUNNING_DEVSERVER and EMAIL_INSTANCE == "DEV"
 
 
