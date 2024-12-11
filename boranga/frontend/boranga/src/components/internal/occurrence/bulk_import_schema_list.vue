@@ -113,7 +113,6 @@
                                             )"
                                             :key="tag"
                                             class="badge bg-info fs-6 me-2"
-                                            >{{ tag
                                             >{{ tag }}</span
                                         >
                                         <span
