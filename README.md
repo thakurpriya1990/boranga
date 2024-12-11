@@ -92,7 +92,8 @@ EMAIL_HOST='smtp.corporateict.domain'
 DJANGO_HTTPS=True
 DEFAULT_FROM_EMAIL='no-reply@dbca.wa.gov.au'
 ALLOWED_HOSTS=['*']
-DEV_APP_BUILD_URL="http://localhost:8080/app.js"
+VUE3_ENTRY_SCRIPT="src/main.js"
+
 
 ```
 
@@ -159,7 +160,6 @@ SITE_PREFIX=''
 SITE_DOMAIN=''
 SITE_URL='localhost:8000'
 DISABLE_EMAIL=False
-DEV_APP_BUILD_URL="http://localhost:8080/app.js"
 CONSOLE_EMAIL_BACKEND=True
 SUPPORT_EMAIL="support@dbca.wa.gov.au"
 CSRF_MIDDLEWARE_TOKEN='my_csrf_middleware_token'
