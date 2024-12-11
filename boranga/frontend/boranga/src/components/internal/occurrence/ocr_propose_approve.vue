@@ -324,7 +324,7 @@ export default {
                             body: JSON.stringify(vm.propose_approve),
                         }
                     ).then(
-                        (response) => {
+                        () => {
                             swal.fire({
                                 title: 'Proposal to Approve Successful',
                                 text: `Your proposal to approve occurrence report ${vm.occurrence_report_number} has been successfully submitted.`,
@@ -332,7 +332,7 @@ export default {
                                 customClass: {
                                     confirmButton: 'btn btn-primary',
                                 },
-                            }).then((result) => {
+                            }).then(() => {
                                 vm.$router.go();
                             });
                         },
@@ -391,13 +391,13 @@ export default {
                     vm.propose_approve.occurrence_id = e.params.data.id;
                     vm.propose_approve.occurrence_name = e.params.data.text;
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-occurrence_name_lookup_propose_approve-results"]'
                     );
                     searchField[0].focus();
                 })
-                .on('select2:unselect', function (e) {
+                .on('select2:unselect', function () {
                     vm.propose_approve.occurrence_id = null;
                     vm.propose_approve.occurrence_name = null;
                 });

@@ -340,7 +340,6 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
             isModalOpen: false,
             form: null,
@@ -407,9 +406,6 @@ export default {
     mounted: function () {
         let vm = this;
         vm.form = document.forms.documentForm;
-        this.$nextTick(() => {
-            vm.eventListeners();
-        });
     },
     methods: {
         focusDescription: function () {
@@ -507,7 +503,7 @@ export default {
                     },
                     body: JSON.stringify(formData),
                 }).then(
-                    (response) => {
+                    () => {
                         vm.updatingDocument = false;
                         vm.$parent.updatedDocuments();
                         vm.close();
@@ -528,7 +524,7 @@ export default {
                         body: JSON.stringify(formData),
                     },
                 }).then(
-                    (response) => {
+                    () => {
                         vm.addingDocument = false;
                         vm.close();
                         vm.$parent.updatedDocuments();
@@ -540,9 +536,6 @@ export default {
                     }
                 );
             }
-        },
-        eventListeners: function () {
-            let vm = this;
         },
     },
 };

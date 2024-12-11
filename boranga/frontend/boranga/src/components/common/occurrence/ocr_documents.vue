@@ -335,7 +335,6 @@ export default {
             this.$refs.document_detail.isModalOpen = true;
         },
         editDocument: function (id) {
-            let vm = this;
             this.$refs.document_detail.document_id = id;
             this.$refs.document_detail.document_action = 'edit';
             this.$refs.document_detail.title = 'Edit a Document';
@@ -399,7 +398,7 @@ export default {
                             headers: { 'Content-Type': 'application/json' },
                         }
                     ).then(
-                        (response) => {
+                        () => {
                             swal.fire({
                                 title: 'Discarded',
                                 text: 'The document has been discarded',
@@ -407,7 +406,7 @@ export default {
                                 customClass: {
                                     confirmButton: 'btn btn-primary',
                                 },
-                            }).then((result) => {
+                            }).then(() => {
                                 vm.$refs.documents_datatable.vmDataTable.ajax.reload();
                                 if (
                                     vm.occurrence_report_obj
@@ -448,7 +447,7 @@ export default {
                             headers: { 'Content-Type': 'application/json' },
                         }
                     ).then(
-                        (response) => {
+                        () => {
                             swal.fire({
                                 title: 'Reinstated',
                                 text: 'Your document has been reinstated',
@@ -456,7 +455,7 @@ export default {
                                 customClass: {
                                     confirmButton: 'btn btn-primary',
                                 },
-                            }).then((result) => {
+                            }).then(() => {
                                 vm.$refs.documents_datatable.vmDataTable.ajax.reload();
                                 if (
                                     vm.occurrence_report_obj
@@ -533,7 +532,7 @@ export default {
             );
             vm.$refs.documents_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

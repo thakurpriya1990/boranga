@@ -132,7 +132,6 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
             isModalOpen: false,
             form: null,
@@ -205,7 +204,7 @@ export default {
                         body: JSON.stringify(contact),
                     }
                 ).then(
-                    (response) => {
+                    () => {
                         vm.$parent.refreshDatatable();
                         vm.close();
                     },
@@ -226,7 +225,7 @@ export default {
                         body: JSON.stringify(contact),
                     },
                 }).then(
-                    (response) => {
+                    () => {
                         vm.close();
                         vm.$parent.addedContact();
                     },
@@ -247,7 +246,7 @@ export default {
                     campground: 'required',
                     campsite: {
                         required: {
-                            depends: function (el) {
+                            depends: function () {
                                 return vm.campsites.length > 0;
                             },
                         },

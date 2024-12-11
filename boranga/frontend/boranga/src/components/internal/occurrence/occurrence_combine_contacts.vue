@@ -224,12 +224,12 @@ export default {
                     }
                 }
             );
-            vm.$refs.contacts_datatable.vmDataTable.on('draw', function (e) {
+            vm.$refs.contacts_datatable.vmDataTable.on('draw', function () {
                 helpers.enablePopovers();
             });
             vm.$refs.contacts_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

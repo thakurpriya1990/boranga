@@ -837,7 +837,6 @@ export default {
             };
         },
         column_number: function () {
-            let vm = this;
             return {
                 data: 'conservation_status_number',
                 orderable: true,
@@ -1551,14 +1550,14 @@ export default {
             vm.initialiseAssessorLookup();
             vm.initialiseSubmitterLookup();
             vm.addEventListeners();
-
+            var newOption = null;
             // -- to set the select2 field with the session value if exists onload()
             if (
                 sessionStorage.getItem('filterCSFloraScientificName') !=
                     'all' &&
                 sessionStorage.getItem('filterCSFloraScientificName') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterCSFloraScientificNameText'),
                     vm.filterCSFloraScientificName,
                     false,
@@ -1570,7 +1569,7 @@ export default {
                 sessionStorage.getItem('filterCSFloraCommonName') != 'all' &&
                 sessionStorage.getItem('filterCSFloraCommonName') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterCSFloraCommonNameText'),
                     vm.filterCSFloraCommonName,
                     false,
@@ -1583,7 +1582,7 @@ export default {
                     'all' &&
                 sessionStorage.getItem('filterCSFloraPhylogeneticGroup') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem(
                         'filterCSFloraPhylogeneticGroupText'
                     ),
@@ -1597,7 +1596,7 @@ export default {
                 sessionStorage.getItem('filterCSFloraFamily') != 'all' &&
                 sessionStorage.getItem('filterCSFloraFamily') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterCSFloraFamilyText'),
                     vm.filterCSFloraFamily,
                     false,
@@ -1609,7 +1608,7 @@ export default {
                 sessionStorage.getItem('filterCSFloraGenus') != 'all' &&
                 sessionStorage.getItem('filterCSFloraGenus') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterCSFloraGenusText'),
                     vm.filterCSFloraGenus,
                     false,
@@ -1621,7 +1620,7 @@ export default {
                 sessionStorage.getItem('filterCSFloraAssessor') != 'all' &&
                 sessionStorage.getItem('filterCSFloraAssessor') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterCSFloraAssessorText'),
                     vm.filterCSFloraAssessor,
                     false,
@@ -1633,7 +1632,7 @@ export default {
                 sessionStorage.getItem('filterCSFloraSubmitter') != 'all' &&
                 sessionStorage.getItem('filterCSFloraSubmitter') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterCSFloraSubmitterText'),
                     vm.filterCSFloraSubmitter,
                     false,
@@ -1680,7 +1679,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSFloraScientificName = data;
                     sessionStorage.setItem(
@@ -1688,15 +1686,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSFloraScientificName = 'all';
                     sessionStorage.setItem(
                         'filterCSFloraScientificNameText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_scientific_name_lookup-results"]'
                     );
@@ -1727,7 +1724,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSFloraCommonName = data;
                     sessionStorage.setItem(
@@ -1735,12 +1731,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSFloraCommonName = 'all';
                     sessionStorage.setItem('filterCSFloraCommonNameText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_common_name_lookup-results"]'
                     );
@@ -1771,7 +1766,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSFloraPhylogeneticGroup = data;
                     sessionStorage.setItem(
@@ -1779,15 +1773,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSFloraPhylogeneticGroup = 'all';
                     sessionStorage.setItem(
                         'filterCSFloraPhylogeneticGroupText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_phylo_group_lookup-results"]'
                     );
@@ -1818,7 +1811,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSFloraFamily = data;
                     sessionStorage.setItem(
@@ -1826,12 +1818,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSFloraFamily = 'all';
                     sessionStorage.setItem('filterCSFloraFamilyText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     //const searchField = $(".select2-search__field")
                     const searchField = $(
                         '[aria-controls="select2-cs_family_lookup-results"]'
@@ -1863,7 +1854,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSFloraGenus = data;
                     sessionStorage.setItem(
@@ -1871,12 +1861,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSFloraGenus = 'all';
                     sessionStorage.setItem('filterCSFloraGenusText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     //const searchField = $(".select2-search__field")
                     const searchField = $(
                         '[aria-controls="select2-cs_genera_lookup-results"]'
@@ -1914,11 +1903,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
+                .on('select2:unselect', function () {
                     vm.filterCSFloraAssessor = 'all';
                     sessionStorage.setItem('filterCSFloraAssessorText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_assessor_lookup-results"]'
                     );
@@ -1952,12 +1941,12 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
+                .on('select2:unselect', function () {
                     vm.selected_referral = null;
                     vm.filterCSFloraSubmitter = 'all';
                     sessionStorage.setItem('filterCSFloraSubmitterText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_submitter_lookup-results"]'
                     );
@@ -2061,7 +2050,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'Your proposal has been discarded',
@@ -2111,7 +2100,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Reinstated',
                                     text: 'Your proposal has been reinstated',
@@ -2204,7 +2193,7 @@ export default {
             );
             vm.$refs.flora_cs_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

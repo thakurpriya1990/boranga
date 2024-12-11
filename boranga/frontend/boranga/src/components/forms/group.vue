@@ -61,14 +61,13 @@ export default {
         };
     },
     mounted: function () {
-        var vm = this;
         $('[data-toggle="tooltip"]').tooltip();
     },
     methods: {
-        expand: function (e) {
+        expand: function () {
             this.isExpanded = true;
         },
-        minimize: function (e) {
+        minimize: function () {
             this.isExpanded = false;
         },
     },

@@ -76,7 +76,7 @@ export default {
         });
     },
     methods: {
-        toggle_filters_button_clicked: function (e) {
+        toggle_filters_button_clicked: function () {
             // Bootstrap add a 'collapsed' class name to the element
             let filters_expanded_when_clicked = $(
                 '#' + this.button_elem_id

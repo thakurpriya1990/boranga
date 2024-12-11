@@ -33,8 +33,11 @@
                 </div>
                 <div>
                     <datatable
-ref="documents_datatable" :id="panelBody" :dt-options="documents_options"
-                    :dt-headers="documents_headers"/>
+                        ref="documents_datatable"
+                        :id="panelBody"
+                        :dt-options="documents_options"
+                        :dt-headers="documents_headers"
+                    />
                 </div>
             </form>
         </FormSection>
@@ -47,250 +50,299 @@ import { constants, api_endpoints, helpers } from '@/utils/hooks';
 
 export default {
     name: 'SpeciesSplitDocuments',
-        components: {
-            FormSection,
-            datatable,
+    components: {
+        FormSection,
+        datatable,
+    },
+    props: {
+        species_community: {
+            type: Object,
+            required: true,
         },
-        props:{
-            species_community:{
-                type: Object,
-                required:true
-            },
-            species_original:{
-                type: Object,
-                required:true
-            },
+        species_original: {
+            type: Object,
+            required: true,
         },
-        data:function () {
-            let vm = this;
-            return{
-                uuid:0,
-                documentBody: 'documentBody' + vm._uid,
-                panelBody: "species-split-documents-"+vm._uid,
-                values:null,
-                // to store all the documents of original on first load.
-                original_species_documents:[],
-                species_document_url: api_endpoints.species_documents,
-                documents_headers:['Number','Category', 'Sub Category','Document','Description','Date/Time','Action'],
-                documents_options:{
-                    autowidth: true,
-                    language:{
-                        processing: constants.DATATABLE_PROCESSING_HTML
+    },
+    data: function () {
+        let vm = this;
+        return {
+            uuid: 0,
+            documentBody: 'documentBody' + vm._uid,
+            panelBody: 'species-split-documents-' + vm._uid,
+            values: null,
+            // to store all the documents of original on first load.
+            original_species_documents: [],
+            species_document_url: api_endpoints.species_documents,
+            documents_headers: [
+                'Number',
+                'Category',
+                'Sub Category',
+                'Document',
+                'Description',
+                'Date/Time',
+                'Action',
+            ],
+            documents_options: {
+                autowidth: true,
+                language: {
+                    processing: constants.DATATABLE_PROCESSING_HTML,
+                },
+                responsive: true,
+                searching: true,
+                //  to show the "workflow Status","Action" columns always in the last position
+                columnDefs: [
+                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 2, targets: -1 },
+                ],
+                ajax: {
+                    url: helpers.add_endpoint_json(
+                        api_endpoints.species,
+                        vm.species_original.id + '/documents'
+                    ),
+                    dataSrc: '',
+                },
+                order: [],
+                dom:
+                    "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'d-flex align-items-center'<'me-auto'i>p>",
+                buttons: [
+                    {
+                        extend: 'excel',
+                        title: 'Boranga Species Split Documents Excel Export',
+                        text: '<i class="fa-solid fa-download"></i> Excel',
+                        className: 'btn btn-primary me-2 rounded',
+                        exportOptions: {
+                            orthogonal: 'export',
+                        },
                     },
-                    responsive: true,
-                    searching: true,
-                     //  to show the "workflow Status","Action" columns always in the last position
-                    columnDefs: [
-                        { responsivePriority: 1, targets: 0 },
-                        { responsivePriority: 2, targets: -1 },
-                    ],
-                    ajax:{
-                        "url": helpers.add_endpoint_json(api_endpoints.species,vm.species_original.id+'/documents'),
-                        "dataSrc": ''
+                    {
+                        extend: 'csv',
+                        title: 'Boranga Species Split Documents CSV Export',
+                        text: '<i class="fa-solid fa-download"></i> CSV',
+                        className: 'btn btn-primary rounded',
+                        exportOptions: {
+                            orthogonal: 'export',
+                        },
                     },
-                    order: [],
-                    dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
-                         "<'row'<'col-sm-12'tr>>" +
-                         "<'d-flex align-items-center'<'me-auto'i>p>",
-                    buttons:[
-                        {
-                            extend: 'excel',
-                            title: 'Boranga Species Split Documents Excel Export',
-                            text: '<i class="fa-solid fa-download"></i> Excel',
-                            className: 'btn btn-primary me-2 rounded',
-                            exportOptions: {
-                                orthogonal: 'export'
+                ],
+                columns: [
+                    {
+                        data: 'document_number',
+                        orderable: true,
+                        searchable: true,
+                        mRender: function (data, type, full) {
+                            if (full.active) {
+                                return full.document_number;
+                            } else {
+                                return '<s>' + full.document_number + '</s>';
                             }
                         },
-                        {
-                            extend: 'csv',
-                            title: 'Boranga Species Split Documents CSV Export',
-                            text: '<i class="fa-solid fa-download"></i> CSV',
-                            className: 'btn btn-primary rounded',
-                            exportOptions: {
-                                orthogonal: 'export'
+                    },
+                    {
+                        data: 'document_category_name',
+                        orderable: true,
+                        searchable: true,
+                        mRender: function (data, type, full) {
+                            if (full.active) {
+                                return full.document_category_name;
+                            } else {
+                                return (
+                                    '<s>' + full.document_category_name + '</s>'
+                                );
                             }
                         },
-                    ],
-                    columns: [
-                        {
-                            data: "document_number",
-                            orderable: true,
-                            searchable: true,
-                            mRender: function(data,type,full){
-                                if(full.active)
-                                {
-                                    return full.document_number;
-                                }
-                                else{
-                                    return '<s>'+ full.document_number + '</s>'
-                                }
-                            },
-
-                        },
-                        {
-                            data: "document_category_name",
-                            orderable: true,
-                            searchable: true,
-                            mRender: function(data,type,full){
-                                if(full.active){
-                                    return full.document_category_name;
-                                }
-                                else{
-                                    return '<s>'+ full.document_category_name + '</s>'
-                                }
-                            },
-
-                        },
-                        {
-                            data: "document_sub_category_name",
-                            orderable: true,
-                            searchable: true,
-                            mRender: function(data,type,full){
-                                if(full.active){
-                                    return full.document_sub_category_name;
-                                }
-                                else{
-                                    return '<s>'+ full.document_sub_category_name + '</s>'
-                                }
-                            },
-
-                        },
-                        {
-                            data: "name",
-                            orderable: true,
-                            searchable: true,
-                            mRender: function(data,type,full){
-                                let links='';
-                                if(full.active){
-                                    let value = full.name;
-                                    let result = helpers.dtPopoverSplit(value, 30, 'hover');
-                                    links+='<span><a href="'+ full._file+'" target="_blank">' + result.text + '</a> ' + result.link + '</span>';
-                                }else{
-                                    let value = full.name;
-                                    let result = helpers.dtPopover(value, 30, 'hover');
-                                    links += type == 'export' ? value : '<s>' + result + '</s>';
-                                }
-                                return links;
-                            },
-
-                        },
-                        {
-                            data: "description",
-                            orderable: true,
-                            searchable: true,
-                            'render': function(value, type, full){
-                                let result = helpers.dtPopover(value, 30, 'hover');
-                                if(full.active){
-                                    return type=='export' ? value : result;
-                                }else{
-                                    return type=='export' ? value : '<s>'+ result + '</s>';
-                                }
-                            },
-                        },
-                        {
-                            data: "uploaded_date",
-                            mRender:function (data,type,full){
-                                if(full.active){
-                                    return data != '' && data != null ? moment(data).format('DD/MM/YYYY HH:mm'):'';
-                                }else{
-                                    return data != '' && data != null ? '<s>'+ moment(data).format('DD/MM/YYYY HH:mm') + '</s>':'';
-                                }
+                    },
+                    {
+                        data: 'document_sub_category_name',
+                        orderable: true,
+                        searchable: true,
+                        mRender: function (data, type, full) {
+                            if (full.active) {
+                                return full.document_sub_category_name;
+                            } else {
+                                return (
+                                    '<s>' +
+                                    full.document_sub_category_name +
+                                    '</s>'
+                                );
                             }
                         },
-                        {
-                            data: "id",
-                            mRender:function (data,type,full){
-                                // to store the original species documents for the use of radio btn options on first load so that no need to call api to get the documents ids
-                                if(!vm.original_species_documents.includes(full.id)){
-                                    vm.original_species_documents.push(full.id)
-                                };
-
-                                if(vm.species_community.documents.includes(full.id)){
-                                    return `<input class='form-check-input' type="checkbox" id="document_chkbox-${vm.species_community.id}-${full.id}" data-add-document="${full.id}"  checked>`;
-                                }
-                                else{
-                                    return `<input class='form-check-input' type="checkbox" id="document_chkbox-${vm.species_community.id}-${full.id}" data-add-document="${full.id}">`;
-                                }
+                    },
+                    {
+                        data: 'name',
+                        orderable: true,
+                        searchable: true,
+                        mRender: function (data, type, full) {
+                            let links = '';
+                            if (full.active) {
+                                let value = full.name;
+                                let result = helpers.dtPopoverSplit(
+                                    value,
+                                    30,
+                                    'hover'
+                                );
+                                links +=
+                                    '<span><a href="' +
+                                    full._file +
+                                    '" target="_blank">' +
+                                    result.text +
+                                    '</a> ' +
+                                    result.link +
+                                    '</span>';
+                            } else {
+                                let value = full.name;
+                                let result = helpers.dtPopover(
+                                    value,
+                                    30,
+                                    'hover'
+                                );
+                                links +=
+                                    type == 'export'
+                                        ? value
+                                        : '<s>' + result + '</s>';
+                            }
+                            return links;
+                        },
+                    },
+                    {
+                        data: 'description',
+                        orderable: true,
+                        searchable: true,
+                        render: function (value, type, full) {
+                            let result = helpers.dtPopover(value, 30, 'hover');
+                            if (full.active) {
+                                return type == 'export' ? value : result;
+                            } else {
+                                return type == 'export'
+                                    ? value
+                                    : '<s>' + result + '</s>';
                             }
                         },
-                    ],
-                    processing:true,
-                    drawCallback: function() {
+                    },
+                    {
+                        data: 'uploaded_date',
+                        mRender: function (data, type, full) {
+                            if (full.active) {
+                                return data != '' && data != null
+                                    ? moment(data).format('DD/MM/YYYY HH:mm')
+                                    : '';
+                            } else {
+                                return data != '' && data != null
+                                    ? '<s>' +
+                                          moment(data).format(
+                                              'DD/MM/YYYY HH:mm'
+                                          ) +
+                                          '</s>'
+                                    : '';
+                            }
+                        },
+                    },
+                    {
+                        data: 'id',
+                        mRender: function (data, type, full) {
+                            // to store the original species documents for the use of radio btn options on first load so that no need to call api to get the documents ids
+                            if (
+                                !vm.original_species_documents.includes(full.id)
+                            ) {
+                                vm.original_species_documents.push(full.id);
+                            }
+
+                            if (
+                                vm.species_community.documents.includes(full.id)
+                            ) {
+                                return `<input class='form-check-input' type="checkbox" id="document_chkbox-${vm.species_community.id}-${full.id}" data-add-document="${full.id}"  checked>`;
+                            } else {
+                                return `<input class='form-check-input' type="checkbox" id="document_chkbox-${vm.species_community.id}-${full.id}" data-add-document="${full.id}">`;
+                            }
+                        },
+                    },
+                ],
+                processing: true,
+                drawCallback: function () {
                     helpers.enablePopovers();
                 },
-                initComplete: function() {
-                        helpers.enablePopovers();
-                        // another option to fix the responsive table overflow css on tab switch
-                        setTimeout(function (){
-                            vm.adjust_table_width();
-                        },100);
-                    },
+                initComplete: function () {
+                    helpers.enablePopovers();
+                    // another option to fix the responsive table overflow css on tab switch
+                    setTimeout(function () {
+                        vm.adjust_table_width();
+                    }, 100);
+                },
+            },
+        };
+    },
+    computed: {},
+    mounted: function () {
+        let vm = this;
+        this.$nextTick(() => {
+            vm.addEventListeners();
+            if (vm.$parent.document_selection != null) {
+                if (vm.$parent.document_selection === 'selectAll') {
+                    document.getElementById(
+                        'doc_select_all' + vm.species_community.id
+                    ).checked = true;
+                } else {
+                    document.getElementById(
+                        'doc_select_individual' + vm.species_community.id
+                    ).checked = true;
                 }
             }
-        },
-    computed: {},
-        mounted: function(){
+        });
+    },
+    methods: {
+        selectDocumentOption(e) {
             let vm = this;
-            this.$nextTick(() => {
-                vm.addEventListeners();
-                if(vm.$parent.document_selection!=null){
-                    if(vm.$parent.document_selection==="selectAll"){
-                        document.getElementById('doc_select_all'+vm.species_community.id).checked=true;
-                    }
-                    else{
-                        document.getElementById('doc_select_individual'+vm.species_community.id).checked=true;
-                    }
-                }
+            //--fetch the value of selected radio btn
+            let selected_option = e.target.value;
+            //----set the selected value to the parent variable so as to get the data when tab is reloaded/refreshed
+            vm.$parent.document_selection = selected_option;
 
-            });
+            if (selected_option == 'selectAll') {
+                //-- copy all original species documents to new species documents array
+                vm.species_community.documents = vm.original_species_documents;
+                this.$refs.documents_datatable.vmDataTable.ajax.reload();
+            } else if (selected_option == 'individual') {
+                //----empty the array to later select individual
+                vm.species_community.documents = [];
+                this.$refs.documents_datatable.vmDataTable.ajax.reload();
+            }
         },
-        methods:{
-            selectDocumentOption(e){
-                let vm=this;
-                //--fetch the value of selected radio btn
-                let selected_option=e.target.value;
-                //----set the selected value to the parent variable so as to get the data when tab is reloaded/refreshed
-                vm.$parent.document_selection=selected_option;
-
-                if(selected_option == "selectAll"){
-                    //-- copy all original species documents to new species documents array
-                    vm.species_community.documents=vm.original_species_documents;
-                    this.$refs.documents_datatable.vmDataTable.ajax.reload();
-                }
-                else if(selected_option == "individual"){
-                    //----empty the array to later select individual
-                    vm.species_community.documents=[];
-                    this.$refs.documents_datatable.vmDataTable.ajax.reload();
-                }
-            },
-            addEventListeners:function (){
-                let vm=this;
-                vm.$refs.documents_datatable.vmDataTable.on('click', 'input[data-add-document]', function(e) {
-                    //e.preventDefault();
+        addEventListeners: function () {
+            let vm = this;
+            vm.$refs.documents_datatable.vmDataTable.on(
+                'click',
+                'input[data-add-document]',
+                function () {
                     let id = $(this).attr('data-add-document');
                     let chkbox = $(this).attr('id');
-                    if($("#"+chkbox).is(':checked')== true){
-                        if(!vm.species_community.documents.includes(id)){
+                    if ($('#' + chkbox).is(':checked') == true) {
+                        if (!vm.species_community.documents.includes(id)) {
                             vm.species_community.documents.push(parseInt(id));
                         }
-                    }
-                    else{
-                        let doc_arr=vm.species_community.documents;
+                    } else {
+                        let doc_arr = vm.species_community.documents;
                         //---remove document id from array (for this arr.splice is used)
                         var index = doc_arr.indexOf(id);
-                        vm.species_community.documents.splice(index,1);
+                        vm.species_community.documents.splice(index, 1);
                     }
-                });
-                vm.$refs.documents_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
+                }
+            );
+            vm.$refs.documents_datatable.vmDataTable.on(
+                'childRow.dt',
+                function () {
                     helpers.enablePopovers();
-                });
-            },
-            adjust_table_width: function(){
-                if (this.$refs.documents_datatable !== undefined) {this.$refs.documents_datatable.vmDataTable.columns.adjust().responsive.recalc();}
-            },
+                }
+            );
         },
-
+        adjust_table_width: function () {
+            if (this.$refs.documents_datatable !== undefined) {
+                this.$refs.documents_datatable.vmDataTable.columns
+                    .adjust()
+                    .responsive.recalc();
+            }
+        },
     },
 };
 </script>

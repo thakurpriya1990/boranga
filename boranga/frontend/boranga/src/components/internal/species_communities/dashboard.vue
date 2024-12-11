@@ -156,6 +156,7 @@ export default {
         this.fetchProfile();
     },
     mounted: function () {
+        // eslint-disable-next-line no-undef
         chevron_toggle.init();
     },
     methods: {

@@ -317,7 +317,7 @@ export default {
             vm.$refs.threats_datatable.vmDataTable.on(
                 'click',
                 'input[data-add-threat]',
-                function (e) {
+                function () {
                     //e.preventDefault();
                     let id = $(this).attr('data-add-threat');
                     let chkbox = $(this).attr('id');
@@ -335,7 +335,7 @@ export default {
             );
             vm.$refs.threats_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

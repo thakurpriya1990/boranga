@@ -274,7 +274,7 @@ export default {
         vm.form = document.forms.new_species;
     },
     methods: {
-        tabClicked: function (param) {
+        tabClicked: function () {
             this.reloadcount = this.reloadcount + 1;
         },
         refreshSpeciesCommunity: function () {

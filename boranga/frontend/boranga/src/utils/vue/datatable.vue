@@ -53,15 +53,9 @@ export default {
     methods: {
         initEvents: function () {
             let vm = this;
-            var responsiveHelper;
-            var breakpointDefinition = {
-                //bootstrap grid values
-                tablet: 992,
-                phone: 768,
-            };
             var options = Object.assign(vm.dtOptions);
             vm.vmDataTable = $(vm.table).DataTable(options);
-            $(vm.table).resize(function (e) {
+            $(vm.table).resize(function () {
                 vm.vmDataTable.draw(true);
             });
         },

@@ -1640,7 +1640,6 @@ export default {
                     title: 'Changing from Manual to Auto',
                     text: 'If you choose to revert back to manual in future the manually entered value will still be there for you. It is not deleted.',
                     icon: 'info',
-                    showCancelButton: true,
                     confirmButtonText: 'Ok',
                     showCancelButton: false,
                     customClass: {
@@ -1684,7 +1683,6 @@ export default {
                     title: 'Changing from Manual to Auto',
                     text: 'If you choose to revert back to manual in future the manually entered value will still be there for you. It is not deleted.',
                     icon: 'info',
-                    showCancelButton: true,
                     confirmButtonText: 'Ok',
                     showCancelButton: false,
                     customClass: {
@@ -1737,7 +1735,6 @@ export default {
                     title: 'Changing from Manual to Auto',
                     text: 'If you choose to revert back to manual in future the manually entered value will still be there for you. It is not deleted.',
                     icon: 'info',
-                    showCancelButton: true,
                     confirmButtonText: 'Ok',
                     showCancelButton: false,
                     customClass: {
@@ -1846,7 +1843,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.species_community.taxonomy_id = data;
                     vm.species_display = e.params.data.scientific_name;
@@ -1869,8 +1865,7 @@ export default {
                     // vm.filterFloraScientificName = data;
                     // sessionStorage.setItem("filterFloraScientificNameText", e.params.data.text);
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.species_community.taxonomy_id = '';
                     vm.species_display = '';
                     vm.conservation_category = '';
@@ -1883,7 +1878,7 @@ export default {
                     (vm.family = ''), (vm.genus = ''), (vm.name_authority = '');
                     vm.name_comments = '';
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-' +
                             vm.scientific_name_lookup +
@@ -1984,7 +1979,7 @@ export default {
                         selected.val();
                 });
         },
-        handleMinimumFireIntervalRange: function (e) {
+        handleMinimumFireIntervalRange: function () {
             if (this.minimum_fire_interval_range == false) {
                 this.species_community.conservation_attributes.minimum_fire_interval_to =
                     null;
@@ -2088,7 +2083,7 @@ export default {
             }
             return [];
         },
-        chainedSelectDistricts: function (regions, action, deselect_region_id) {
+        chainedSelectDistricts: function (regions, action) {
             let vm = this;
             if (action != 'fetch') {
                 vm.species_community.districts = []; //-----to remove the previous selection

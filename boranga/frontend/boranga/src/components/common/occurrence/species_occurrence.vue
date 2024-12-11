@@ -177,7 +177,7 @@
 import FormSection from '@/components/forms/section_toggle.vue';
 import ContactDatatable from './contact_datatable.vue';
 import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue';
-import { api_endpoints, helpers } from '@/utils/hooks';
+import { api_endpoints } from '@/utils/hooks';
 
 export default {
     name: 'SpeciesOccurrence',
@@ -240,7 +240,6 @@ export default {
     mounted: function () {
         let vm = this;
         this.$nextTick(() => {
-            vm.eventListeners();
             vm.initialiseScientificNameLookup();
         });
     },
@@ -273,23 +272,20 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
-                    let data = e.params.data.id;
                     vm.occurrence_obj.species = e.params.data.species_id;
                     //vm.occurrence_obj.species_id = data.species_id;
                     vm.species_display = e.params.data.text;
                     vm.taxon_previous_name = e.params.data.taxon_previous_name;
                     vm.common_name = e.params.data.common_name;
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.occurrence_obj.species = null;
                     //vm.occurrence_obj.species_id = null
                     vm.species_display = '';
                     vm.taxon_previous_name = '';
                     vm.common_name = '';
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-' +
                             vm.scientific_name_lookup +
@@ -315,9 +311,6 @@ export default {
                     vm.common_name = data.common_name;
                 });
             }
-        },
-        eventListeners: function () {
-            let vm = this;
         },
     },
 };

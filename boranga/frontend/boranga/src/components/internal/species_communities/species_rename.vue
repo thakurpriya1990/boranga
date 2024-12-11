@@ -148,7 +148,6 @@ export default {
             this.errors = false;
         },
         removeSpecies: function (species_id) {
-            let vm = this;
             try {
                 // In this case we are allowing a http DELETE call to remove the species
                 fetch(api_endpoints.remove_species_proposal(species_id), {
@@ -179,7 +178,7 @@ export default {
                     body: JSON.stringify(payload),
                 }
             ).then(
-                async (response) => {
+                async () => {
                     return true;
                 },
                 (err) => {
@@ -245,8 +244,7 @@ export default {
                             //---save and submit the new rename species
                             let new_species = vm.new_rename_species;
                             //-- save new species before submit
-                            let result =
-                                await vm.save_before_submit(new_species);
+                            await vm.save_before_submit(new_species);
                             if (!vm.saveError) {
                                 // add the parent species to the new species object
                                 new_species.parent_species =
@@ -290,7 +288,7 @@ export default {
                         }
                         vm.submitSpeciesRename = false;
                     },
-                    (error) => {
+                    () => {
                         vm.submitSpeciesRename = false;
                     }
                 );

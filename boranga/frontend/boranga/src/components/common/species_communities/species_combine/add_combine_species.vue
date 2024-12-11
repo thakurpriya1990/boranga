@@ -91,9 +91,7 @@ export default {
     mounted: function () {
         let vm = this;
         vm.form = document.forms.addSpeciesToCombine;
-    },
-    mounted: function () {
-        let vm = this;
+
         this.$nextTick(() => {
             vm.initialiseScientificNameLookup();
         });
@@ -186,16 +184,14 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     // let data = e.params.data.id;
                     let data = e.params.data.species_id;
                     vm.combineSpeciesId = data;
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.combineSpeciesId = '';
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-' +
                             vm.scientific_name_lookup +

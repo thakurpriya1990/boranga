@@ -215,10 +215,6 @@ export default {
         } else {
             return { isClickable: 'return true;' };
         }
-
-        return {
-            showingComment: false,
-        };
     },
 
     computed: {
@@ -237,7 +233,7 @@ export default {
             vm.updateTableJSON();
         });
 
-        $('#content-editable-table').on('click', '.ibtnDel', function (event) {
+        $('#content-editable-table').on('click', '.ibtnDel', function () {
             $(this).closest('tr').remove();
         });
 

@@ -117,7 +117,6 @@ export default {
         FormSection,
     },
     data() {
-        let vm = this;
         return {
             user_preference: 'flora',
             group_types: [],
@@ -171,6 +170,7 @@ export default {
     mounted: function () {
         let vm = this;
         this.$nextTick(function () {
+            // eslint-disable-next-line no-undef
             chevron_toggle.init();
             if (localStorage.getItem('speciesCommunitiesActiveTab') === null) {
                 vm.set_active_tab(vm.user_preference);

@@ -9,8 +9,12 @@
                 <label for="" class="col-sm-3 control-label">Land Form:</label>
                 <div class="col-sm-9">
                     <select
-ref="land_form_select" v-model="occurrence_obj.habitat_composition.land_form" :disabled="isReadOnly"
-                        style="width:100%;" class="form-select input-sm">
+                        ref="land_form_select"
+                        v-model="occurrence_obj.habitat_composition.land_form"
+                        :disabled="isReadOnly"
+                        style="width: 100%"
+                        class="form-select input-sm"
+                    >
                         <option
                             v-for="option in land_form_list"
                             :key="option.id"
@@ -40,7 +44,10 @@ ref="land_form_select" v-model="occurrence_obj.habitat_composition.land_form" :d
                             "
                         >
                             <input
-v-if="occurrence_obj.habitat_composition.rock_type" type="text"
+                                v-if="
+                                    occurrence_obj.habitat_composition.rock_type
+                                "
+                                type="text"
                                 class="form-control mb-3"
                                 :value="
                                     occurrence_obj.habitat_composition
@@ -69,8 +76,13 @@ v-if="occurrence_obj.habitat_composition.rock_type" type="text"
                     </template>
                     <template v-else>
                         <input
-v-model="occurrence_obj.habitat_composition.rock_type" class="form-control" type="text"
-                            :disabled="isReadOnly" />
+                            v-model="
+                                occurrence_obj.habitat_composition.rock_type
+                            "
+                            class="form-control"
+                            type="text"
+                            :disabled="isReadOnly"
+                        />
                     </template>
                 </div>
             </div>
@@ -80,10 +92,14 @@ v-model="occurrence_obj.habitat_composition.rock_type" class="form-control" type
                 >
                 <div class="col-sm-6">
                     <input
-id="loose_rock_per" v-model="
+                        id="loose_rock_per"
+                        v-model="
                             occurrence_obj.habitat_composition
                                 .loose_rock_percent
-                        " :disabled="isReadOnly" type="number" class="form-control"
+                        "
+                        :disabled="isReadOnly"
+                        type="number"
+                        class="form-control"
                         placeholder=""
                         min="0"
                         max="100"
@@ -109,7 +125,10 @@ id="loose_rock_per" v-model="
                             "
                         >
                             <input
-v-if="occurrence_obj.habitat_composition.soil_type" type="text"
+                                v-if="
+                                    occurrence_obj.habitat_composition.soil_type
+                                "
+                                type="text"
                                 class="form-control mb-3"
                                 :value="
                                     occurrence_obj.habitat_composition
@@ -138,8 +157,13 @@ v-if="occurrence_obj.habitat_composition.soil_type" type="text"
                     </template>
                     <template v-else>
                         <input
-v-model="occurrence_obj.habitat_composition.soil_type" class="form-control" type="text"
-                            :disabled="isReadOnly" />
+                            v-model="
+                                occurrence_obj.habitat_composition.soil_type
+                            "
+                            class="form-control"
+                            type="text"
+                            :disabled="isReadOnly"
+                        />
                     </template>
                 </div>
             </div>
@@ -164,7 +188,11 @@ v-model="occurrence_obj.habitat_composition.soil_type" class="form-control" type
                             "
                         >
                             <input
-v-if="occurrence_obj.habitat_composition.soil_colour" colour="text"
+                                v-if="
+                                    occurrence_obj.habitat_composition
+                                        .soil_colour
+                                "
+                                colour="text"
                                 class="form-control mb-3"
                                 :value="
                                     occurrence_obj.habitat_composition
@@ -184,16 +212,23 @@ v-if="occurrence_obj.habitat_composition.soil_colour" colour="text"
                             class="form-select"
                         >
                             <option
-v-for="soil_colour in soil_colour_list" :key="soil_colour.id"
-                                :value="soil_colour.id">
+                                v-for="soil_colour in soil_colour_list"
+                                :key="soil_colour.id"
+                                :value="soil_colour.id"
+                            >
                                 {{ soil_colour.name }}
                             </option>
                         </select>
                     </template>
                     <template v-else>
                         <input
-v-model="occurrence_obj.habitat_composition.soil_colour" class="form-control" colour="text"
-                            :disabled="isReadOnly" />
+                            v-model="
+                                occurrence_obj.habitat_composition.soil_colour
+                            "
+                            class="form-control"
+                            colour="text"
+                            :disabled="isReadOnly"
+                        />
                     </template>
                 </div>
             </div>
@@ -218,7 +253,11 @@ v-model="occurrence_obj.habitat_composition.soil_colour" class="form-control" co
                             "
                         >
                             <input
-v-if="occurrence_obj.habitat_composition.soil_condition" type="text"
+                                v-if="
+                                    occurrence_obj.habitat_composition
+                                        .soil_condition
+                                "
+                                type="text"
                                 class="form-control mb-3"
                                 :value="
                                     occurrence_obj.habitat_composition
@@ -238,16 +277,24 @@ v-if="occurrence_obj.habitat_composition.soil_condition" type="text"
                             class="form-select"
                         >
                             <option
-v-for="soil_condition in soil_condition_list" :key="soil_condition.id"
-                                :value="soil_condition.id">
+                                v-for="soil_condition in soil_condition_list"
+                                :key="soil_condition.id"
+                                :value="soil_condition.id"
+                            >
                                 {{ soil_condition.name }}
                             </option>
                         </select>
                     </template>
                     <template v-else>
                         <input
-v-model="occurrence_obj.habitat_composition.soil_condition" class="form-control" type="text"
-                            :disabled="isReadOnly" />
+                            v-model="
+                                occurrence_obj.habitat_composition
+                                    .soil_condition
+                            "
+                            class="form-control"
+                            type="text"
+                            :disabled="isReadOnly"
+                        />
                     </template>
                 </div>
             </div>
@@ -270,7 +317,10 @@ v-model="occurrence_obj.habitat_composition.soil_condition" class="form-control"
                             "
                         >
                             <input
-v-if="occurrence_obj.habitat_composition.drainage" type="text"
+                                v-if="
+                                    occurrence_obj.habitat_composition.drainage
+                                "
+                                type="text"
                                 class="form-control mb-3"
                                 :value="
                                     occurrence_obj.habitat_composition
@@ -299,8 +349,13 @@ v-if="occurrence_obj.habitat_composition.drainage" type="text"
                     </template>
                     <template v-else>
                         <input
-v-model="occurrence_obj.habitat_composition.drainage" class="form-control" type="text"
-                            :disabled="isReadOnly" />
+                            v-model="
+                                occurrence_obj.habitat_composition.drainage
+                            "
+                            class="form-control"
+                            type="text"
+                            :disabled="isReadOnly"
+                        />
                     </template>
                 </div>
             </div>
@@ -310,8 +365,14 @@ v-model="occurrence_obj.habitat_composition.drainage" class="form-control" type=
                 >
                 <div class="col-sm-9">
                     <textarea
-v-model="occurrence_obj.habitat_composition.water_quality" :disabled="isReadOnly" type="text" class="form-control"
-                        placeholder="" />
+                        v-model="
+                            occurrence_obj.habitat_composition.water_quality
+                        "
+                        :disabled="isReadOnly"
+                        type="text"
+                        class="form-control"
+                        placeholder=""
+                    />
                 </div>
             </div>
             <div class="row mb-3">
@@ -320,8 +381,14 @@ v-model="occurrence_obj.habitat_composition.water_quality" :disabled="isReadOnly
                 >
                 <div class="col-sm-9">
                     <textarea
-v-model="occurrence_obj.habitat_composition.habitat_notes" :disabled="isReadOnly" type="text" class="form-control"
-                        placeholder="" />
+                        v-model="
+                            occurrence_obj.habitat_composition.habitat_notes
+                        "
+                        :disabled="isReadOnly"
+                        type="text"
+                        class="form-control"
+                        placeholder=""
+                    />
                 </div>
             </div>
             <div class="row mb-3">
@@ -342,7 +409,8 @@ v-model="occurrence_obj.habitat_composition.habitat_notes" :disabled="isReadOnly
                 <div class="col-sm-12">
                     <!-- <button v-if="!updatingHabitatCompositionDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
                     <button
-v-if="!updatingHabitatCompositionDetails" :disabled="isReadOnly"
+                        v-if="!updatingHabitatCompositionDetails"
+                        :disabled="isReadOnly"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateHabitatCompositionDetails()"
                     >
@@ -361,7 +429,8 @@ v-if="!updatingHabitatCompositionDetails" :disabled="isReadOnly"
             </div>
 
             <RelatedReports
-:is-read-only="isReadOnly" :occurrence_obj=occurrence_obj
+                :is-read-only="isReadOnly"
+                :occurrence_obj="occurrence_obj"
                 :section_type="'habitat_composition'"
                 @copy-update="copyUpdate"
             />
@@ -378,7 +447,10 @@ v-if="!updatingHabitatCompositionDetails" :disabled="isReadOnly"
                 <label for="" class="col-sm-3 control-label">Pristine %:</label>
                 <div class="col-sm-6">
                     <input
-id="pristine" v-model="occurrence_obj.habitat_condition.pristine" :disabled="isReadOnly" type="number"
+                        id="pristine"
+                        v-model="occurrence_obj.habitat_condition.pristine"
+                        :disabled="isReadOnly"
+                        type="number"
                         class="form-control occ_number"
                         placeholder=""
                         min="0"
@@ -393,7 +465,10 @@ id="pristine" v-model="occurrence_obj.habitat_condition.pristine" :disabled="isR
                 >
                 <div class="col-sm-6">
                     <input
-id="excellent" v-model="occurrence_obj.habitat_condition.excellent" :disabled="isReadOnly" type="number"
+                        id="excellent"
+                        v-model="occurrence_obj.habitat_condition.excellent"
+                        :disabled="isReadOnly"
+                        type="number"
                         class="form-control occ_number"
                         placeholder=""
                         min="0"
@@ -408,7 +483,10 @@ id="excellent" v-model="occurrence_obj.habitat_condition.excellent" :disabled="i
                 >
                 <div class="col-sm-6">
                     <input
-id="very_good" v-model="occurrence_obj.habitat_condition.very_good" :disabled="isReadOnly" type="number"
+                        id="very_good"
+                        v-model="occurrence_obj.habitat_condition.very_good"
+                        :disabled="isReadOnly"
+                        type="number"
                         class="form-control occ_number"
                         placeholder=""
                         min="0"
@@ -421,7 +499,11 @@ id="very_good" v-model="occurrence_obj.habitat_condition.very_good" :disabled="i
                 <label for="" class="col-sm-3 control-label">Good %:</label>
                 <div class="col-sm-6">
                     <input
-id="good" v-model="occurrence_obj.habitat_condition.good" :disabled="isReadOnly" type="number" class="form-control occ_number"
+                        id="good"
+                        v-model="occurrence_obj.habitat_condition.good"
+                        :disabled="isReadOnly"
+                        type="number"
+                        class="form-control occ_number"
                         placeholder=""
                         min="0"
                         max="100"
@@ -433,7 +515,10 @@ id="good" v-model="occurrence_obj.habitat_condition.good" :disabled="isReadOnly"
                 <label for="" class="col-sm-3 control-label">Degraded %:</label>
                 <div class="col-sm-6">
                     <input
-id="degraded" v-model="occurrence_obj.habitat_condition.degraded" :disabled="isReadOnly" type="number"
+                        id="degraded"
+                        v-model="occurrence_obj.habitat_condition.degraded"
+                        :disabled="isReadOnly"
+                        type="number"
                         class="form-control occ_number"
                         placeholder=""
                         min="0"
@@ -448,9 +533,12 @@ id="degraded" v-model="occurrence_obj.habitat_condition.degraded" :disabled="isR
                 >
                 <div class="col-sm-6">
                     <input
-id="completely_degraded" v-model="
+                        id="completely_degraded"
+                        v-model="
                             occurrence_obj.habitat_condition.completely_degraded
-                        " :disabled="isReadOnly" type="number"
+                        "
+                        :disabled="isReadOnly"
+                        type="number"
                         class="form-control occ_number"
                         placeholder=""
                         min="0"
@@ -463,8 +551,13 @@ id="completely_degraded" v-model="
                 <label for="" class="col-sm-3 control-label"></label>
                 <div class="col-sm-6">
                     <input
-id="habitat_cond_sum" v-model="habitat_cond_sum" readonly type="text" class="form-control occ_number"
-                        placeholder="" />
+                        id="habitat_cond_sum"
+                        v-model="habitat_cond_sum"
+                        readonly
+                        type="text"
+                        class="form-control occ_number"
+                        placeholder=""
+                    />
                 </div>
             </div>
             <div
@@ -476,7 +569,7 @@ id="habitat_cond_sum" v-model="habitat_cond_sum" readonly type="text" class="for
                 </label>
                 <div class="col-sm-9">
                     <input
-v-model="occurrence_obj.habitat_condition.count_date
+                        v-model="occurrence_obj.habitat_condition.count_date"
                         :disabled="true"
                         type="datetime-local"
                         class="form-control"
@@ -499,7 +592,8 @@ v-model="occurrence_obj.habitat_condition.count_date
             <div class="row mb-3">
                 <div class="col-sm-12">
                     <button
-v-if="!updatingHabitatConditionDetails" :disabled="isReadOnly"
+                        v-if="!updatingHabitatConditionDetails"
+                        :disabled="isReadOnly"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateHabitatConditionDetails()"
                     >
@@ -517,7 +611,9 @@ v-if="!updatingHabitatConditionDetails" :disabled="isReadOnly"
                 </div>
             </div>
             <RelatedReports
-:is-read-only="isReadOnly" :occurrence_obj=occurrence_obj :section_type="'habitat_condition'"
+                :is-read-only="isReadOnly"
+                :occurrence_obj="occurrence_obj"
+                :section_type="'habitat_condition'"
                 @copy-update="copyUpdate"
             />
         </FormSection>
@@ -533,9 +629,17 @@ v-if="!updatingHabitatConditionDetails" :disabled="isReadOnly"
                 >
                 <div class="col-sm-9">
                     <textarea
-id="vegetation_structure_text_1" v-model="occurrence_obj.vegetation_structure.vegetation_structure_layer_one" :disabled="isReadOnly" type="text"
-                        row="2" class="form-control"
-                        placeholder="" />
+                        id="vegetation_structure_text_1"
+                        v-model="
+                            occurrence_obj.vegetation_structure
+                                .vegetation_structure_layer_one
+                        "
+                        :disabled="isReadOnly"
+                        type="text"
+                        row="2"
+                        class="form-control"
+                        placeholder=""
+                    />
                 </div>
             </div>
             <div class="row mb-3">
@@ -544,9 +648,17 @@ id="vegetation_structure_text_1" v-model="occurrence_obj.vegetation_structure.ve
                 >
                 <div class="col-sm-9">
                     <textarea
-id="vegetation_structure_text_2" v-model="occurrence_obj.vegetation_structure.vegetation_structure_layer_two" :disabled="isReadOnly" type="text"
-                        row="2" class="form-control"
-                        placeholder="" />
+                        id="vegetation_structure_text_2"
+                        v-model="
+                            occurrence_obj.vegetation_structure
+                                .vegetation_structure_layer_two
+                        "
+                        :disabled="isReadOnly"
+                        type="text"
+                        row="2"
+                        class="form-control"
+                        placeholder=""
+                    />
                 </div>
             </div>
             <div class="row mb-3">
@@ -555,9 +667,17 @@ id="vegetation_structure_text_2" v-model="occurrence_obj.vegetation_structure.ve
                 >
                 <div class="col-sm-9">
                     <textarea
-id="vegetation_structure_text_3" v-model="occurrence_obj.vegetation_structure.vegetation_structure_layer_three" :disabled="isReadOnly" type="text"
-                        row="2" class="form-control"
-                        placeholder="" />
+                        id="vegetation_structure_text_3"
+                        v-model="
+                            occurrence_obj.vegetation_structure
+                                .vegetation_structure_layer_three
+                        "
+                        :disabled="isReadOnly"
+                        type="text"
+                        row="2"
+                        class="form-control"
+                        placeholder=""
+                    />
                 </div>
             </div>
             <div class="row mb-3">
@@ -566,9 +686,17 @@ id="vegetation_structure_text_3" v-model="occurrence_obj.vegetation_structure.ve
                 >
                 <div class="col-sm-9">
                     <textarea
-id="vegetation_structure_text_4" v-model="occurrence_obj.vegetation_structure.vegetation_structure_layer_four" :disabled="isReadOnly" type="text"
-                        row="2" class="form-control"
-                        placeholder="" />
+                        id="vegetation_structure_text_4"
+                        v-model="
+                            occurrence_obj.vegetation_structure
+                                .vegetation_structure_layer_four
+                        "
+                        :disabled="isReadOnly"
+                        type="text"
+                        row="2"
+                        class="form-control"
+                        placeholder=""
+                    />
                 </div>
             </div>
             <div class="row mb-3">
@@ -588,7 +716,8 @@ id="vegetation_structure_text_4" v-model="occurrence_obj.vegetation_structure.ve
             <div class="row mb-3">
                 <div class="col-sm-12">
                     <button
-v-if="!updatingVegetationStructure" :disabled="isReadOnly"
+                        v-if="!updatingVegetationStructure"
+                        :disabled="isReadOnly"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateVegetationStructure()"
                     >
@@ -606,7 +735,8 @@ v-if="!updatingVegetationStructure" :disabled="isReadOnly"
                 </div>
             </div>
             <RelatedReports
-:is-read-only="isReadOnly" :occurrence_obj=occurrence_obj
+                :is-read-only="isReadOnly"
+                :occurrence_obj="occurrence_obj"
                 :section_type="'vegetation_structure'"
                 @copy-update="copyUpdate"
             />
@@ -626,9 +756,14 @@ v-if="!updatingVegetationStructure" :disabled="isReadOnly"
                 >
                 <div class="col-sm-9">
                     <input
-ref="last_fire_date" v-model="occurrence_obj.fire_history.last_fire_estimate" :disabled="isReadOnly" type="month"
-                        class="form-control" name="last_fire_date"
-                        @change="checkDate()" />
+                        ref="last_fire_date"
+                        v-model="occurrence_obj.fire_history.last_fire_estimate"
+                        :disabled="isReadOnly"
+                        type="month"
+                        class="form-control"
+                        name="last_fire_date"
+                        @change="checkDate()"
+                    />
                 </div>
             </div>
             <div class="row mb-3">
@@ -648,7 +783,9 @@ ref="last_fire_date" v-model="occurrence_obj.fire_history.last_fire_estimate" :d
                             "
                         >
                             <input
-v-if="occurrence_obj.fire_history.intensity" type="text" class="form-control mb-3"
+                                v-if="occurrence_obj.fire_history.intensity"
+                                type="text"
+                                class="form-control mb-3"
                                 :value="
                                     occurrence_obj.fire_history.intensity +
                                     ' (Now Archived)'
@@ -674,8 +811,11 @@ v-if="occurrence_obj.fire_history.intensity" type="text" class="form-control mb-
                     </template>
                     <template v-else>
                         <input
-v-model="occurrence_obj.fire_history.intensity" class="form-control" type="text"
-                            :disabled="isReadOnly" />
+                            v-model="occurrence_obj.fire_history.intensity"
+                            class="form-control"
+                            type="text"
+                            :disabled="isReadOnly"
+                        />
                     </template>
                 </div>
             </div>
@@ -683,8 +823,14 @@ v-model="occurrence_obj.fire_history.intensity" class="form-control" type="text"
                 <label for="" class="col-sm-3 control-label">Comments :</label>
                 <div class="col-sm-9">
                     <textarea
-id="fire_history_comment" v-model="occurrence_obj.fire_history.comment" :disabled="isReadOnly" type="text" row="2"
-                        class="form-control" placeholder="" />
+                        id="fire_history_comment"
+                        v-model="occurrence_obj.fire_history.comment"
+                        :disabled="isReadOnly"
+                        type="text"
+                        row="2"
+                        class="form-control"
+                        placeholder=""
+                    />
                 </div>
             </div>
             <div class="row mb-3">
@@ -702,7 +848,8 @@ id="fire_history_comment" v-model="occurrence_obj.fire_history.comment" :disable
             <div class="row mb-3">
                 <div class="col-sm-12">
                     <button
-v-if="!updatingFireHistoryDetails" :disabled="isReadOnly"
+                        v-if="!updatingFireHistoryDetails"
+                        :disabled="isReadOnly"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateFireHistoryDetails()"
                     >
@@ -714,7 +861,9 @@ v-if="!updatingFireHistoryDetails" :disabled="isReadOnly"
                 </div>
             </div>
             <RelatedReports
-:is-read-only="isReadOnly" :occurrence_obj=occurrence_obj :section_type="'fire_history'"
+                :is-read-only="isReadOnly"
+                :occurrence_obj="occurrence_obj"
+                :section_type="'fire_history'"
                 @copy-update="copyUpdate"
             />
         </FormSection>
@@ -737,8 +886,14 @@ v-if="!updatingFireHistoryDetails" :disabled="isReadOnly"
                 </div>
                 <div class="col-sm-9">
                     <textarea
-id="related_species" v-model="occurrence_obj.associated_species.comment" :disabled="isReadOnly" type="text" row="2"
-                        class="form-control" placeholder="" />
+                        id="related_species"
+                        v-model="occurrence_obj.associated_species.comment"
+                        :disabled="isReadOnly"
+                        type="text"
+                        row="2"
+                        class="form-control"
+                        placeholder=""
+                    />
                 </div>
             </div>
             <div class="row mb-3">
@@ -759,7 +914,8 @@ id="related_species" v-model="occurrence_obj.associated_species.comment" :disabl
             <div class="row mb-3">
                 <div class="col-sm-12">
                     <button
-v-if="!updatingAssociatedSpeciesDetails" :disabled="isReadOnly"
+                        v-if="!updatingAssociatedSpeciesDetails"
+                        :disabled="isReadOnly"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateAssociatedSpeciesDetails()"
                     >
@@ -778,7 +934,9 @@ v-if="!updatingAssociatedSpeciesDetails" :disabled="isReadOnly"
             </div>
 
             <RelatedReports
-:is-read-only="isReadOnly" :occurrence_obj=occurrence_obj :section_type="'associated_species'"
+                :is-read-only="isReadOnly"
+                :occurrence_obj="occurrence_obj"
+                :section_type="'associated_species'"
                 @copy-update="copyUpdate"
             />
         </FormSection>
@@ -800,16 +958,16 @@ export default {
     props: {
         occurrence_obj: {
             type: Object,
-            required: true
+            required: true,
         },
         // this prop is only send from split species form to make the original species readonly
         is_readonly: {
             type: Boolean,
-            default: false
+            default: false,
         },
         is_external: {
             type: Boolean,
-            default: false
+            default: false,
         },
     },
     data: function () {
@@ -821,7 +979,7 @@ export default {
             fireHistoryBody: 'fireHistoryBody' + vm._uid,
             associatedSpeciesBody: 'associatedSpeciesBody' + vm._uid,
             //---to show fields related to Fauna
-            isFauna: vm.occurrence_obj.group_type === "fauna" ? true : false,
+            isFauna: vm.occurrence_obj.group_type === 'fauna' ? true : false,
             //----list of values dictionary
             listOfValuesDict: {},
             //scientific_name_list: [],
@@ -838,7 +996,7 @@ export default {
             updatingVegetationStructure: false,
             updatingFireHistoryDetails: false,
             updatingAssociatedSpeciesDetails: false,
-        }
+        };
     },
     computed: {
         isReadOnly: function () {
@@ -863,47 +1021,40 @@ export default {
         const response = await fetch('/api/occurrence/list_of_values.json');
         vm.listOfValuesDict = await response.json();
         vm.land_form_list = vm.listOfValuesDict.land_form_list;
-        vm.land_form_list.splice(0, 0,
-            {
-                id: '',
-                name: '',
-            });
+        vm.land_form_list.splice(0, 0, {
+            id: '',
+            name: '',
+        });
         vm.rock_type_list = vm.listOfValuesDict.rock_type_list;
-        vm.rock_type_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
+        vm.rock_type_list.splice(0, 0, {
+            id: null,
+            name: null,
+        });
         vm.soil_type_list = vm.listOfValuesDict.soil_type_list;
-        vm.soil_type_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
+        vm.soil_type_list.splice(0, 0, {
+            id: null,
+            name: null,
+        });
         vm.soil_colour_list = vm.listOfValuesDict.soil_colour_list;
-        vm.soil_colour_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
+        vm.soil_colour_list.splice(0, 0, {
+            id: null,
+            name: null,
+        });
         vm.soil_condition_list = vm.listOfValuesDict.soil_condition_list;
-        vm.soil_condition_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
+        vm.soil_condition_list.splice(0, 0, {
+            id: null,
+            name: null,
+        });
         vm.drainage_list = vm.listOfValuesDict.drainage_list;
-        vm.drainage_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
+        vm.drainage_list.splice(0, 0, {
+            id: null,
+            name: null,
+        });
         vm.intensity_list = vm.listOfValuesDict.intensity_list;
-        vm.intensity_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
+        vm.intensity_list.splice(0, 0, {
+            id: null,
+            name: null,
+        });
     },
     mounted: function () {
         let vm = this;
@@ -914,232 +1065,301 @@ export default {
     methods: {
         eventListeners: function () {
             let vm = this;
-            $(vm.$refs.flowering_period_select).select2({
-                "theme": "bootstrap-5",
-                allowClear: true,
-                placeholder: "Select Flowering Period",
-                multiple: true,
-            }).
-                on("select2:select", function (e) {
+            $(vm.$refs.flowering_period_select)
+                .select2({
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: 'Select Flowering Period',
+                    multiple: true,
+                })
+                .on('select2:select', function (e) {
                     var selected = $(e.currentTarget);
-                    vm.occurrence_obj.conservation_attributes.flowering_period = selected.val();
-                }).
-                on("select2:unselect", function (e) {
+                    vm.occurrence_obj.conservation_attributes.flowering_period =
+                        selected.val();
+                })
+                .on('select2:unselect', function (e) {
                     var selected = $(e.currentTarget);
-                    vm.occurrence_obj.conservation_attributes.flowering_period = selected.val();
+                    vm.occurrence_obj.conservation_attributes.flowering_period =
+                        selected.val();
                 });
         },
         checkDate: function () {
             let vm = this;
             if (vm.$refs.last_fire_date.value) {
-                vm.occurrence_obj.fire_history.last_fire_estimate = vm.$refs.last_fire_date.value;
-            }
-            else {
+                vm.occurrence_obj.fire_history.last_fire_estimate =
+                    vm.$refs.last_fire_date.value;
+            } else {
                 vm.occurrence_obj.fire_history.last_fire_estimate = null;
             }
         },
         relatedSpeciesTextChanged: function (new_text) {
-            this.occurrence_obj.associated_species.related_species = new_text
+            this.occurrence_obj.associated_species.related_species = new_text;
         },
         initialiseLandFormSelect: function () {
             let vm = this;
             // Initialise select2 for proposed Conservation Criteria
-            $(vm.$refs.land_form_select).select2({
-                "theme": "bootstrap-5",
-                allowClear: true,
-                multiple: true,
-                placeholder: "Select Land Form",
-            }).
-                on("select2:select", function (e) {
+            $(vm.$refs.land_form_select)
+                .select2({
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    multiple: true,
+                    placeholder: 'Select Land Form',
+                })
+                .on('select2:select', function (e) {
                     var selected = $(e.currentTarget);
-                    vm.occurrence_obj.habitat_composition.land_form = selected.val();
-                }).
-                on("select2:unselect", function (e) {
+                    vm.occurrence_obj.habitat_composition.land_form =
+                        selected.val();
+                })
+                .on('select2:unselect', function (e) {
                     var selected = $(e.currentTarget);
-                    vm.occurrence_obj.habitat_composition.land_form = selected.val();
+                    vm.occurrence_obj.habitat_composition.land_form =
+                        selected.val();
                 });
         },
         copyUpdate: function (object, section) {
             let vm = this;
             vm.occurrence_obj[section] = object[section];
-            $(vm.$refs.land_form_select).val(vm.occurrence_obj.habitat_composition.land_form).trigger('change.select2');
+            $(vm.$refs.land_form_select)
+                .val(vm.occurrence_obj.habitat_composition.land_form)
+                .trigger('change.select2');
             vm.$refs.related_species.reload();
             vm.calcKeigheryTotal();
         },
         updateHabitatCompositionDetails: function () {
             let vm = this;
             vm.updatingHabitatCompositionDetails = true;
-            fetch(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_habitat_composition_details')), {
-                method: 'POST',
-                body: JSON.stringify(vm.occurrence_obj.habitat_composition),
-                headers: {
-                    'Content-Type': 'application/json',
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.occurrence,
+                    vm.occurrence_obj.id + '/update_habitat_composition_details'
+                ),
+                {
+                    method: 'POST',
+                    body: JSON.stringify(vm.occurrence_obj.habitat_composition),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                }
+            ).then(
+                async (response) => {
+                    vm.updatingHabitatCompositionDetails = false;
+                    vm.occurrence_obj.habitat_composition =
+                        await response.json();
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Habitat Composition details have been saved',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
                 },
-            }).then(async (response) => {
-                vm.updatingHabitatCompositionDetails = false;
-                vm.occurrence_obj.habitat_composition = await response.json();
-                swal.fire({
-                    title: 'Saved',
-                    text: 'Habitat Composition details have been saved',
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary'
-                    },
-                });
-            }, (error) => {
-                var text = helpers.apiVueResourceError(error);
-                swal.fire({
-                    title: 'Error',
-                    text: 'Habitat Composition details cannot be saved because of the following error: ' + text,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary'
-                    },
-                });
-                vm.updatingHabitatCompositionDetails = false;
-            });
+                (error) => {
+                    var text = helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error',
+                        text:
+                            'Habitat Composition details cannot be saved because of the following error: ' +
+                            text,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.updatingHabitatCompositionDetails = false;
+                }
+            );
         },
         updateHabitatConditionDetails: function () {
             let vm = this;
             var valKeigheryTotal = vm.calcKeigheryTotal();
             if (valKeigheryTotal) {
                 vm.updatingHabitatConditionDetails = true;
-                fetch(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_habitat_condition_details')), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
+                fetch(
+                    helpers.add_endpoint_json(
+                        api_endpoints.occurrence,
+                        vm.occurrence_obj.id +
+                            '/update_habitat_condition_details'
+                    ),
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(
+                            vm.occurrence_obj.habitat_condition
+                        ),
+                    }
+                ).then(
+                    async (response) => {
+                        vm.updatingHabitatConditionDetails = false;
+                        vm.occurrence_obj.habitat_condition =
+                            await response.json();
+                        swal.fire({
+                            title: 'Saved',
+                            text: 'Habitat Condition details have been saved',
+                            icon: 'success',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
                     },
-                    body: JSON.stringify(vm.occurrence_obj.habitat_condition),
-                }).then(async (response) => {
-                    vm.updatingHabitatConditionDetails = false;
-                    vm.occurrence_obj.habitat_condition = await response.json();
-                    swal.fire({
-                        title: 'Saved',
-                        text: 'Habitat Condition details have been saved',
-                        icon: 'success',
-                        customClass: {
-                            confirmButton: 'btn btn-primary'
-                        },
-                    });
-                }, (error) => {
-                    var text = helpers.apiVueResourceError(error);
-                    swal.fire({
-                        title: 'Error',
-                        text: 'Habitat Condition details cannot be saved because of the following error: ' + text,
-                        icon: 'error',
-                        customClass: {
-                            confirmButton: 'btn btn-primary'
-                        },
-                    });
-                    vm.updatingHabitatConditionDetails = false;
-                });
+                    (error) => {
+                        var text = helpers.apiVueResourceError(error);
+                        swal.fire({
+                            title: 'Error',
+                            text:
+                                'Habitat Condition details cannot be saved because of the following error: ' +
+                                text,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        vm.updatingHabitatConditionDetails = false;
+                    }
+                );
             }
         },
         updateVegetationStructure: function () {
             let vm = this;
             vm.updatingVegetationStructure = true;
-            fetch(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_vegetation_structure')), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.occurrence,
+                    vm.occurrence_obj.id + '/update_vegetation_structure'
+                ),
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(
+                        vm.occurrence_obj.vegetation_structure
+                    ),
+                }
+            ).then(
+                async (response) => {
+                    vm.updatingVegetationStructure = false;
+                    vm.occurrence_obj.vegetation_structure =
+                        await response.json();
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Vegetation Structure details have been saved',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    }).then(() => {
+                        if (vm.occurrence_obj.processing_status == 'Unlocked') {
+                            vm.$router.go();
+                        }
+                    });
                 },
-                body: JSON.stringify(vm.occurrence_obj.vegetation_structure),
-            }).then(async (response) => {
-                vm.updatingVegetationStructure = false;
-                vm.occurrence_obj.vegetation_structure = await response.json();
-                swal.fire({
-                    title: 'Saved',
-                    text: 'Vegetation Structure details have been saved',
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary'
-                    },
-
-                }).then((result) => {
-                    if (vm.occurrence_obj.processing_status == "Unlocked") {
-                        vm.$router.go();
-                    }
-                });
-            }, (error) => {
-                var text = helpers.apiVueResourceError(error);
-                swal.fire({
-                    title: 'Error',
-                    text: 'Vegetation Structure details cannot be saved because of the following error: ' + text,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary'
-                    },
-                });
-                vm.updatingVegetationStructure = false;
-            });
+                (error) => {
+                    var text = helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error',
+                        text:
+                            'Vegetation Structure details cannot be saved because of the following error: ' +
+                            text,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.updatingVegetationStructure = false;
+                }
+            );
         },
         updateFireHistoryDetails: function () {
             let vm = this;
             vm.updatingFireHistoryDetails = true;
-            fetch(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_fire_history_details')), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.occurrence,
+                    vm.occurrence_obj.id + '/update_fire_history_details'
+                ),
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(vm.occurrence_obj.fire_history),
+                }
+            ).then(
+                async (response) => {
+                    vm.updatingFireHistoryDetails = false;
+                    vm.occurrence_obj.fire_history = await response.json();
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Fire History details have been saved',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
                 },
-                body: JSON.stringify(vm.occurrence_obj.fire_history),
-            }).then(async (response) => {
-                vm.updatingFireHistoryDetails = false;
-                vm.occurrence_obj.fire_history = await response.json();
-                swal.fire({
-                    title: 'Saved',
-                    text: 'Fire History details have been saved',
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary'
-                    },
-
-                });
-            }, (error) => {
-                var text = helpers.apiVueResourceError(error);
-                swal.fire({
-                    title: 'Error',
-                    text: 'Fire History details cannot be saved because of the following error: ' + text,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary'
-                    },
-                });
-                vm.updatingFireHistoryDetails = false;
-            });
+                (error) => {
+                    var text = helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error',
+                        text:
+                            'Fire History details cannot be saved because of the following error: ' +
+                            text,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.updatingFireHistoryDetails = false;
+                }
+            );
         },
         updateAssociatedSpeciesDetails: function () {
             let vm = this;
             vm.updatingAssociatedSpeciesDetails = true;
-            fetch(helpers.add_endpoint_json(api_endpoints.occurrence, (vm.occurrence_obj.id + '/update_associated_species_details')), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.occurrence,
+                    vm.occurrence_obj.id + '/update_associated_species_details'
+                ),
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(vm.occurrence_obj.associated_species),
+                }
+            ).then(
+                async (response) => {
+                    vm.updatingAssociatedSpeciesDetails = false;
+                    vm.occurrence_obj.associated_species =
+                        await response.json();
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Associated Species details have been saved',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
                 },
-                body: JSON.stringify(vm.occurrence_obj.associated_species),
-            }).then(async (response) => {
-                vm.updatingAssociatedSpeciesDetails = false;
-                vm.occurrence_obj.associated_species = await response.json();
-                swal.fire({
-                    title: 'Saved',
-                    text: 'Associated Species details have been saved',
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary'
-                    },
-
-                });
-            }, (error) => {
-                var text = helpers.apiVueResourceError(error);
-                swal.fire({
-                    title: 'Error',
-                    text: 'Associated Species cannot be saved because of the following error: ' + text,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary'
-                    },
-                });
-                vm.updatingAssociatedSpeciesDetails = false;
-            });
+                (error) => {
+                    var text = helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error',
+                        text:
+                            'Associated Species cannot be saved because of the following error: ' +
+                            text,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.updatingAssociatedSpeciesDetails = false;
+                }
+            );
         },
         calcKeigheryTotal: function () {
             let vm = this;
@@ -1149,7 +1369,9 @@ export default {
             let c = parseInt(vm.occurrence_obj.habitat_condition.very_good);
             let d = parseInt(vm.occurrence_obj.habitat_condition.good);
             let e = parseInt(vm.occurrence_obj.habitat_condition.degraded);
-            let f = parseInt(vm.occurrence_obj.habitat_condition.completely_degraded);
+            let f = parseInt(
+                vm.occurrence_obj.habitat_condition.completely_degraded
+            );
             total = a + b + c + d + e + f;
             vm.habitat_cond_sum = total;
             if (total > 100) {
@@ -1158,16 +1380,14 @@ export default {
                     text: 'The total Kiery Scale should not exceed 100% ',
                     icon: 'warning',
                     customClass: {
-                        confirmButton: 'btn btn-primary'
+                        confirmButton: 'btn btn-primary',
                     },
                 });
                 return false;
-            }
-            else {
+            } else {
                 return true;
             }
-
-        }
+        },
     },
 };
 </script>

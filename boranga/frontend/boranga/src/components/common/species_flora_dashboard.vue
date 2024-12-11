@@ -1188,13 +1188,14 @@ export default {
             vm.initialiseFamilyLookup();
             vm.initialiseGeneraLookup();
             vm.addEventListeners();
+            var newOption = null;
             // -- to set the select2 field with the session value if exists onload()
             if (
                 sessionStorage.getItem('filterFloraScientificName') != 'all' &&
                 sessionStorage.getItem('filterFloraScientificName') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterFloraScientificNameText'),
                     vm.filterFloraScientificName,
                     false,
@@ -1208,7 +1209,7 @@ export default {
                 sessionStorage.getItem('filterFloraCommonName') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterFloraCommonNameText'),
                     vm.filterFloraCommonName,
                     false,
@@ -1222,7 +1223,7 @@ export default {
                 sessionStorage.getItem('filterFloraPhylogeneticGroup') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterFloraPhylogeneticGroupText'),
                     vm.filterFloraPhylogeneticGroup,
                     false,
@@ -1235,7 +1236,7 @@ export default {
                 sessionStorage.getItem('filterFloraFamily') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterFloraFamilyText'),
                     vm.filterFloraFamily,
                     false,
@@ -1248,7 +1249,7 @@ export default {
                 sessionStorage.getItem('filterFloraGenus') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterFloraGenusText'),
                     vm.filterFloraGenus,
                     false,
@@ -1293,7 +1294,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterFloraScientificName = data;
                     sessionStorage.setItem(
@@ -1301,12 +1301,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterFloraScientificName = 'all';
                     sessionStorage.setItem('filterFloraScientificNameText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-scientific_name_lookup-results"]'
                     );
@@ -1335,7 +1334,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterFloraCommonName = data;
                     sessionStorage.setItem(
@@ -1343,12 +1341,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterFloraCommonName = 'all';
                     sessionStorage.setItem('filterFloraCommonNameText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-common_name_lookup-results"]'
                     );
@@ -1378,7 +1375,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterFloraFamily = data;
                     sessionStorage.setItem(
@@ -1386,12 +1382,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterFloraFamily = 'all';
                     sessionStorage.setItem('filterFloraFamilyText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-family_lookup-results"]'
                     );
@@ -1420,7 +1415,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterFloraGenus = data;
                     sessionStorage.setItem(
@@ -1428,12 +1422,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterFloraGenus = 'all';
                     sessionStorage.setItem('filterFloraGenusText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-genera_lookup-results"]'
                     );
@@ -1462,7 +1455,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterFloraPhylogeneticGroup = data;
                     sessionStorage.setItem(
@@ -1470,15 +1462,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterFloraPhylogeneticGroup = 'all';
                     sessionStorage.setItem(
                         'filterFloraPhylogeneticGroupText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-phylo_group_lookup-results"]'
                     );
@@ -1615,7 +1606,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'The flora record has been discarded',
@@ -1665,7 +1656,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Reinstated',
                                     text: 'The flora record has been reinstated',
@@ -1720,12 +1711,9 @@ export default {
                     vm.historyDocument(id);
                 }
             );
-            vm.$refs.flora_datatable.vmDataTable.on(
-                'childRow.dt',
-                function (e, settings) {
-                    helpers.enablePopovers();
-                }
-            );
+            vm.$refs.flora_datatable.vmDataTable.on('childRow.dt', function () {
+                helpers.enablePopovers();
+            });
         },
         delay(callback, ms) {
             var timer = 0;

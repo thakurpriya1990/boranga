@@ -105,14 +105,14 @@ export default {
                     },
                     {
                         data: 'description',
-                        render: function (value, type, full) {
+                        render: function (value, type) {
                             let result = helpers.dtPopover(value, 30, 'hover');
                             return type == 'export' ? value : result;
                         },
                     },
                     {
                         data: 'uploaded_date',
-                        mRender: function (data, type, full) {
+                        mRender: function (data) {
                             return data != '' && data != null
                                 ? moment(data).format('DD/MM/YYYY HH:mm')
                                 : '';
@@ -188,12 +188,12 @@ export default {
                     }
                 }
             );
-            vm.$refs.documents_datatable.vmDataTable.on('draw', function (e) {
+            vm.$refs.documents_datatable.vmDataTable.on('draw', function () {
                 helpers.enablePopovers();
             });
             vm.$refs.documents_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

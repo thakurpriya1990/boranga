@@ -64,7 +64,6 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
             isModalOpen: false,
             form: null,
@@ -118,7 +117,7 @@ export default {
                     body: JSON.stringify(vm.back_to_assessor),
                 }
             ).then(
-                (response) => {
+                () => {
                     swal.fire({
                         title: 'Sent Back',
                         text: `${vm.occurrence_report_number} has been sent back to the assessor with the provided reason.`,
@@ -126,7 +125,7 @@ export default {
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
-                    }).then((result) => {
+                    }).then(() => {
                         vm.$router.go();
                     });
                 },

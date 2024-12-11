@@ -726,11 +726,12 @@ export default {
             vm.initialiseOccurrenceLookup();
             vm.initialiseScientificNameLookup();
             vm.addEventListeners();
+            var newOption = null;
             if (
                 sessionStorage.getItem('filterOCRFloraOccurrence') != 'all' &&
                 sessionStorage.getItem('filterOCRFloraOccurrence') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterOCRFloraOccurrenceText'),
                     vm.filterOCRFloraOccurrence,
                     false,
@@ -743,7 +744,7 @@ export default {
                     'all' &&
                 sessionStorage.getItem('filterOCRFloraScientificName') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterOCRFloraScientificNameText'),
                     vm.filterOCRFloraScientificName,
                     false,
@@ -789,7 +790,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterOCRFloraOccurrence = data;
                     sessionStorage.setItem(
@@ -797,12 +797,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterOCRFloraOccurrence = 'all';
                     sessionStorage.setItem('filterOCRFloraOccurrenceText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-ocr_occurrence_lookup-results"]'
                     );
@@ -832,7 +831,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterOCRFloraScientificName = data;
                     sessionStorage.setItem(
@@ -840,15 +838,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterOCRFloraScientificName = 'all';
                     sessionStorage.setItem(
                         'filterOCRFloraScientificNameText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-ocr_scientific_name_lookup_by_groupname-results"]'
                     );
@@ -945,7 +942,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'Your report has been discarded',
@@ -995,7 +992,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Reinstated',
                                     text: 'Your report has been reinstated',
@@ -1052,7 +1049,7 @@ export default {
             );
             vm.$refs.flora_ocr_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

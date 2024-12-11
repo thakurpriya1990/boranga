@@ -277,7 +277,6 @@ export default {
             this.$refs.document_detail.isModalOpen = true;
         },
         editDocument: function (id) {
-            let vm = this;
             this.$refs.document_detail.document_id = id;
             this.$refs.document_detail.document_action = 'edit';
             this.$refs.document_detail.title = 'Edit a Minute';
@@ -339,7 +338,7 @@ export default {
                                 },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'The minutes have been discarded',
@@ -389,7 +388,7 @@ export default {
                                 },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Reinstated',
                                     text: 'The minutes have been reinstated',
@@ -456,7 +455,7 @@ export default {
             );
             vm.$refs.minutes_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

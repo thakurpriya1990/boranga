@@ -163,15 +163,11 @@ export default {
         let vm = this;
         //vm.set_tabs();
         vm.form = document.forms.new_species;
-        vm.eventListener();
     },
     methods: {
         //----function to resolve datatable exceeding beyond the div
-        tabClicked: function (param) {
+        tabClicked: function () {
             this.reloadcount = this.reloadcount + 1;
-        },
-        eventListener: function () {
-            let vm = this;
         },
     },
 };

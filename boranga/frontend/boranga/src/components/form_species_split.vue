@@ -37,7 +37,7 @@
                 <li class="nav-item">
                     <a
                         id="pills-threats-tab"
-                    class="nav-link"
+                        class="nav-link"
                         data-bs-toggle="pill"
                         :href="'#' + threatBody"
                         role="tab"
@@ -74,7 +74,7 @@
                     <SpeciesDocuments
                         :key="reloadcount"
                         id="speciesDocuments"
-                    ref="species_documents"
+                        ref="species_documents"
                         :is_internal="is_internal"
                         :species_community="species_community"
                         :species_original="species_original"
@@ -90,7 +90,7 @@
                     <SpeciesThreats
                         :key="reloadcount"
                         id="speciesThreats"
-                    ref="species_threats"
+                        ref="species_threats"
                         :is_internal="is_internal"
                         :species_community="species_community"
                         :species_original="species_original"
@@ -108,42 +108,42 @@ import SpeciesDocuments from '@/components/common/species_communities/species_sp
 import SpeciesThreats from '@/components/common/species_communities/species_split/species_split_threats.vue';
 
 export default {
-        components: {
-            SpeciesProfile,
-            SpeciesDocuments,
-            SpeciesThreats,
+    components: {
+        SpeciesProfile,
+        SpeciesDocuments,
+        SpeciesThreats,
+    },
+    props: {
+        species_original: {
+            type: Object,
+            required: true,
         },
-        props:{
-            species_original:{
-                type: Object,
-                required:true
-            },
-            species_community:{
-                type: Object,
-                required:true
-            },
-            is_external:{
-              type: Boolean,
-              default: false
-            },
-            is_internal:{
-              type: Boolean,
-              default: false
-            },
+        species_community: {
+            type: Object,
+            required: true,
         },
-        data:function () {
-            let vm = this;
-            return{
-                profileBody: 'profileBody' + vm._uid,
-                documentBody: 'documentBody' + vm._uid,
-                threatBody: 'threatBody' + vm._uid,
-                relatedItemBody: 'relatedItemBody' + vm._uid,
-                values:null,
-                reloadcount:0,
-                document_selection:null,
-                threat_selection:null,
-            }
+        is_external: {
+            type: Boolean,
+            default: false,
         },
+        is_internal: {
+            type: Boolean,
+            default: false,
+        },
+    },
+    data: function () {
+        let vm = this;
+        return {
+            profileBody: 'profileBody' + vm._uid,
+            documentBody: 'documentBody' + vm._uid,
+            threatBody: 'threatBody' + vm._uid,
+            relatedItemBody: 'relatedItemBody' + vm._uid,
+            values: null,
+            reloadcount: 0,
+            document_selection: null,
+            threat_selection: null,
+        };
+    },
     computed: {
         related_items_ajax_url: function () {
             return (
@@ -155,15 +155,16 @@ export default {
         related_items_filter_list_url: function () {
             return '/api/species/filter_list.json';
         },
-        mounted: function() {
+        mounted: function () {
             let vm = this;
             vm.form = document.forms.new_species;
         },
-        methods:{
+        methods: {
             //----function to resolve datatable exceeding beyond the div
-            tabClicked: function(param){
-                this.reloadcount = this.reloadcount+1;
+            tabClicked: function () {
+                this.reloadcount = this.reloadcount + 1;
             },
-        }
+        },
+    },
 };
 </script>

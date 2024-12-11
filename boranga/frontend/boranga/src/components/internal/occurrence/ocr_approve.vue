@@ -179,7 +179,7 @@ export default {
                             body: JSON.stringify(vm.approve),
                         }
                     ).then(
-                        (response) => {
+                        () => {
                             swal.fire({
                                 title: 'Occurrence Report Successfully Approved',
                                 text: `Occurrence Report: ${vm.occurrence_report_number} has been successfully approved.`,
@@ -241,13 +241,13 @@ export default {
                     vm.approve.occurrence_id = e.params.data.id;
                     vm.approve.occurrence_name = e.params.data.text;
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-occurrence_name_lookup_approve-results"]'
                     );
                     searchField[0].focus();
                 })
-                .on('select2:unselect', function (e) {
+                .on('select2:unselect', function () {
                     vm.approve.occurrence_id = null;
                     vm.approve.occurrence_name = null;
                 });

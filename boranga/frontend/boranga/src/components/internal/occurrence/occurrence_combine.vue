@@ -1026,7 +1026,7 @@ export default {
                     },
                 }
             ).then(
-                (response) => {
+                () => {
                     swal.fire({
                         title: 'Combined',
                         text: 'Selected Occurrences have been combined.',
@@ -1034,7 +1034,7 @@ export default {
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
-                    }).then((swalresult) => {
+                    }).then(() => {
                         vm.$router.go();
                     });
                 },
@@ -1601,13 +1601,13 @@ export default {
                     vm.selectedAddOccurrence = e.params.data;
                     vm.addOccurrence();
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-occurrence_name_lookup-results"]'
                     );
                     searchField[0].focus();
                 })
-                .on('select2:unselect', function (e) {
+                .on('select2:unselect', function () {
                     vm.selectedAddOccurrence = null;
                 });
         },

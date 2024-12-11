@@ -769,7 +769,6 @@ export default {
             };
         },
         column_number: function () {
-            let vm = this;
             return {
                 data: 'conservation_status_number',
                 orderable: true,
@@ -1427,13 +1426,14 @@ export default {
             vm.initialiseAssessorLookup();
             vm.initialiseSubmitterLookup();
             vm.addEventListeners();
+            var newOption = null;
             // -- to set the select2 field with the session value if exists onload()
             if (
                 sessionStorage.getItem('filterCSCommunityName') != 'all' &&
                 sessionStorage.getItem('filterCSCommunityName') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterCSCommunityNameText'),
                     vm.filterCSCommunityName,
                     false,
@@ -1447,7 +1447,7 @@ export default {
                 sessionStorage.getItem('filterCSCommunityMigratedId') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterCSCommunityMigratedIdText'),
                     vm.filterCSCommunityMigratedId,
                     false,
@@ -1494,7 +1494,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSCommunityName = data;
                     sessionStorage.setItem(
@@ -1502,12 +1501,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSCommunityName = 'all';
                     sessionStorage.setItem('filterCSCommunityNameText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_community_name_lookup-results"]'
                     );
@@ -1537,7 +1535,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSCommunityMigratedId = data;
                     sessionStorage.setItem(
@@ -1545,15 +1542,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSCommunityMigratedId = 'all';
                     sessionStorage.setItem(
                         'filterCSCommunityMigratedIdText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_community_id_lookup-results"]'
                     );
@@ -1590,11 +1586,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
+                .on('select2:unselect', function () {
                     vm.filterCSCommunityAssessor = 'all';
                     sessionStorage.setItem('filterCSCommunityAssessorText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_assessor_lookup-results"]'
                     );
@@ -1628,7 +1624,7 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
+                .on('select2:unselect', function () {
                     vm.selected_referral = null;
                     vm.filterCSCommunitySubmitter = 'all';
                     sessionStorage.setItem(
@@ -1636,7 +1632,7 @@ export default {
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_submitter_lookup-results"]'
                     );
@@ -1737,7 +1733,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'Your proposal has been discarded',
@@ -1787,7 +1783,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Reinstated',
                                     text: 'Your proposal has been reinstated',
@@ -1881,7 +1877,7 @@ export default {
             );
             vm.$refs.cs_communities_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

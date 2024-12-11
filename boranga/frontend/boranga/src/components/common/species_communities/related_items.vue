@@ -59,7 +59,6 @@
 </template>
 
 <script>
-import { api_endpoints, helpers } from '@/utils/hooks';
 export default {
     components: {},
     props: {
@@ -87,23 +86,6 @@ export default {
                 allowInputToggle: true,
             },
         };
-    },
-    computed: {},
-    watch: {},
-    mounted: function () {
-        let vm = this;
-    },
-    methods: {
-        eventListeners: function () {
-            let vm = this;
-
-            var date = new Date();
-            var today = new Date(
-                date.getFullYear(),
-                date.getMonth(),
-                date.getDate()
-            );
-        },
     },
 };
 </script>

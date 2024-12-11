@@ -245,8 +245,7 @@ export default {
             return `Approve Conservation Status CS${this.conservation_status_id}`;
         },
         can_preview: function () {
-            return (this.processing_status == 'Proposed DeListed' ||
-                'With Assessor (Requirements)') &&
+            return this.processing_status == 'Proposed DeListed' &&
                 this.approval.effective_from_date &&
                 this.approval.effective_to_date
                 ? true

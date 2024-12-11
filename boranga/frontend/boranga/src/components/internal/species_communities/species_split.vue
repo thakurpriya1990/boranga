@@ -393,7 +393,7 @@ export default {
                     body: JSON.stringify(payload),
                 }
             ).then(
-                async (response) => {
+                async () => {
                     return true;
                 },
                 (err) => {
@@ -556,7 +556,7 @@ export default {
                         vm.submitSpeciesSplit = false;
                     }
                 },
-                (error) => {
+                () => {
                     vm.submitSpeciesSplit = false;
                 }
             );
@@ -595,8 +595,6 @@ export default {
             );
         },
         removeSpecies: function (species_id) {
-            let vm = this;
-
             try {
                 // In this case we are allowing a http DELETE call to remove the species
                 fetch(api_endpoints.remove_species_proposal(species_id), {

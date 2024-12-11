@@ -221,7 +221,6 @@ export default {
             };
         },
         column_number: function () {
-            let vm = this;
             return {
                 data: 'occurrence_report_number',
                 orderable: true,
@@ -482,12 +481,13 @@ export default {
                 vm.initialiseScientificNameLookup();
             }
             vm.addEventListeners();
+            var newOption = null;
             if (
                 sessionStorage.getItem('filterOCRReferralsOccurrence') !=
                     'all' &&
                 sessionStorage.getItem('filterOCRReferralsOccurrence') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterOCRReferralsOccurrenceText'),
                     vm.filterOCRReferralsOccurrence,
                     false,
@@ -501,7 +501,7 @@ export default {
                 sessionStorage.getItem('filterOCRReferralsScientificName') !=
                     null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem(
                         'filterOCRReferralsScientificNameText'
                     ),
@@ -515,7 +515,7 @@ export default {
                 sessionStorage.getItem('filterOCRReferralsName') != 'all' &&
                 sessionStorage.getItem('filterOCRReferralsName') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterOCRReferralsNameText'),
                     vm.filterOCRReferralsName,
                     false,
@@ -561,7 +561,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterOCRReferralsOccurrence = data;
                     sessionStorage.setItem(
@@ -569,15 +568,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterOCRReferralsOccurrence = 'all';
                     sessionStorage.setItem(
                         'filterOCRReferralsOccurrenceText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-ocr_referrals_occurrence_lookup-results"]'
                     );
@@ -609,7 +607,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterOCRReferralsScientificName = data;
                     sessionStorage.setItem(
@@ -617,15 +614,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterOCRReferralsScientificName = 'all';
                     sessionStorage.setItem(
                         'filterOCRReferralsScientificNameText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-ocr_referrals_scientific_name_lookup_by_groupname-results"]'
                     );
@@ -654,7 +650,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterOCRReferralsName = data;
                     sessionStorage.setItem(
@@ -662,12 +657,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterOCRReferralsName = 'all';
                     sessionStorage.setItem('filterOCRReferralsNameText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-ocr_referrals_community_name_lookup-results"]'
                     );
@@ -678,7 +672,7 @@ export default {
             let vm = this;
             vm.$refs.flora_ocr_referrals_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

@@ -283,7 +283,7 @@ export default {
         });
     },
     methods: {
-        tabClicked: function (param) {},
+        tabClicked: function () {},
         refreshFromResponse: function () {
             this.$emit('refreshFromResponse');
         },

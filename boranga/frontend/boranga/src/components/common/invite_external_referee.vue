@@ -229,7 +229,7 @@ export default {
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
-                    }).then((result) => {
+                    }).then(() => {
                         vm.$emit('externalRefereeInviteSent', response);
                         vm.close();
                     });

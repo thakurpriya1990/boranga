@@ -85,7 +85,6 @@ export default {
             conservationStatusDocumentHistoryId: null,
             documentBody: 'documentBody' + vm._uid,
             panelBody: 'conservation-status-documents-' + vm._uid,
-            panelBody: 'cs-documents-' + vm._uid,
             values: null,
             cs_document_url: api_endpoints.conservation_status_documents,
             documents_headers: [
@@ -396,7 +395,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'The document has been discarded',
@@ -413,7 +412,7 @@ export default {
                         );
                     }
                 },
-                (error) => {}
+                () => {}
             );
         },
         reinstateDocument: function (id) {
@@ -442,7 +441,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Reinstated',
                                     text: 'Your document has been reinstated',
@@ -459,7 +458,7 @@ export default {
                         );
                     }
                 },
-                (error) => {}
+                () => {}
             );
         },
         updatedDocuments() {
@@ -518,7 +517,7 @@ export default {
             );
             vm.$refs.documents_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

@@ -80,7 +80,6 @@ export default {
         'toggle-show-on-map',
     ],
     data() {
-        let vm = this;
         return {
             uuid: uuid(),
             datatable_id: 'datatable-related-ocr-' + uuid(),
@@ -255,7 +254,7 @@ export default {
                         vm.adjust_table_width();
                     }, 100);
                 },
-                initComplete: function (settings, json) {
+                initComplete: function () {
                     setTimeout(function () {
                         vm.adjust_table_width();
                     }, 100);

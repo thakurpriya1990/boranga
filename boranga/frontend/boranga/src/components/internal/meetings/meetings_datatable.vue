@@ -291,7 +291,6 @@ export default {
             };
         },
         column_action: function () {
-            let vm = this;
             return {
                 data: 'id',
                 orderable: false,
@@ -536,7 +535,7 @@ export default {
                             'Content-Type': 'application/json',
                         },
                     }).then(
-                        (response) => {
+                        () => {
                             swal.fire({
                                 title: 'Discarded',
                                 text: 'Your meeting has been discarded',
@@ -578,7 +577,7 @@ export default {
                             'Content-Type': 'application/json',
                         },
                     }).then(
-                        (response) => {
+                        () => {
                             swal.fire({
                                 title: 'Reinstated',
                                 text: 'Your meeting has been reinstated',
@@ -622,7 +621,7 @@ export default {
             );
             vm.$refs.meetings_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

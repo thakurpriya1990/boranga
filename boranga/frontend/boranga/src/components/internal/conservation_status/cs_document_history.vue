@@ -54,7 +54,7 @@
 <script>
 import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
-import { helpers, api_endpoints, constants, utils } from '@/utils/hooks.js';
+import { helpers, api_endpoints, constants } from '@/utils/hooks.js';
 import datatable from '@/utils/vue/datatable.vue';
 import DisplayHistory from '../../common/display_history.vue';
 import { v4 as uuid } from 'uuid';
@@ -430,7 +430,7 @@ export default {
             );
             vm.$refs.history_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

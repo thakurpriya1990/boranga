@@ -251,7 +251,7 @@ export default {
                 },
                 body: JSON.stringify(payload),
             }).then(
-                async (response) => {
+                async () => {
                     swal.fire({
                         title: 'Saved',
                         text: 'Your changes have been saved',
@@ -262,7 +262,7 @@ export default {
                     });
                     vm.savingConservationStatus = false;
                 },
-                (err) => {
+                () => {
                     vm.savingConservationStatus = false;
                 }
             );
@@ -311,7 +311,7 @@ export default {
                             },
                             body: JSON.stringify(payload),
                         }).then(
-                            async (response) => {
+                            async () => {
                                 fetch(
                                     helpers.add_endpoint_json(
                                         api_endpoints.cs_referrals,

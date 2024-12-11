@@ -198,9 +198,6 @@ export default {
                 : `/api/external_species/${this.species_community.id}/public_image/`;
         },
     },
-    mounted: function () {
-        let vm = this;
-    },
     methods: {
         onImageLoad: function () {
             this.downloadingImage = false;

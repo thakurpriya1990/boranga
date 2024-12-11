@@ -267,7 +267,6 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
             isModalOpen: false,
             new_species_list: [],
@@ -316,6 +315,7 @@ export default {
     mounted: function () {
         let vm = this;
         this.$nextTick(function () {
+            // eslint-disable-next-line no-undef
             chevron_toggle.init();
             vm.set_active_tab('pills-flora', 'flora');
         });

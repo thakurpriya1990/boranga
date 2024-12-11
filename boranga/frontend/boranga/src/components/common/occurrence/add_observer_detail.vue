@@ -343,7 +343,7 @@ export default {
                     },
                     body: JSON.stringify(formData),
                 }).then(
-                    (response) => {
+                    () => {
                         vm.updatingObserver = false;
                         vm.$parent.updatedObserverDetails();
                         vm.close();
@@ -363,7 +363,7 @@ export default {
                     },
                     body: JSON.stringify(formData),
                 }).then(
-                    (response) => {
+                    () => {
                         vm.addingObserver = false;
                         vm.$parent.updatedObserverDetails();
                         vm.close();

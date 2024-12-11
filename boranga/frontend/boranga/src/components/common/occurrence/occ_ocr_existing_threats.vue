@@ -41,7 +41,7 @@
 <script>
 import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
-import { helpers, api_endpoints, constants, utils } from '@/utils/hooks.js';
+import { helpers, api_endpoints, constants } from '@/utils/hooks.js';
 import datatable from '@/utils/vue/datatable.vue';
 import ThreatDetail from '@/components/common/species_communities/add_threat.vue';
 import { v4 as uuid } from 'uuid';
@@ -317,7 +317,7 @@ export default {
                 },
                 body: formData,
             }).then(
-                (response) => {
+                () => {
                     vm.addingThreat = false;
                     vm.refreshFromResponse();
                     vm.$parent.updatedThreats();
@@ -330,7 +330,6 @@ export default {
             );
         },
         viewThreat: function (id) {
-            let vm = this;
             this.$refs.threat_detail.threat_id = id;
             this.$refs.threat_detail.threat_action = 'view';
             fetch(helpers.add_endpoint_json(api_endpoints.ocr_threat, id)).then(

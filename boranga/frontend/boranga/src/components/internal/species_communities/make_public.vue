@@ -212,7 +212,6 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
             updatingPublishing: false,
             isModalOpen: false,
@@ -305,7 +304,7 @@ export default {
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
-                    }).then((swalresult) => {
+                    }).then(() => {
                         vm.close();
                     });
                 },
@@ -385,7 +384,6 @@ export default {
             this.close();
         },
         close: function () {
-            let vm = this;
             this.isModalOpen = false;
             this.errors = false;
         },

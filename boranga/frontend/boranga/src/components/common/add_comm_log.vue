@@ -236,7 +236,6 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
             isModalOpen: false,
             form: null,
@@ -291,7 +290,6 @@ export default {
             }
         },
         uploadFile(target, file_obj) {
-            let vm = this;
             let _file = null;
             var input = $('.' + target)[0];
             if (input.files && input.files[0]) {
@@ -347,7 +345,7 @@ export default {
                 body: comms,
                 'Content-Type': 'application/json',
             }).then(
-                (response) => {
+                () => {
                     vm.addingComms = false;
                     vm.close();
                 },

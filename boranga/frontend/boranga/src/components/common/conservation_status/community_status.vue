@@ -1532,7 +1532,12 @@ export default {
         has_comment_value: function () {
             let has_value = false;
             for (var i = 0; i < this.referral_comments_boxes.length; i++) {
-                if (this.referral_comments_boxes[i].hasOwnProperty('value')) {
+                if (
+                    Object.prototype.hasOwnProperty.call(
+                        this.referral_comments_boxes[i],
+                        'value'
+                    )
+                ) {
                     if (
                         this.referral_comments_boxes[i].value != null &&
                         this.referral_comments_boxes[i].value != undefined &&
@@ -1736,18 +1741,16 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.conservation_status_obj.community_id = data;
                     vm.community_display = e.params.data.text;
                     vm.$emit('saveConservationStatus');
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.conservation_status_obj.community_id = null;
                     vm.community_display = '';
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-' +
                             vm.community_name_lookup +
@@ -1810,7 +1813,6 @@ export default {
             var assessor_mode =
                 this.conservation_status_obj.assessor_mode.assessor_level;
             if (!this.conservation_status_obj.can_user_edit) {
-                var current_referral_present = false;
                 $.each(this.conservation_status_obj.referrals, (i, v) => {
                     var referral_name = `comment-field-Referral-${v.referral.email}`;
                     var referral_visibility =

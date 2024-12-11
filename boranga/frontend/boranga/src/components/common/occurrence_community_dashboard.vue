@@ -578,7 +578,7 @@ export default {
             vm.initialiseOccurrenceNameLookup();
             vm.initialiseCommunityNameLookup();
             vm.addEventListeners();
-
+            var newOption = null;
             // -- to set the select2 field with the session value if exists onload()
             if (
                 sessionStorage.getItem('filterOCCCommunityOccurrenceName') !=
@@ -587,7 +587,7 @@ export default {
                     null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem(
                         'filterOCCCommunityOccurrenceNameText'
                     ),
@@ -603,7 +603,7 @@ export default {
                 sessionStorage.getItem('filterOCCCommunityName') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterOCCCommunityNameText'),
                     vm.filterOCCCommunityName,
                     false,
@@ -649,7 +649,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.text;
                     vm.filterOCCCommunityOccurrenceName = data;
                     sessionStorage.setItem(
@@ -657,15 +656,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterOCCCommunityOccurrenceName = 'all';
                     sessionStorage.setItem(
                         'filterOCCCommunityOccurrenceNameText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-occurrence_name_lookup-results"]'
                     );
@@ -694,7 +692,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterOCCCommunityName = data;
                     sessionStorage.setItem(
@@ -702,12 +699,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterOCCCommunityName = 'all';
                     sessionStorage.setItem('filterOCCCommunityNameText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-occ_community_name_lookup-results"]'
                     );
@@ -811,7 +807,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'The occurrence has been discarded',
@@ -859,7 +855,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Reinstated',
                                     text: 'Your report has been reinstated',
@@ -916,7 +912,7 @@ export default {
             );
             vm.$refs.community_occ_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

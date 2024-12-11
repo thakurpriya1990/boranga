@@ -269,13 +269,6 @@ export default {
                     }
                 }
             }
-
-            if (!file_updated) {
-                vm.files.push({
-                    name: e.target.files[0].name,
-                    file: e.target.files[0],
-                });
-            }
         },
         delete_document: function (file) {
             /* deletes, previously saved file, from the server */
@@ -314,7 +307,7 @@ export default {
                         }
                     );
                 },
-                (error) => {}
+                () => {}
             );
         },
         num_documents: function () {

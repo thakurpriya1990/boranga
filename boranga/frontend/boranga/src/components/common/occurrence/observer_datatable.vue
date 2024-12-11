@@ -202,7 +202,7 @@ export default {
                 ],
                 columns: columns,
                 processing: true,
-                rowCallback: function (row, data, index) {
+                rowCallback: function (row, data) {
                     if (!data.visible) {
                         $(row)
                             .children('td:not(.actions)')
@@ -223,7 +223,7 @@ export default {
         };
     },
     watch: {
-        isReadOnly: function (newVal, oldVal) {
+        isReadOnly: function () {
             this.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
         },
     },
@@ -275,7 +275,7 @@ export default {
             );
             vm.$refs.observer_detail_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );
@@ -376,7 +376,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'The Observer has been discarded',
@@ -384,7 +384,7 @@ export default {
                                     customClass: {
                                         confirmButton: 'btn btn-primary',
                                     },
-                                }).then((result) => {
+                                }).then(() => {
                                     vm.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
                                     vm.$emit('refreshOccurrenceReport');
                                     if (
@@ -401,7 +401,7 @@ export default {
                         );
                     }
                 },
-                (error) => {}
+                () => {}
             );
         },
         reinstateObserverDetail: function (id) {
@@ -416,7 +416,7 @@ export default {
                     headers: { 'Content-Type': 'application/json' },
                 }
             ).then(
-                (response) => {
+                () => {
                     swal.fire({
                         title: 'Reinstated',
                         text: 'The Observer has been reinstated',
@@ -424,7 +424,7 @@ export default {
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
-                    }).then((result) => {
+                    }).then(() => {
                         vm.$refs.observer_detail_datatable.vmDataTable.ajax.reload();
                         vm.$emit('refreshOccurrenceReport');
                         if (

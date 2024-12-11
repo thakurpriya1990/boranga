@@ -210,7 +210,6 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
             isModalOpen: false,
             form: null,
@@ -292,7 +291,7 @@ export default {
                     },
                     body: JSON.stringify(formData),
                 }).then(
-                    (response) => {
+                    () => {
                         vm.updatingContact = false;
                         vm.$parent.updatedContactDetails();
                         vm.close();
@@ -313,7 +312,7 @@ export default {
                     },
                     body: JSON.stringify(formData),
                 }).then(
-                    (response) => {
+                    () => {
                         vm.addingContact = false;
                         vm.$parent.updatedContactDetails();
                         vm.close();

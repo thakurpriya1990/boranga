@@ -71,7 +71,6 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
             isModalOpen: false,
             form: null,
@@ -142,7 +141,7 @@ export default {
                             body: JSON.stringify(vm.propose_decline),
                         }
                     ).then(
-                        (response) => {
+                        () => {
                             swal.fire({
                                 title: 'Proposal to Decline Successful',
                                 text: `Your proposal to decline occurrence report ${vm.occurrence_report_number} has been successfully submitted.`,
@@ -150,7 +149,7 @@ export default {
                                 customClass: {
                                     confirmButton: 'btn btn-primary',
                                 },
-                            }).then((result) => {
+                            }).then(() => {
                                 vm.$router.go();
                             });
                         },

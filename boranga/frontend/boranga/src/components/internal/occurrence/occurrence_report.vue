@@ -78,7 +78,8 @@
                 />
 
                 <Submission
-:submitter_first_name="submitter_first_name" :submitter_last_name="submitter_last_name"
+                    :submitter_first_name="submitter_first_name"
+                    :submitter_last_name="submitter_last_name"
                     :lodgement_date="occurrence_report.lodgement_date"
                     :is_new_contributor="occurrence_report.is_new_contributor"
                     class="mb-3"
@@ -96,10 +97,14 @@
                         </div>
                         <template v-if="with_approver">
                             <select
-ref="assigned_officer" v-model="occurrence_report.assigned_approver"
-                                :disabled="!occurrence_report.can_user_approve" class="form-select mb-2">
+                                ref="assigned_officer"
+                                v-model="occurrence_report.assigned_approver"
+                                :disabled="!occurrence_report.can_user_approve"
+                                class="form-select mb-2"
+                            >
                                 <option
-v-for="member in occurrence_report.allowed_assessors" :value="member.id"
+                                    v-for="member in occurrence_report.allowed_assessors"
+                                    :value="member.id"
                                     :selected="
                                         member.id ==
                                         occurrence_report.assigned_approver
@@ -110,16 +115,29 @@ v-for="member in occurrence_report.allowed_assessors" :value="member.id"
                                 </option>
                             </select>
                             <a
-v-if="with_approver && occurrence_report.assigned_approver != occurrence_report.current_assessor.id && occurrence_report.assessor_mode.assessor_can_assess"
-                                class="actionBtn float-end" role="button" @click.prevent="assignRequestUser()">Assign to
-                            >
+                                v-if="
+                                    with_approver &&
+                                    occurrence_report.assigned_approver !=
+                                        occurrence_report.current_assessor.id &&
+                                    occurrence_report.assessor_mode
+                                        .assessor_can_assess
+                                "
+                                class="actionBtn float-end"
+                                role="button"
+                                @click.prevent="assignRequestUser()"
+                                >Assign to me
+                            </a>
                         </template>
                         <template v-else>
                             <select
-ref="assigned_officer" v-model="occurrence_report.assigned_officer"
-                                :disabled="!occurrence_report.can_user_assess" class="form-select mb-2">
+                                ref="assigned_officer"
+                                v-model="occurrence_report.assigned_officer"
+                                :disabled="!occurrence_report.can_user_assess"
+                                class="form-select mb-2"
+                            >
                                 <option
-v-for="member in occurrence_report.allowed_assessors" :value="member.id"
+                                    v-for="member in occurrence_report.allowed_assessors"
+                                    :value="member.id"
                                     :selected="
                                         member.id ==
                                         occurrence_report.current_assessor.id
@@ -130,9 +148,20 @@ v-for="member in occurrence_report.allowed_assessors" :value="member.id"
                                 </option>
                             </select>
                             <a
-v-if="(with_assessor || with_referral || unlocked) && occurrence_report.assigned_officer != occurrence_report.current_assessor.id && occurrence_report.assessor_mode.assessor_can_assess"
-                                class="actionBtn float-end" role="button" @click.prevent="assignRequestUser()">Assign to
-                            >
+                                v-if="
+                                    (with_assessor ||
+                                        with_referral ||
+                                        unlocked) &&
+                                    occurrence_report.assigned_officer !=
+                                        occurrence_report.current_assessor.id &&
+                                    occurrence_report.assessor_mode
+                                        .assessor_can_assess
+                                "
+                                class="actionBtn float-end"
+                                role="button"
+                                @click.prevent="assignRequestUser()"
+                                >Assign to me
+                            </a>
                         </template>
                     </div>
                     <div
@@ -154,11 +183,15 @@ v-if="(with_assessor || with_referral || unlocked) && occurrence_report.assigned
                                         >Comments</label
                                     >
                                     <textarea
-ref="referral_text" v-model="referral_text" class="form-control"
+                                        ref="referral_text"
+                                        v-model="referral_text"
+                                        class="form-control"
                                         name="referral_text"
                                     ></textarea>
                                     <a
-v-if="canAction" class="actionBtn float-end mt-2" role="button"
+                                        v-if="canAction"
+                                        class="actionBtn float-end mt-2"
+                                        role="button"
                                         @click.prevent="sendReferral()"
                                         >Send</a
                                     >
@@ -166,12 +199,15 @@ v-if="canAction" class="actionBtn float-end mt-2" role="button"
                             </template>
                             <template v-else>
                                 <span
-v-if="canAction" disabled class="actionBtn text-primary float-end"
+                                    v-if="canAction"
+                                    disabled
+                                    class="actionBtn text-primary float-end"
                                     @click.prevent="sendReferral()"
                                 >
                                     Sending Referral&nbsp;
                                     <span
-class="spinner-border spinner-border-sm" role="status"
+                                        class="spinner-border spinner-border-sm"
+                                        role="status"
                                         aria-hidden="true"
                                     ></span>
                                     <span class="visually-hidden"
@@ -213,7 +249,9 @@ class="spinner-border spinner-border-sm" role="status"
                                         <td>Pending</td>
                                         <td class="text-center">
                                             <a
-role="button" data-bs-toggle="popover" data-bs-trigger="hover focus"
+                                                role="button"
+                                                data-bs-toggle="popover"
+                                                data-bs-trigger="hover focus"
                                                 :data-bs-content="
                                                     'Send a reminder to ' +
                                                     external_referee_invite.full_name
@@ -230,7 +268,9 @@ role="button" data-bs-toggle="popover" data-bs-trigger="hover focus"
                                                 ></i>
                                             </a>
                                             <a
-role="button" data-bs-toggle="popover" data-bs-trigger="hover focus"
+                                                role="button"
+                                                data-bs-toggle="popover"
+                                                data-bs-trigger="hover focus"
                                                 :data-bs-content="
                                                     'Retract the external referee invite sent to ' +
                                                     external_referee_invite.full_name
@@ -253,7 +293,8 @@ role="button" data-bs-toggle="popover" data-bs-trigger="hover focus"
                         </div>
                     </div>
                     <div
-v-if="display_referral_actions &&
+                        v-if="
+                            display_referral_actions &&
                             isAssignedOfficer &&
                             occurrence_report.latest_referrals &&
                             occurrence_report.latest_referrals.length > 0
@@ -305,7 +346,9 @@ v-if="display_referral_actions &&
                                                 "
                                             >
                                                 <a
-v-if="canAction" role="button" data-bs-toggle="popover"
+                                                    v-if="canAction"
+                                                    role="button"
+                                                    data-bs-toggle="popover"
                                                     data-bs-trigger="hover"
                                                     :data-bs-content="
                                                         'Send a reminder to ' +
@@ -321,7 +364,9 @@ v-if="canAction" role="button" data-bs-toggle="popover"
                                                     ></i>
                                                 </a>
                                                 <a
-role="button" data-bs-toggle="popover" data-bs-trigger="hover"
+                                                    role="button"
+                                                    data-bs-toggle="popover"
+                                                    data-bs-trigger="hover"
                                                     :data-bs-content="
                                                         'Recall the referral request sent to ' +
                                                         r.referral['fullname']
@@ -363,7 +408,8 @@ role="button" data-bs-toggle="popover" data-bs-trigger="hover"
                             </table>
                             <ShowAllReferrals
                                 :occurrence_report_obj="occurrence_report"
-                                :can-action="canAction" :is-finalised="occurrence_report.finalised"
+                                :can-action="canAction"
+                                :is-finalised="occurrence_report.finalised"
                                 :referral_url="referralListURL"
                                 @refresh-from-response="refreshFromResponse"
                             />
@@ -375,52 +421,68 @@ role="button" data-bs-toggle="popover" data-bs-trigger="hover"
                         </div>
                         <div class="text-center">
                             <button
-v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-4"
+                                v-if="with_assessor"
+                                style="width: 80%"
+                                class="btn btn-primary mb-4"
                                 @click.prevent="amendmentRequest()"
                             >
                                 Request Amendment
                             </button>
                             <button
-v-if="with_approver || unlocked" style="width:80%;" class="btn btn-primary mb-4"
+                                v-if="with_approver || unlocked"
+                                style="width: 80%"
+                                class="btn btn-primary mb-4"
                                 @click.prevent="backToAssessor()"
                             >
                                 Back to Assessor
                             </button>
 
                             <button
-v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-2"
+                                v-if="with_assessor"
+                                style="width: 80%"
+                                class="btn btn-primary mb-2"
                                 @click.prevent="proposeApprove"
                             >
                                 Propose Approve
                             </button>
                             <button
-v-if="with_assessor" style="width:80%;" class="btn btn-primary mb-4"
+                                v-if="with_assessor"
+                                style="width: 80%"
+                                class="btn btn-primary mb-4"
                                 @click.prevent="proposeDecline"
                             >
                                 Propose Decline
                             </button>
 
                             <button
-v-if="display_approve_button" style="width:80%;" class="btn btn-primary mb-4"
+                                v-if="display_approve_button"
+                                style="width: 80%"
+                                class="btn btn-primary mb-4"
                                 @click.prevent="approve()"
                             >
                                 Approve
                             </button>
                             <button
-v-if="display_decline_button" style="width:80%;" class="btn btn-primary mb-4"
+                                v-if="display_decline_button"
+                                style="width: 80%"
+                                class="btn btn-primary mb-4"
                                 @click.prevent="decline()"
                             >
                                 Decline
                             </button>
 
                             <button
-v-if="approved" style="width:80%;" class="btn btn-primary mb-4"
+                                v-if="approved"
+                                style="width: 80%"
+                                class="btn btn-primary mb-4"
                                 @click.prevent="unlock()"
                             >
                                 Unlock
                             </button>
                             <button
-v-if="unlocked" style="width:80%;" class="btn btn-primary mb-4"
+                                v-if="unlocked"
+                                style="width: 80%"
+                                class="btn btn-primary mb-4"
                                 @click.prevent="lock()"
                             >
                                 Lock
@@ -432,7 +494,8 @@ v-if="unlocked" style="width:80%;" class="btn btn-primary mb-4"
                         class="card-body border-top text-center"
                     >
                         <button
-style="width:80%;" class="btn btn-primary mb-1"
+                            style="width: 80%"
+                            class="btn btn-primary mb-1"
                             @click.prevent="copyOccurrenceReport()"
                         >
                             <i class="bi bi-copy me-1"></i> Copy
@@ -445,13 +508,20 @@ style="width:80%;" class="btn btn-primary mb-1"
             </div>
             <div class="col-md-9">
                 <form
-:action="occurrence_report_form_url" method="post" name="occurrence_report"
+                    :action="occurrence_report_form_url"
+                    method="post"
+                    name="occurrence_report"
                     enctype="multipart/form-data"
                 >
                     <ProposalOccurrenceReport
-v-if="occurrence_report" id="OccurrenceReportStart"
-                        ref="occurrence_report" :occurrence_report_obj="occurrence_report" :can-edit-status="false" :is_external="false"
-                        :is_internal="true" @refresh-from-response="refreshFromResponse"
+                        v-if="occurrence_report"
+                        id="OccurrenceReportStart"
+                        ref="occurrence_report"
+                        :occurrence_report_obj="occurrence_report"
+                        :can-edit-status="false"
+                        :is_external="false"
+                        :is_internal="true"
+                        @refresh-from-response="refreshFromResponse"
                         @refresh-occurrence-report="refreshOccurrenceReport()"
                         @save-occurrence-report="save_before_submit()"
                     >
@@ -474,23 +544,29 @@ v-if="occurrence_report" id="OccurrenceReportStart"
                         >
                             <div class="container">
                                 <button
-class="btn btn-primary me-2 pull-left" style="margin-top:5px;"
+                                    class="btn btn-primary me-2 pull-left"
+                                    style="margin-top: 5px"
                                     @click.prevent="returnToDashboard"
                                 >
                                     Return to Dashboard
                                 </button>
                                 <div
-v-if="occurrence_report.internal_application && occurrence_report.can_user_edit"
+                                    v-if="
+                                        occurrence_report.internal_application &&
+                                        occurrence_report.can_user_edit
+                                    "
                                     class="col-md-6 text-end"
                                 >
                                     <button
-v-if="savingOccurrenceReport" class="btn btn-primary me-2"
+                                        v-if="savingOccurrenceReport"
+                                        class="btn btn-primary me-2"
                                         style="margin-top: 5px"
                                         disabled
                                     >
                                         Save and Continue&nbsp;
                                         <span
-class="spinner-border spinner-border-sm" role="status"
+                                            class="spinner-border spinner-border-sm"
+                                            role="status"
                                             aria-hidden="true"
                                         ></span>
                                         <span class="visually-hidden"
@@ -498,20 +574,28 @@ class="spinner-border spinner-border-sm" role="status"
                                         >
                                     </button>
                                     <button
-v-else class="btn btn-primary me-2" style="margin-top:5px;"
-                                        :disabled="saveExitOccurrenceReport || submitOccurrenceReport"
-                                        @click.prevent="save()">Save
-                                        Save and Continue
+                                        v-else
+                                        class="btn btn-primary me-2"
+                                        style="margin-top: 5px"
+                                        :disabled="
+                                            saveExitOccurrenceReport ||
+                                            submitOccurrenceReport
+                                        "
+                                        @click.prevent="save()"
+                                    >
+                                        Save Save and Continue
                                     </button>
 
                                     <button
-v-if="saveExitOccurrenceReport" class="btn btn-primary me-2"
+                                        v-if="saveExitOccurrenceReport"
+                                        class="btn btn-primary me-2"
                                         style="margin-top: 5px"
                                         disabled
                                     >
                                         Save and Exit&nbsp;
                                         <span
-class="spinner-border spinner-border-sm" role="status"
+                                            class="spinner-border spinner-border-sm"
+                                            role="status"
                                             aria-hidden="true"
                                         ></span>
                                         <span class="visually-hidden"
@@ -519,20 +603,28 @@ class="spinner-border spinner-border-sm" role="status"
                                         >
                                     </button>
                                     <button
-v-else class="btn btn-primary me-2" style="margin-top:5px;"
-                                        :disabled="savingOccurrenceReport || submitOccurrenceReport"
-                                        @click.prevent="save_exit()">Save
-                                        Save and Exit
+                                        v-else
+                                        class="btn btn-primary me-2"
+                                        style="margin-top: 5px"
+                                        :disabled="
+                                            savingOccurrenceReport ||
+                                            submitOccurrenceReport
+                                        "
+                                        @click.prevent="save_exit()"
+                                    >
+                                        Save Save and Exit
                                     </button>
 
                                     <button
-v-if="submitOccurrenceReport" class="btn btn-primary"
+                                        v-if="submitOccurrenceReport"
+                                        class="btn btn-primary"
                                         style="margin-top: 5px"
                                         disabled
                                     >
                                         Submit&nbsp;
                                         <span
-class="spinner-border spinner-border-sm" role="status"
+                                            class="spinner-border spinner-border-sm"
+                                            role="status"
                                             aria-hidden="true"
                                         ></span>
                                         <span class="visually-hidden"
@@ -540,16 +632,30 @@ class="spinner-border spinner-border-sm" role="status"
                                         >
                                     </button>
                                     <button
-v-else class="btn btn-primary" style="margin-top:5px;"
-                                        :disabled="saveExitOccurrenceReport || savingOccurrenceReport"
-                                        @click.prevent="submit()">Submit</button>
+                                        v-else
+                                        class="btn btn-primary"
+                                        style="margin-top: 5px"
+                                        :disabled="
+                                            saveExitOccurrenceReport ||
+                                            savingOccurrenceReport
+                                        "
+                                        @click.prevent="submit()"
+                                    >
+                                        Submit
+                                    </button>
                                 </div>
                                 <div
-v-else-if="(occurrence_report.assessor_mode.has_assessor_mode || occurrence_report.assessor_mode.has_unlocked_mode)"
+                                    v-else-if="
+                                        occurrence_report.assessor_mode
+                                            .has_assessor_mode ||
+                                        occurrence_report.assessor_mode
+                                            .has_unlocked_mode
+                                    "
                                     class="col-md-6 text-end"
                                 >
                                     <button
-v-if="savingOccurrenceReport" class="btn btn-primary"
+                                        v-if="savingOccurrenceReport"
+                                        class="btn btn-primary"
                                         style="margin-top: 5px"
                                         disabled
                                     >
@@ -564,7 +670,9 @@ v-if="savingOccurrenceReport" class="btn btn-primary"
                                         >
                                     </button>
                                     <button
-v-else class="btn btn-primary" style="margin-top:5px;"
+                                        v-else
+                                        class="btn btn-primary"
+                                        style="margin-top: 5px"
                                         @click.prevent="save()"
                                     >
                                         Save Changes
@@ -578,11 +686,13 @@ v-else class="btn btn-primary" style="margin-top:5px;"
         </div>
 
         <AmendmentRequest
-ref="amendment_request" :occurrence_report_id="occurrence_report.id"
+            ref="amendment_request"
+            :occurrence_report_id="occurrence_report.id"
             @refresh-from-response="refreshFromResponse"
         ></AmendmentRequest>
         <BackToAssessor
-ref="back_to_assessor" :occurrence_report_id="occurrence_report.id"
+            ref="back_to_assessor"
+            :occurrence_report_id="occurrence_report.id"
             :occurrence_report_number="
                 occurrence_report.occurrence_report_number
             "
@@ -590,7 +700,8 @@ ref="back_to_assessor" :occurrence_report_id="occurrence_report.id"
         >
         </BackToAssessor>
         <ProposeAppprove
-ref="propose_approve" :occurrence_report="occurrence_report"
+            ref="propose_approve"
+            :occurrence_report="occurrence_report"
             :occurrence_report_number="
                 occurrence_report.occurrence_report_number
             "
@@ -600,7 +711,8 @@ ref="propose_approve" :occurrence_report="occurrence_report"
         >
         </ProposeAppprove>
         <ProposeDecline
-ref="propose_decline" :occurrence_report_id="occurrence_report.id"
+            ref="propose_decline"
+            :occurrence_report_id="occurrence_report.id"
             :occurrence_report_number="
                 occurrence_report.occurrence_report_number
             "
@@ -609,7 +721,9 @@ ref="propose_decline" :occurrence_report_id="occurrence_report.id"
         </ProposeDecline>
 
         <Decline
-v-if="display_decline_button" ref="decline" :occurrence_report_id="occurrence_report.id"
+            v-if="display_decline_button"
+            ref="decline"
+            :occurrence_report_id="occurrence_report.id"
             :occurrence_report_number="
                 occurrence_report.occurrence_report_number
             "
@@ -618,7 +732,8 @@ v-if="display_decline_button" ref="decline" :occurrence_report_id="occurrence_re
         >
         </Decline>
         <Approve
-v-if="display_approve_button && occurrence_report.approval_details" ref="approve"
+            v-if="display_approve_button && occurrence_report.approval_details"
+            ref="approve"
             :occurrence_report_id="occurrence_report.id"
             :occurrence_report_number="
                 occurrence_report.occurrence_report_number
@@ -628,7 +743,9 @@ v-if="display_approve_button && occurrence_report.approval_details" ref="approve
         >
         </Approve>
         <InviteExternalReferee
-ref="inviteExternalReferee" :pk="occurrence_report.id" model="occurrence_report"
+            ref="inviteExternalReferee"
+            :pk="occurrence_report.id"
+            model="occurrence_report"
             :email="external_referee_email"
             @external-referee-invite-sent="externalRefereeInviteSent"
         />
@@ -700,7 +817,7 @@ export default {
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             department_users: null,
             external_referee_email: '',
-        }
+        };
     },
     computed: {
         csrf_token: function () {
@@ -870,9 +987,9 @@ export default {
         discardOCRProposal: function () {
             let vm = this;
             swal.fire({
-                title: "Discard Report",
-                text: "Are you sure you want to discard this report?",
-                icon: "question",
+                title: 'Discard Report',
+                text: 'Are you sure you want to discard this report?',
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Discard Report',
                 customClass: {
@@ -880,40 +997,48 @@ export default {
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then((swalresult) => {
-                if (swalresult.isConfirmed) {
-                    fetch(api_endpoints.discard_ocr_proposal(vm.occurrence_report.id), {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    })
-                        .then((response) => {
-                            swal.fire({
-                                title: 'Discarded',
-                                text: 'Your report has been discarded',
-                                icon: 'success',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
+            }).then(
+                (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        fetch(
+                            api_endpoints.discard_ocr_proposal(
+                                vm.occurrence_report.id
+                            ),
+                            {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
                                 },
-                            });
-                            vm.$router.push({
-                                name: 'internal-species-communities-dash'
-                            });
-                        }, (error) => {
-                            console.log(error);
-                        });
-                }
-            }, (error) => {
-
-            });
+                            }
+                        ).then(
+                            () => {
+                                swal.fire({
+                                    title: 'Discarded',
+                                    text: 'Your report has been discarded',
+                                    icon: 'success',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                vm.$router.push({
+                                    name: 'internal-species-communities-dash',
+                                });
+                            },
+                            (error) => {
+                                console.log(error);
+                            }
+                        );
+                    }
+                },
+                () => {}
+            );
         },
         unlock: function () {
             let vm = this;
             swal.fire({
-                title: "Unlock Report",
-                text: "Are you sure you want to unlock this approved report?",
-                icon: "question",
+                title: 'Unlock Report',
+                text: 'Are you sure you want to unlock this approved report?',
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Unlock Report',
                 customClass: {
@@ -921,38 +1046,44 @@ export default {
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then((swalresult) => {
-                if (swalresult.isConfirmed) {
-                    fetch(`/api/occurrence_report/${vm.occurrence_report.id}/unlock_occurrence_report.json`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    })
-                        .then(async (response) => {
-                            swal.fire({
-                                title: 'Unlocked',
-                                text: 'The approved occurrence report has been unlocked for editing',
-                                icon: 'success',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
+            }).then(
+                (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        fetch(
+                            `/api/occurrence_report/${vm.occurrence_report.id}/unlock_occurrence_report.json`,
+                            {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
                                 },
-                            });
-                            vm.occurrence_report = await response.json();
-                        }, (error) => {
-                            console.log(error);
-                        });
-                }
-            }, (error) => {
-
-            });
+                            }
+                        ).then(
+                            async (response) => {
+                                swal.fire({
+                                    title: 'Unlocked',
+                                    text: 'The approved occurrence report has been unlocked for editing',
+                                    icon: 'success',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                vm.occurrence_report = await response.json();
+                            },
+                            (error) => {
+                                console.log(error);
+                            }
+                        );
+                    }
+                },
+                () => {}
+            );
         },
         lock: function () {
             let vm = this;
             swal.fire({
-                title: "Lock Report",
-                text: "Are you sure you want to lock this approved report?",
-                icon: "question",
+                title: 'Lock Report',
+                text: 'Are you sure you want to lock this approved report?',
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Lock Report',
                 customClass: {
@@ -960,31 +1091,37 @@ export default {
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then((swalresult) => {
-                if (swalresult.isConfirmed) {
-                    fetch(`/api/occurrence_report/${vm.occurrence_report.id}/lock_occurrence_report.json`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    })
-                        .then(async (response) => {
-                            swal.fire({
-                                title: 'Locked',
-                                text: 'The approved occurrence report has been locked from editing',
-                                icon: 'success',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
+            }).then(
+                (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        fetch(
+                            `/api/occurrence_report/${vm.occurrence_report.id}/lock_occurrence_report.json`,
+                            {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
                                 },
-                            });
-                            vm.occurrence_report = await response.json();
-                        }, (error) => {
-                            console.log(error);
-                        });
-                }
-            }, (error) => {
-
-            });
+                            }
+                        ).then(
+                            async (response) => {
+                                swal.fire({
+                                    title: 'Locked',
+                                    text: 'The approved occurrence report has been locked from editing',
+                                    icon: 'success',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                vm.occurrence_report = await response.json();
+                            },
+                            (error) => {
+                                console.log(error);
+                            }
+                        );
+                    }
+                },
+                () => {}
+            );
         },
         amendmentRequest: function () {
             this.$refs.amendment_request.isModalOpen = true;
@@ -1001,22 +1138,22 @@ export default {
         returnToDashboard: function () {
             let vm = this;
             vm.$router.push({
-                name: 'internal-occurrence-dash'
+                name: 'internal-occurrence-dash',
             });
         },
         save: async function () {
             let vm = this;
-            var missing_data = await vm.can_submit("");
+            var missing_data = await vm.can_submit('');
             vm.isSaved = false;
             if (missing_data != true) {
                 swal.fire({
-                    title: "Please fix following errors before saving",
+                    title: 'Please fix following errors before saving',
                     text: missing_data,
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
                     },
-                })
+                });
                 return false;
             }
             vm.savingOccurrenceReport = true;
@@ -1040,71 +1177,77 @@ export default {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-            }).then(async (response) => {
-                swal.fire({
-                    title: "Saved",
-                    text: "Your changes have been saved",
-                    icon: "success",
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-                vm.savingOccurrenceReport = false;
-                vm.isSaved = true;
-                vm.occurrence_report = await response.json();
-                vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
-                    false
-                );
-            }, err => {
-                var errorText = helpers.apiVueResourceError(err);
-                swal.fire({
-                    title: 'Save Error',
-                    text: errorText,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-                vm.savingOccurrenceReport = false;
-                vm.isSaved = false;
-                vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
-                    false
-                );
-            });
+            }).then(
+                async (response) => {
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Your changes have been saved',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.savingOccurrenceReport = false;
+                    vm.isSaved = true;
+                    vm.occurrence_report = await response.json();
+                    vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
+                        false
+                    );
+                },
+                (err) => {
+                    var errorText = helpers.apiVueResourceError(err);
+                    swal.fire({
+                        title: 'Save Error',
+                        text: errorText,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.savingOccurrenceReport = false;
+                    vm.isSaved = false;
+                    vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
+                        false
+                    );
+                }
+            );
         },
-        save_exit: async function (e) {
+        save_exit: async function () {
             let vm = this;
-            var missing_data = await vm.can_submit("");
+            var missing_data = await vm.can_submit('');
             if (missing_data != true) {
                 swal.fire({
-                    title: "Please fix following errors before saving",
+                    title: 'Please fix following errors before saving',
                     text: missing_data,
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
                     },
-                })
+                });
                 return false;
             }
             vm.saveExitOccurrenceReport = true;
             await vm.save().then(() => {
                 if (vm.isSaved === true) {
                     vm.$router.push({
-                        name: 'internal-occurrence-dash'
+                        name: 'internal-occurrence-dash',
                     });
-                }
-                else {
+                } else {
                     vm.saveExitOccurrenceReport = false;
                 }
             });
         },
-        save_before_submit: async function (e) {
+        save_before_submit: async function () {
             let vm = this;
             vm.saveError = false;
 
             // add map geometry to the occurrence_report
-            if (vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map) {
-                vm.occurrence_report.ocr_geometry = vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.getJSONFeatures();
+            if (
+                vm.$refs.occurrence_report.$refs.ocr_location.$refs
+                    .component_map
+            ) {
+                vm.occurrence_report.ocr_geometry =
+                    vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.getJSONFeatures();
             }
 
             let payload = { proposal: vm.occurrence_report };
@@ -1114,177 +1257,228 @@ export default {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-            }).then(async (response) => {
-
-            }, err => {
-                var errorText = helpers.apiVueResourceError(err);
-                swal.fire({
-                    title: 'Submit Error',
-                    text: errorText,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                })
-                vm.submitOccurrenceReport = false;
-                vm.saveError = true;
-            });
+            }).then(
+                async () => {},
+                (err) => {
+                    var errorText = helpers.apiVueResourceError(err);
+                    swal.fire({
+                        title: 'Submit Error',
+                        text: errorText,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.submitOccurrenceReport = false;
+                    vm.saveError = true;
+                }
+            );
             return result;
         },
         can_submit: async function (check_action) {
             let vm = this;
-            let blank_fields = []
-            if (vm.occurrence_report.group_type == 'flora' || vm.occurrence_report.group_type == 'fauna') {
-                if (vm.occurrence_report.species_id == null || vm.occurrence_report.species_id == '') {
-                    blank_fields.push(' Scientific Name is missing')
+            let blank_fields = [];
+            if (
+                vm.occurrence_report.group_type == 'flora' ||
+                vm.occurrence_report.group_type == 'fauna'
+            ) {
+                if (
+                    vm.occurrence_report.species_id == null ||
+                    vm.occurrence_report.species_id == ''
+                ) {
+                    blank_fields.push(' Scientific Name is missing');
                 }
-            }
-            else {
-                if (vm.occurrence_report.community_id == null || vm.occurrence_report.community_id == '') {
-                    blank_fields.push(' Community Name is missing')
+            } else {
+                if (
+                    vm.occurrence_report.community_id == null ||
+                    vm.occurrence_report.community_id == ''
+                ) {
+                    blank_fields.push(' Community Name is missing');
                 }
             }
             if (check_action == 'submit') {
-                await vm.save_before_submit()
+                await vm.save_before_submit();
 
-                if (!vm.occurrence_report.submitter_information.submitter_category) {
-                    blank_fields.push(' Please select a submitter category')
+                if (
+                    !vm.occurrence_report.submitter_information
+                        .submitter_category
+                ) {
+                    blank_fields.push(' Please select a submitter category');
                 }
 
                 if (!vm.occurrence_report.observation_date) {
-                    blank_fields.push(' Please enter the observation date')
+                    blank_fields.push(' Please enter the observation date');
                 }
 
-                if (!vm.occurrence_report.number_of_observers || vm.occurrence_report.number_of_observers == 0) {
-                    blank_fields.push(' Please add the details for at least one observer')
+                if (
+                    !vm.occurrence_report.number_of_observers ||
+                    vm.occurrence_report.number_of_observers == 0
+                ) {
+                    blank_fields.push(
+                        ' Please add the details for at least one observer'
+                    );
                 }
 
-                if (!vm.occurrence_report.location || !vm.occurrence_report.location.location_description) {
-                    blank_fields.push(' Please enter the location description')
+                if (
+                    !vm.occurrence_report.location ||
+                    !vm.occurrence_report.location.location_description
+                ) {
+                    blank_fields.push(' Please enter the location description');
                 }
                 let ocr_geometry = vm.occurrence_report.ocr_geometry;
                 if (typeof ocr_geometry == 'string') {
-                    ocr_geometry = JSON.parse(ocr_geometry)
+                    ocr_geometry = JSON.parse(ocr_geometry);
                 }
-                if (!Array.isArray(ocr_geometry.features) || ocr_geometry.features.length == 0) {
-                    blank_fields.push(' Please add at least one location on the map')
+                if (
+                    !Array.isArray(ocr_geometry.features) ||
+                    ocr_geometry.features.length == 0
+                ) {
+                    blank_fields.push(
+                        ' Please add at least one location on the map'
+                    );
                 }
             }
             if (blank_fields.length == 0) {
                 return true;
-            }
-            else {
+            } else {
                 return blank_fields;
             }
         },
         submit: async function () {
             let vm = this;
 
-            var missing_data = await vm.can_submit("submit");
+            var missing_data = await vm.can_submit('submit');
             if (missing_data != true) {
                 swal.fire({
-                    title: "Please fix following errors before submitting",
+                    title: 'Please fix following errors before submitting',
                     text: missing_data,
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
                     },
-                })
+                });
                 //vm.paySubmitting=false;
                 return false;
             }
 
             vm.submitOccurrenceReport = true;
             swal.fire({
-                title: "Submit Occurrece Report",
-                text: "Are you sure you want to submit this occurrence report?",
-                icon: "question",
+                title: 'Submit Occurrece Report',
+                text: 'Are you sure you want to submit this occurrence report?',
+                icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: "submit",
+                confirmButtonText: 'submit',
                 customClass: {
                     confirmButton: 'btn btn-primary',
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then(async (swalresult) => {
-                if (swalresult.isConfirmed) {
-                    let result = await vm.save_before_submit()
-                    if (!vm.saveError) {
-                        let payload = new Object();
-                        Object.assign(payload, vm.occurrence_report);
-                        fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, vm.occurrence_report.id + '/submit'), {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(payload),
-                        }).then(async (response) => {
-                            vm.occurrence = await response.json();
-                            vm.$router.push({
-                                name: 'internal-occurrence-dash'
-                            });
-                        }, err => {
-                            swal.fire({
-                                title: 'Submit Error',
-                                text: helpers.apiVueResourceError(err),
-                                icon: 'error',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
+            }).then(
+                async (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        await vm.save_before_submit();
+                        if (!vm.saveError) {
+                            let payload = new Object();
+                            Object.assign(payload, vm.occurrence_report);
+                            fetch(
+                                helpers.add_endpoint_json(
+                                    api_endpoints.occurrence_report,
+                                    vm.occurrence_report.id + '/submit'
+                                ),
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify(payload),
+                                }
+                            ).then(
+                                async (response) => {
+                                    vm.occurrence = await response.json();
+                                    vm.$router.push({
+                                        name: 'internal-occurrence-dash',
+                                    });
                                 },
-                            });
-                            vm.submitOccurrenceReport = false;
-                        });
+                                (err) => {
+                                    swal.fire({
+                                        title: 'Submit Error',
+                                        text: helpers.apiVueResourceError(err),
+                                        icon: 'error',
+                                        customClass: {
+                                            confirmButton: 'btn btn-primary',
+                                        },
+                                    });
+                                    vm.submitOccurrenceReport = false;
+                                }
+                            );
+                        }
                     }
+                    vm.submitOccurrenceReport = false;
+                },
+                () => {
+                    vm.submitOccurrenceReport = false;
                 }
-                vm.submitOccurrenceReport = false;
-            }, (error) => {
-                vm.submitOccurrenceReport = false;
-            });
+            );
         },
         copyOccurrenceReport: function () {
             swal.fire({
-                title: "Copy Occurrence Report",
+                title: 'Copy Occurrence Report',
                 text: `Are you sure you want to make a copy of occurrence report ${this.occurrence_report.occurrence_report_number}?`,
-                icon: "question",
+                icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: "Copy Occurrence Report",
+                confirmButtonText: 'Copy Occurrence Report',
                 customClass: {
                     confirmButton: 'btn btn-primary',
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then((swalresult) => {
-                if (swalresult.isConfirmed) {
-                    fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, this.occurrence_report.id + '/copy'), {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    }).then(async (response) => {
-                        const ocr_copy = await response.json();
-                        swal.fire({
-                            title: 'Copied',
-                            text: `The occurrence report has been copied to ${ocr_copy.occurrence_report_number}. When you click OK, the new occurrence report will open in a new window.`,
-                            icon: 'success',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
-                            },
-                            didClose: () => {
-                                const routeData = this.$router.resolve({
-                                    name: 'internal-occurrence-report-detail',
-                                    params: { occurrence_report_id: ocr_copy.id },
-                                    query: { action: 'edit' }
-                                });
-                                window.open(routeData.href, '_blank');
+            }).then(
+                (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        fetch(
+                            helpers.add_endpoint_json(
+                                api_endpoints.occurrence_report,
+                                this.occurrence_report.id + '/copy'
+                            ),
+                            {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
                             }
-                        });
-                    }, (error) => {
-                        console.log(error);
-                    });
+                        ).then(
+                            async (response) => {
+                                const ocr_copy = await response.json();
+                                swal.fire({
+                                    title: 'Copied',
+                                    text: `The occurrence report has been copied to ${ocr_copy.occurrence_report_number}. When you click OK, the new occurrence report will open in a new window.`,
+                                    icon: 'success',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                    didClose: () => {
+                                        const routeData = this.$router.resolve({
+                                            name: 'internal-occurrence-report-detail',
+                                            params: {
+                                                occurrence_report_id:
+                                                    ocr_copy.id,
+                                            },
+                                            query: { action: 'edit' },
+                                        });
+                                        window.open(routeData.href, '_blank');
+                                    },
+                                });
+                            },
+                            (error) => {
+                                console.log(error);
+                            }
+                        );
+                    }
+                },
+                (error) => {
+                    console.log(error);
                 }
-            }, (error) => {
-                console.log(error);
-            });
+            );
         },
         refreshFromResponse: async function (response) {
             let vm = this;
@@ -1306,60 +1500,78 @@ export default {
         },
         sendReferral: function () {
             let vm = this;
-            let formData = new FormData(vm.form);
             vm.sendingReferral = true;
-            let data = { 'email': vm.selected_referral, 'text': vm.referral_text };
-            fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/send_referral')), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
+            let data = { email: vm.selected_referral, text: vm.referral_text };
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.occurrence_report,
+                    vm.occurrence_report.id + '/send_referral'
+                ),
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                }
+            ).then(
+                async (response) => {
+                    const data = await response.json();
+                    vm.sendingReferral = false;
+                    vm.original_occurrence_report = helpers.copyObject(data);
+                    vm.occurrence_report = data;
+                    swal.fire({
+                        title: 'Referral Sent',
+                        text: `The referral has been sent to ${vm.selected_referral}`,
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    $(vm.$refs.department_users).val(null).trigger('change');
+                    vm.selected_referral = '';
+                    vm.referral_text = '';
                 },
-                body: JSON.stringify(data),
-            }).then(async (response) => {
-                const data = await response.json();
-                vm.sendingReferral = false;
-                vm.original_occurrence_report = helpers.copyObject(data);
-                vm.occurrence_report = data;
-                swal.fire({
-                    title: 'Referral Sent',
-                    text: `The referral has been sent to ${vm.selected_referral}`,
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-                $(vm.$refs.department_users).val(null).trigger("change");
-                vm.selected_referral = '';
-                vm.referral_text = '';
-            }, (error) => {
-                console.log(error);
-                swal.fire({
-                    title: 'Referral Error',
-                    text: helpers.apiVueResourceError(error),
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-                vm.sendingReferral = false;
-            });
+                (error) => {
+                    console.log(error);
+                    swal.fire({
+                        title: 'Referral Error',
+                        text: helpers.apiVueResourceError(error),
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.sendingReferral = false;
+                }
+            );
         },
         remindReferral: function (r) {
             let vm = this;
-            fetch(helpers.add_endpoint_json(api_endpoints.ocr_referrals, r.id + '/remind')).then(async (response) => {
-                const data = await response.json();
-                vm.original_occurrence_report = helpers.copyObject(data);
-                vm.occurrence_report = data;
-                swal.fire({
-                    title: 'Referral Reminder',
-                    text: 'A reminder has been sent to ' + vm.department_users.find(d => d.id == r.referral.id).name,
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-            },
-                error => {
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.ocr_referrals,
+                    r.id + '/remind'
+                )
+            ).then(
+                async (response) => {
+                    const data = await response.json();
+                    vm.original_occurrence_report = helpers.copyObject(data);
+                    vm.occurrence_report = data;
+                    swal.fire({
+                        title: 'Referral Reminder',
+                        text:
+                            'A reminder has been sent to ' +
+                            vm.department_users.find(
+                                (d) => d.id == r.referral.id
+                            ).name,
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                },
+                (error) => {
                     swal.fire({
                         title: 'Referral Reminder Error',
                         text: helpers.apiVueResourceError(error),
@@ -1368,26 +1580,37 @@ export default {
                             confirmButton: 'btn btn-primary',
                         },
                     });
-                });
+                }
+            );
         },
         recallReferral: function (r) {
             let vm = this;
-            fetch(helpers.add_endpoint_json(api_endpoints.ocr_referrals, r.id + '/recall')).then(async (response) => {
-                const data = await response.json();
-                vm.original_occurrence_report = helpers.copyObject(data);
-                vm.occurrence_report = data;
-                $('.popover').hide();
-                vm.enablePopovers();
-                swal.fire({
-                    title: 'Referral Recall',
-                    text: 'The referral has been recalled from ' + vm.department_users.find(d => d.id == r.referral.id).name,
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-            },
-                error => {
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.ocr_referrals,
+                    r.id + '/recall'
+                )
+            ).then(
+                async (response) => {
+                    const data = await response.json();
+                    vm.original_occurrence_report = helpers.copyObject(data);
+                    vm.occurrence_report = data;
+                    $('.popover').hide();
+                    vm.enablePopovers();
+                    swal.fire({
+                        title: 'Referral Recall',
+                        text:
+                            'The referral has been recalled from ' +
+                            vm.department_users.find(
+                                (d) => d.id == r.referral.id
+                            ).name,
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                },
+                (error) => {
                     swal.fire({
                         title: 'Referral Recall Error',
                         text: helpers.apiVueResourceError(error),
@@ -1396,26 +1619,37 @@ export default {
                             confirmButton: 'btn btn-primary',
                         },
                     });
-                });
+                }
+            );
         },
         resendReferral: function (r) {
             let vm = this;
-            fetch(helpers.add_endpoint_json(api_endpoints.ocr_referrals, r.id + '/resend')).then(async (response) => {
-                const data = await response.json();
-                vm.original_occurrence_report = helpers.copyObject(data);
-                vm.occurrence_report = data;
-                $('.popover').hide();
-                vm.enablePopovers();
-                swal.fire({
-                    title: 'Referral Resent',
-                    text: 'The referral has been resent to ' + vm.department_users.find(d => d.id == r.referral.id).name,
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-            },
-                error => {
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.ocr_referrals,
+                    r.id + '/resend'
+                )
+            ).then(
+                async (response) => {
+                    const data = await response.json();
+                    vm.original_occurrence_report = helpers.copyObject(data);
+                    vm.occurrence_report = data;
+                    $('.popover').hide();
+                    vm.enablePopovers();
+                    swal.fire({
+                        title: 'Referral Resent',
+                        text:
+                            'The referral has been resent to ' +
+                            vm.department_users.find(
+                                (d) => d.id == r.referral.id
+                            ).name,
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                },
+                (error) => {
                     swal.fire({
                         title: 'Referral Resent Error',
                         text: helpers.apiVueResourceError(error),
@@ -1424,101 +1658,104 @@ export default {
                             confirmButton: 'btn btn-primary',
                         },
                     });
-                });
+                }
+            );
         },
         fetchDeparmentUsers: function () {
             let vm = this;
-            fetch(api_endpoints.department_users).then(async (response) => {
-                vm.department_users = await response.json();
-            }, (error) => {
-                console.log(error);
-            })
+            fetch(api_endpoints.department_users).then(
+                async (response) => {
+                    vm.department_users = await response.json();
+                },
+                (error) => {
+                    console.log(error);
+                }
+            );
         },
         initialiseReferreeSelect: function () {
             let vm = this;
-            $(vm.$refs.department_users).select2({
-                minimumInputLength: 2,
-                "theme": "bootstrap-5",
-                allowClear: true,
-                placeholder: "Search for Referree",
-                ajax: {
-                    url: api_endpoints.users_api + '/get_referees/',
-                    dataType: 'json',
-                    data: function (params) {
-                        var query = {
-                            term: params.term,
-                            type: 'public',
-                        }
-                        return query;
+            $(vm.$refs.department_users)
+                .select2({
+                    minimumInputLength: 2,
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: 'Search for Referree',
+                    ajax: {
+                        url: api_endpoints.users_api + '/get_referees/',
+                        dataType: 'json',
+                        data: function (params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                            };
+                            return query;
+                        },
+                        processResults: function (data, params) {
+                            if (Object.keys(data.results).length == 0) {
+                                swal.fire({
+                                    title: 'No Referee Found',
+                                    text: 'Would you like to invite a new external referee to the system?',
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    reverseButtons: true,
+                                    confirmButtonText: 'Yes',
+                                    cancelButtonText: 'No',
+                                    buttonsStyling: false,
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                        cancelButton: 'btn btn-secondary me-2',
+                                    },
+                                }).then(async (result) => {
+                                    if (result.isConfirmed) {
+                                        vm.external_referee_email = params.term;
+                                        vm.$refs.inviteExternalReferee.isModalOpen = true;
+                                        $(vm.$refs.referees).select2('close');
+                                    }
+                                });
+                            }
+                            return data;
+                        },
                     },
-                    processResults: function (data, params) {
-                        if (Object.keys(data.results).length == 0) {
-                            swal.fire({
-                                title: 'No Referee Found',
-                                text: 'Would you like to invite a new external referee to the system?',
-                                icon: 'warning',
-                                showCancelButton: true,
-                                reverseButtons: true,
-                                confirmButtonText: 'Yes',
-                                cancelButtonText: 'No',
-                                buttonsStyling: false,
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
-                                    cancelButton: 'btn btn-secondary me-2',
-                                },
-                            }).then(async (result) => {
-                                if (result.isConfirmed) {
-                                    vm.external_referee_email =
-                                        params.term;
-                                    vm.$refs.inviteExternalReferee.isModalOpen = true;
-                                    $(vm.$refs.referees).select2(
-                                        'close'
-                                    );
-                                }
-                            });
-                        }
-                        return data;
-                    },
-                },
-            })
-                .on("select2:select", function (e) {
+                })
+                .on('select2:select', function (e) {
                     let data = e.params.data.id;
                     vm.selected_referral = data;
                     vm.$nextTick(() => {
                         vm.$refs.referral_text.focus();
                     });
                 })
-                .on("select2:unselect", function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.selected_referral = null;
-                })
+                });
         },
         externalRefereeInviteSent: function (response) {
             let vm = this;
             vm.refreshFromResponse(response);
-            $(vm.$refs.referees).val(null).trigger("change");
+            $(vm.$refs.referees).val(null).trigger('change');
             vm.enablePopovers();
             vm.selected_referral = '';
             vm.referral_text = '';
         },
         remindExternalReferee: function (external_referee_invite) {
-            let vm = this;
             fetch(
                 helpers.add_endpoint_join(
                     api_endpoints.ocr_external_referee_invites,
                     `/${external_referee_invite.id}/remind/`
-                ), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
+                ),
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                 }
-            }).then((response) => {
-                swal.fire({
-                    title: 'Reminder Email Sent',
-                    text: `A reminder email was successfully sent to ${external_referee_invite.full_name} (${external_referee_invite.email}).`,
-                    icon: 'success',
-                });
-            })
+            )
+                .then(() => {
+                    swal.fire({
+                        title: 'Reminder Email Sent',
+                        text: `A reminder email was successfully sent to ${external_referee_invite.full_name} (${external_referee_invite.email}).`,
+                        icon: 'success',
+                    });
+                })
                 .catch((error) => {
                     console.error(`Error sending reminder. ${error}`);
                 });
@@ -1543,14 +1780,15 @@ export default {
                         helpers.add_endpoint_join(
                             api_endpoints.ocr_external_referee_invites,
                             `/${external_referee_invite.id}/retract/`
-                        ), {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    }
+                        ),
+                        {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        }
                     )
-                        .then((response) => {
+                        .then(() => {
                             this.refreshOccurrenceReport();
                             swal.fire({
                                 title: 'External Referee Invite Retracted',
@@ -1573,34 +1811,36 @@ export default {
         initialiseAssignedOfficerSelect: function (reinit = false) {
             let vm = this;
             if (reinit) {
-                $(vm.$refs.assigned_officer).data('select2') ? $(vm.$refs.assigned_officer).select2('destroy') : '';
+                $(vm.$refs.assigned_officer).data('select2')
+                    ? $(vm.$refs.assigned_officer).select2('destroy')
+                    : '';
             }
             // Assigned officer select
-            $(vm.$refs.assigned_officer).select2({
-                "theme": "bootstrap-5",
-                allowClear: true,
-                placeholder: "Unassigned"
-            }).
-                on("select2:select", function (e) {
+            $(vm.$refs.assigned_officer)
+                .select2({
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: 'Unassigned',
+                })
+                .on('select2:select', function (e) {
                     var selected = $(e.currentTarget);
                     if (vm.with_approver) {
                         vm.occurrence_report.assigned_approver = selected.val();
-                    }
-                    else {
+                    } else {
                         vm.occurrence_report.assigned_officer = selected.val();
                     }
                     vm.assignTo();
-                }).on("select2:unselecting", function (e) {
+                })
+                .on('select2:unselecting', function () {
                     var self = $(this);
                     setTimeout(() => {
                         self.select2('close');
                     }, 0);
-                }).on("select2:unselect", function (e) {
-                    var selected = $(e.currentTarget);
+                })
+                .on('select2:unselect', function () {
                     if (vm.with_approver) {
                         vm.occurrence_report.assigned_approver = null;
-                    }
-                    else {
+                    } else {
                         vm.occurrence_report.assigned_officer = null;
                     }
                     vm.assignTo();
@@ -1609,11 +1849,14 @@ export default {
         updateAssignedOfficerSelect: function () {
             let vm = this;
             if (vm.with_approver) {
-                $(vm.$refs.assigned_officer).val(vm.occurrence_report.assigned_approver);
+                $(vm.$refs.assigned_officer).val(
+                    vm.occurrence_report.assigned_approver
+                );
                 $(vm.$refs.assigned_officer).trigger('change');
-            }
-            else {
-                $(vm.$refs.assigned_officer).val(vm.occurrence_report.assigned_officer);
+            } else {
+                $(vm.$refs.assigned_officer).val(
+                    vm.occurrence_report.assigned_officer
+                );
                 $(vm.$refs.assigned_officer).trigger('change');
             }
         },
@@ -1622,46 +1865,45 @@ export default {
             let unassign = true;
             let data = {};
             if (vm.with_approver) {
-                unassign = vm.occurrence_report.assigned_approver != null && vm.occurrence_report.assigned_approver != 'undefined' ? false : true;
-                data = { 'assessor_id': vm.occurrence_report.assigned_approver };
-            }
-            else {
-                unassign = vm.occurrence_report.assigned_officer != null && vm.occurrence_report.assigned_officer != 'undefined' ? false : true;
-                data = { 'assessor_id': vm.occurrence_report.assigned_officer };
+                unassign =
+                    vm.occurrence_report.assigned_approver != null &&
+                    vm.occurrence_report.assigned_approver != 'undefined'
+                        ? false
+                        : true;
+                data = { assessor_id: vm.occurrence_report.assigned_approver };
+            } else {
+                unassign =
+                    vm.occurrence_report.assigned_officer != null &&
+                    vm.occurrence_report.assigned_officer != 'undefined'
+                        ? false
+                        : true;
+                data = { assessor_id: vm.occurrence_report.assigned_officer };
             }
             if (!unassign) {
-                fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/assign_to')), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data),
-                }).then(async (response) => {
-                    const data = await response.json();
-                    vm.occurrence_report = data;
-                    vm.original_occurrence_report = helpers.copyObject(data);
-                    vm.updateAssignedOfficerSelect();
-                }, (error) => {
-                    vm.occurrence_report = helpers.copyObject(vm.original_occurrence_report)
-                    vm.updateAssignedOfficerSelect();
-                    swal.fire({
-                        title: 'Application Error',
-                        text: helpers.apiVueResourceError(error),
-                        icon: 'error',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
+                fetch(
+                    helpers.add_endpoint_json(
+                        api_endpoints.occurrence_report,
+                        vm.occurrence_report.id + '/assign_to'
+                    ),
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
                         },
-                    });
-                });
-            }
-            else {
-                fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/unassign')))
-                    .then(async (response) => {
+                        body: JSON.stringify(data),
+                    }
+                ).then(
+                    async (response) => {
+                        const data = await response.json();
                         vm.occurrence_report = data;
-                        vm.original_occurrence_report = helpers.copyObject(data);
+                        vm.original_occurrence_report =
+                            helpers.copyObject(data);
                         vm.updateAssignedOfficerSelect();
-                    }, (error) => {
-                        vm.occurrence_report = helpers.copyObject(vm.original_occurrence_report)
+                    },
+                    (error) => {
+                        vm.occurrence_report = helpers.copyObject(
+                            vm.original_occurrence_report
+                        );
                         vm.updateAssignedOfficerSelect();
                         swal.fire({
                             title: 'Application Error',
@@ -1671,21 +1913,59 @@ export default {
                                 confirmButton: 'btn btn-primary',
                             },
                         });
-                    });
+                    }
+                );
+            } else {
+                fetch(
+                    helpers.add_endpoint_json(
+                        api_endpoints.occurrence_report,
+                        vm.occurrence_report.id + '/unassign'
+                    )
+                ).then(
+                    async () => {
+                        vm.occurrence_report = data;
+                        vm.original_occurrence_report =
+                            helpers.copyObject(data);
+                        vm.updateAssignedOfficerSelect();
+                    },
+                    (error) => {
+                        vm.occurrence_report = helpers.copyObject(
+                            vm.original_occurrence_report
+                        );
+                        vm.updateAssignedOfficerSelect();
+                        swal.fire({
+                            title: 'Application Error',
+                            text: helpers.apiVueResourceError(error),
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                    }
+                );
             }
         },
         assignRequestUser: function () {
             let vm = this;
-            fetch(helpers.add_endpoint_json(api_endpoints.occurrence_report, (vm.occurrence_report.id + '/assign_request_user')))
-                .then(async (response) => {
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.occurrence_report,
+                    vm.occurrence_report.id + '/assign_request_user'
+                )
+            ).then(
+                async (response) => {
+                    const data = await response.json();
                     vm.occurrence_report = data;
                     vm.original_occurrence_report = helpers.copyObject(data);
                     vm.updateAssignedOfficerSelect();
                     vm.$nextTick(() => {
                         vm.initialiseReferreeSelect();
                     });
-                }, (error) => {
-                    vm.occurrence_report = helpers.copyObject(vm.original_occurrence_report)
+                },
+                (error) => {
+                    vm.occurrence_report = helpers.copyObject(
+                        vm.original_occurrence_report
+                    );
                     vm.updateAssignedOfficerSelect();
                     swal.fire({
                         title: 'Application Error',
@@ -1695,7 +1975,8 @@ export default {
                             confirmButton: 'btn btn-primary',
                         },
                     });
-                });
+                }
+            );
         },
         proposeDecline: function () {
             this.save_before_submit();
@@ -1710,18 +1991,20 @@ export default {
                 $(function () {
                     $('[data-bs-toggle="popover"]').each(function () {
                         new bootstrap.Popover(this);
-                    })
-                })
+                    });
+                });
             });
         },
         fetchOccurrenceReport: function (id) {
             let vm = this;
-            fetch(`/api/occurrence_report/${id}/`).then(async (response) => {
-                vm.occurrence_report = await response.json();
-            },
-                err => {
+            fetch(`/api/occurrence_report/${id}/`).then(
+                async (response) => {
+                    vm.occurrence_report = await response.json();
+                },
+                (err) => {
                     console.log(err);
-                });
+                }
+            );
         },
         refreshOccurrenceReport: function () {
             this.fetchOccurrenceReport(this.$route.params.occurrence_report_id);

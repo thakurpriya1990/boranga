@@ -297,7 +297,6 @@ export default {
             };
         },
         column_action: function () {
-            let vm = this;
             return {
                 data: 'id',
                 orderable: false,
@@ -323,7 +322,6 @@ export default {
         datatable_options: function () {
             let vm = this;
             let columns = [];
-            let search = null;
             let buttons = [
                 {
                     extend: 'excel',
@@ -353,8 +351,6 @@ export default {
                 vm.column_status,
                 vm.column_action,
             ];
-            search = false;
-            buttons = buttons;
 
             return {
                 autoWidth: false,
@@ -463,11 +459,12 @@ export default {
             vm.initialiseScientificNameLookup();
             vm.initialiseCommunityNameLookup();
             vm.addEventListeners();
+            var newOption = null;
             if (
                 sessionStorage.getItem('filterOCRScientificName') != 'all' &&
                 sessionStorage.getItem('filterOCRScientificName') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterOCRScientificNameText'),
                     vm.filterOCRScientificName,
                     false,
@@ -479,7 +476,7 @@ export default {
                 sessionStorage.getItem('filterOCRExCommunityName') != 'all' &&
                 sessionStorage.getItem('filterOCRExCommunityName') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterOCRExCommunityNameText'),
                     vm.filterOCRExCommunityName,
                     false,
@@ -516,7 +513,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterOCRScientificName = data;
                     sessionStorage.setItem(
@@ -524,12 +520,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterOCRScientificName = 'all';
                     sessionStorage.setItem('filterOCRScientificNameText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-ocr_scientific_name_lookup-results"]'
                     );
@@ -558,7 +553,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterOCRExCommunityName = data;
                     sessionStorage.setItem(
@@ -566,12 +560,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterOCRExCommunityName = 'all';
                     sessionStorage.setItem('filterOCRExCommunityNameText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-ocr_community_name_lookup-results"]'
                     );
@@ -654,7 +647,7 @@ export default {
                             headers: { 'Content-Type': 'application/json' },
                         }
                     ).then(
-                        (response) => {
+                        () => {
                             swal.fire({
                                 title: 'Occurrence Report Discarded',
                                 text: 'The occurrence report has been discarded',
@@ -697,7 +690,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Reinstated',
                                     text: 'Your report has been reinstated',
@@ -808,7 +801,7 @@ export default {
             );
             vm.$refs.occurrence_report_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

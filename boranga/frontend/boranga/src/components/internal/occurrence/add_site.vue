@@ -322,7 +322,6 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
             isModalOpen: false,
             form: null,
@@ -391,7 +390,6 @@ export default {
         vm.form = document.forms.siteForm;
 
         this.$nextTick(() => {
-            vm.eventListeners();
             vm.initialiseOCRSelect();
         });
     },
@@ -456,7 +454,7 @@ export default {
                     },
                     body: JSON.stringify(formData),
                 }).then(
-                    (response) => {
+                    () => {
                         vm.updatingSite = false;
                         vm.$parent.updatedSites();
                         vm.close();
@@ -477,7 +475,7 @@ export default {
                     },
                     body: JSON.stringify(formData),
                 }).then(
-                    (response) => {
+                    () => {
                         vm.addingSite = false;
                         vm.close();
                         vm.$parent.updatedSites();
@@ -489,9 +487,6 @@ export default {
                     }
                 );
             }
-        },
-        eventListeners: function () {
-            let vm = this;
         },
     },
 };

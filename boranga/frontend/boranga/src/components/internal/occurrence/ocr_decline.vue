@@ -75,7 +75,6 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
             isModalOpen: false,
             form: null,
@@ -148,7 +147,7 @@ export default {
                             body: JSON.stringify(vm.decline),
                         }
                     ).then(
-                        (response) => {
+                        () => {
                             swal.fire({
                                 title: 'Occurrence Report Successfully Declined',
                                 text: `Occurrence Report ${vm.occurrence_report_number} has been successfully declined. The proponent has been notified via email.`,

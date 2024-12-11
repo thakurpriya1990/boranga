@@ -237,12 +237,12 @@ export default {
                     }
                 }
             );
-            vm.$refs.tenures_datatable.vmDataTable.on('draw', function (e) {
+            vm.$refs.tenures_datatable.vmDataTable.on('draw', function () {
                 helpers.enablePopovers();
             });
             vm.$refs.tenures_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

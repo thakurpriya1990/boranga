@@ -299,7 +299,6 @@ export default {
             };
         },
         column_action: function () {
-            let vm = this;
             return {
                 data: 'id',
                 orderable: false,
@@ -315,21 +314,18 @@ export default {
             };
         },
         column_conservation_status: function () {
-            let vm = this;
             return {
                 data: 'conservation_status',
                 visible: false,
             };
         },
         column_can_be_processed: function () {
-            let vm = this;
             return {
                 data: 'can_be_processed',
                 visible: false,
             };
         },
         column_can_user_process: function () {
-            let vm = this;
             return {
                 data: 'can_user_process',
                 visible: false,
@@ -346,7 +342,6 @@ export default {
                 vm.column_status,
                 vm.column_action,
             ];
-            let search = false;
             let buttons = [
                 {
                     extend: 'excel',
@@ -521,13 +516,13 @@ export default {
             vm.initialiseFamilyLookup();
             vm.initialiseGeneraLookup();
             vm.addEventListeners();
-
+            var newOption = null;
             if (
                 sessionStorage.getItem('filterCSRefFaunaScientificName') !=
                     'all' &&
                 sessionStorage.getItem('filterCSRefFaunaScientificName') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem(
                         'filterCSRefFaunaScientificNameText'
                     ),
@@ -541,7 +536,7 @@ export default {
                 sessionStorage.getItem('filterCSRefFaunaCommonName') != 'all' &&
                 sessionStorage.getItem('filterCSRefFaunaCommonName') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterCSRefFaunaCommonNameText'),
                     vm.filterCSRefFaunaCommonName,
                     false,
@@ -555,7 +550,7 @@ export default {
                 sessionStorage.getItem('filterCSRefFaunaPhylogeneticGroup') !=
                     null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem(
                         'filterCSRefFaunaPhylogeneticGroupText'
                     ),
@@ -569,7 +564,7 @@ export default {
                 sessionStorage.getItem('filterCSRefFaunaFamily') != 'all' &&
                 sessionStorage.getItem('filterCSRefFaunaFamily') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterCSRefFaunaFamilyText'),
                     vm.filterCSRefFaunaFamily,
                     false,
@@ -581,7 +576,7 @@ export default {
                 sessionStorage.getItem('filterCSRefFaunaGenus') != 'all' &&
                 sessionStorage.getItem('filterCSRefFaunaGenus') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterCSRefFaunaGenusText'),
                     vm.filterCSRefFaunaGenus,
                     false,
@@ -620,7 +615,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSRefFaunaScientificName = data;
                     sessionStorage.setItem(
@@ -628,15 +622,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSRefFaunaScientificName = 'all';
                     sessionStorage.setItem(
                         'filterCSRefFaunaScientificNameText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_ref_scientific_name_lookup-results"]'
                     );
@@ -666,7 +659,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSRefFaunaCommonName = data;
                     sessionStorage.setItem(
@@ -674,15 +666,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSRefFaunaCommonName = 'all';
                     sessionStorage.setItem(
                         'filterCSRefFaunaCommonNameText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_ref_common_name_lookup-results"]'
                     );
@@ -712,7 +703,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSRefFaunaPhylogeneticGroup = data;
                     sessionStorage.setItem(
@@ -720,15 +710,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSRefFaunaPhylogeneticGroup = 'all';
                     sessionStorage.setItem(
                         'filterCSRefFaunaPhylogeneticGroupText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_ref_phylo_group_lookup-results"]'
                     );
@@ -758,7 +747,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSRefFaunaFamily = data;
                     sessionStorage.setItem(
@@ -766,12 +754,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSRefFaunaFamily = 'all';
                     sessionStorage.setItem('filterCSRefFaunaFamilyText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_ref_family_lookup-results"]'
                     );
@@ -801,7 +788,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSRefFaunaGenus = data;
                     sessionStorage.setItem(
@@ -809,12 +795,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSRefFaunaGenus = 'all';
                     sessionStorage.setItem('filterCSRefFaunaGenusText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_ref_genera_lookup-results"]'
                     );
@@ -825,7 +810,7 @@ export default {
             let vm = this;
             vm.$refs.fauna_cs_ref_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

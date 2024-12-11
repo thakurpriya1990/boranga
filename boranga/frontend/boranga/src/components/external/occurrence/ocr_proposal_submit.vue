@@ -101,7 +101,7 @@
     </div>
 </template>
 <script>
-import { api_endpoints, helpers } from '@/utils/hooks';
+import { api_endpoints } from '@/utils/hooks';
 
 export default {
     beforeRouteEnter: function (to, from, next) {
@@ -111,7 +111,6 @@ export default {
         });
     },
     data: function () {
-        let vm = this;
         return {
             occurrence_report_obj: {},
         };

@@ -88,7 +88,6 @@ export default {
                     url: vm.logs_url,
                     dataSrc: '',
                 },
-                order: [],
                 columns: [
                     {
                         title: 'Who',
@@ -104,7 +103,7 @@ export default {
                         title: 'When',
                         data: 'when',
                         orderable: false,
-                        mRender: function (data, type, full) {
+                        mRender: function (data) {
                             return moment(data).format(vm.dateFormat);
                         },
                     },
@@ -354,24 +353,23 @@ export default {
                             '#' + commsLogId + ' [data-bs-toggle="popover"]'
                         )
                     );
-                    var popoverList = popoverTriggerList.map(
-                        function (popoverTriggerEl) {
-                            return new bootstrap.Popover(popoverTriggerEl);
-                        }
-                    );
+                    popoverTriggerList.map(function (popoverTriggerEl) {
+                        return new bootstrap.Popover(popoverTriggerEl);
+                    });
                 });
             });
             popover_elem.addEventListener('shown.bs.popover', () => {
                 // when the popover has been made visible to the user
-                let el = vm.$refs.showCommsBtn;
-                var popover_bounding_top = parseInt(
-                    $('.' + popover_name)[0].getBoundingClientRect().top
-                );
-                var el_bounding_top = parseInt(
-                    $(el)[0].getBoundingClientRect().top
-                );
-                var diff = el_bounding_top - popover_bounding_top;
-                var x = diff + 5;
+                // The following code currently doesn't do anything
+                // let el = vm.$refs.showCommsBtn;
+                // var popover_bounding_top = parseInt(
+                //     $('.' + popover_name)[0].getBoundingClientRect().top
+                // );
+                // var el_bounding_top = parseInt(
+                //     $(el)[0].getBoundingClientRect().top
+                // );
+                // var diff = el_bounding_top - popover_bounding_top;
+                // var x = diff + 5;
                 // $('.' + popover_name).children('.arrow').css('top', x + 'px');
             });
         },
@@ -411,11 +409,9 @@ export default {
                             '#' + actionLogId + ' [data-bs-toggle="popover"]'
                         )
                     );
-                    var popoverList = popoverTriggerList.map(
-                        function (popoverTriggerEl) {
-                            return new bootstrap.Popover(popoverTriggerEl);
-                        }
-                    );
+                    popoverTriggerList.map(function (popoverTriggerEl) {
+                        return new bootstrap.Popover(popoverTriggerEl);
+                    });
                 });
             });
             popover_elem.addEventListener('shown.bs.popover', () => {

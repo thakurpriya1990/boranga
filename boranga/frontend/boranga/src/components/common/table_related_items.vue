@@ -186,7 +186,7 @@ export default {
         vm.$nextTick(() => {
             vm.$refs.related_items_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

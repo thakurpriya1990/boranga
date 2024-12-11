@@ -309,7 +309,6 @@ export default {
             this.$refs.document_detail.isModalOpen = true;
         },
         editDocument: function (id) {
-            let vm = this;
             this.$refs.document_detail.document_id = id;
             this.$refs.document_detail.document_action = 'edit';
             this.$refs.document_detail.title = 'Edit a Document';
@@ -372,7 +371,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'The document has been discarded',
@@ -389,7 +388,7 @@ export default {
                         );
                     }
                 },
-                (error) => {}
+                () => {}
             );
         },
         reinstateDocument: function (id) {
@@ -418,7 +417,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Reinstated',
                                     text: 'Your document has been reinstated',
@@ -435,7 +434,7 @@ export default {
                         );
                     }
                 },
-                (error) => {}
+                () => {}
             );
         },
         updatedDocuments() {
@@ -483,7 +482,7 @@ export default {
             );
             vm.$refs.documents_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

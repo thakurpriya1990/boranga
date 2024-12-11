@@ -181,7 +181,7 @@ export default {
                 to.params.referral_id
             )
         ).then(
-            async (reponse) => {
+            async (response) => {
                 const data = await response.json();
                 next(async (vm) => {
                     vm.referral = data;
@@ -264,7 +264,7 @@ export default {
                 },
                 body: JSON.stringify(payload),
             }).then(
-                async (response) => {
+                async () => {
                     swal.fire({
                         title: 'Saved',
                         text: 'Your changes have been saved',
@@ -279,7 +279,7 @@ export default {
                         ocr_location.incrementComponentMapKey();
                     });
                 },
-                (err) => {
+                () => {
                     vm.savingOccurrenceReport = false;
                     component_map.setLoadingMap(false);
                 }
@@ -329,7 +329,7 @@ export default {
                             },
                             body: JSON.stringify(payload),
                         }).then(
-                            async (response) => {
+                            async () => {
                                 fetch(
                                     helpers.add_endpoint_json(
                                         api_endpoints.ocr_referrals,

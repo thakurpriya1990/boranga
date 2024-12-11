@@ -368,7 +368,6 @@ export default {
             };
         },
         column_number: function () {
-            let vm = this;
             return {
                 data: 'occurrence_report_number',
                 orderable: true,
@@ -473,7 +472,6 @@ export default {
             };
         },
         column_action: function () {
-            let vm = this;
             return {
                 data: 'id',
                 orderable: false,
@@ -724,12 +722,13 @@ export default {
             vm.initialiseOccurrenceLookup();
             vm.initialiseCommunityNameLookup();
             vm.addEventListeners();
+            var newOption = null;
             if (
                 sessionStorage.getItem('filterOCRCommunityOccurrence') !=
                     'all' &&
                 sessionStorage.getItem('filterOCRCommunityOccurrence') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterOCRCommunityOccurrenceText'),
                     vm.filterOCRCommunityOccurrence,
                     false,
@@ -741,7 +740,7 @@ export default {
                 sessionStorage.getItem('filterOCRCommunityName') != 'all' &&
                 sessionStorage.getItem('filterOCRCommunityName') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterOCRCommunityNameText'),
                     vm.filterOCRCommunityName,
                     false,
@@ -787,7 +786,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterOCRCommunityOccurrence = data;
                     sessionStorage.setItem(
@@ -795,15 +793,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterOCRCommunityOccurrence = 'all';
                     sessionStorage.setItem(
                         'filterOCRCommunityOccurrenceText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-ocr_occurrence_lookup-results"]'
                     );
@@ -832,7 +829,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterOCRCommunityName = data;
                     sessionStorage.setItem(
@@ -840,12 +836,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterOCRCommunityName = 'all';
                     sessionStorage.setItem('filterOCRCommunityNameText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-ocr_community_name_lookup-results"]'
                     );
@@ -939,7 +934,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'Your report has been discarded',
@@ -989,7 +984,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Reinstated',
                                     text: 'Your report has been reinstated',
@@ -1046,7 +1041,7 @@ export default {
             );
             vm.$refs.community_ocr_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

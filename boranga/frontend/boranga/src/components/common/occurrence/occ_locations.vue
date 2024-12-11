@@ -16,7 +16,10 @@
             </div>
             <div class="row mb-3">
                 <MapComponent
-ref="component_map" :key="componentMapKey" class="me-3" :context="occurrence_obj"
+                    ref="component_map"
+                    :key="componentMapKey"
+                    class="me-3"
+                    :context="occurrence_obj"
                     :is_external="false"
                     :point-features-supported="true"
                     :polygon-features-supported="true"
@@ -124,8 +127,11 @@ ref="component_map" :key="componentMapKey" class="me-3" :context="occurrence_obj
                 <label for="" class="col-sm-3 control-label">Region:</label>
                 <div class="col-sm-9">
                     <select
-v-model="occurrence_obj.location.region_id" :disabled="isReadOnly" class="form-select"
-                        @change="filterDistrict($event)">
+                        v-model="occurrence_obj.location.region_id"
+                        :disabled="isReadOnly"
+                        class="form-select"
+                        @change="filterDistrict($event)"
+                    >
                         <option
                             v-for="option in region_list"
                             :key="option.id"
@@ -158,7 +164,8 @@ v-model="occurrence_obj.location.region_id" :disabled="isReadOnly" class="form-s
                 <label for="" class="col-sm-3 control-label">Locality:</label>
                 <div class="col-sm-9">
                     <textarea
-id="locality" v-model="occurrence_obj.location.locality
+                        id="locality"
+                        v-model="occurrence_obj.location.locality"
                         :disabled="isReadOnly"
                         class="form-control"
                         rows="1"
@@ -174,7 +181,8 @@ id="locality" v-model="occurrence_obj.location.locality
                 >
                 <div class="col-sm-9">
                     <textarea
-id="loc_description" v-model="occurrence_obj.location.location_description
+                        id="loc_description"
+                        v-model="occurrence_obj.location.location_description"
                         :disabled="isReadOnly"
                         class="form-control"
                         rows="2"
@@ -188,7 +196,8 @@ id="loc_description" v-model="occurrence_obj.location.location_description
                 >
                 <div class="col-sm-9">
                     <textarea
-id="boundary_descr" v-model="occurrence_obj.location.boundary_description
+                        id="boundary_descr"
+                        v-model="occurrence_obj.location.boundary_description"
                         :disabled="isReadOnly"
                         class="form-control"
                         rows="2"
@@ -226,7 +235,10 @@ id="boundary_descr" v-model="occurrence_obj.location.boundary_description
                 <div class="col-sm-9">
                     <template v-if="!isReadOnly">
                         <template
-v-if="coordinate_source_list && coordinate_source_list.length > 0 && occurrence_obj.location
+                            v-if="
+                                coordinate_source_list &&
+                                coordinate_source_list.length > 0 &&
+                                occurrence_obj.location &&
                                 !coordinate_source_list
                                     .map((d) => d.id)
                                     .includes(
@@ -236,7 +248,8 @@ v-if="coordinate_source_list && coordinate_source_list.length > 0 && occurrence_
                             "
                         >
                             <input
-v-if="occurrence_obj.location.coordinate_source" type="text"
+                                v-if="occurrence_obj.location.coordinate_source"
+                                type="text"
                                 class="form-control mb-3"
                                 :value="
                                     occurrence_obj.location.coordinate_source +
@@ -249,8 +262,11 @@ v-if="occurrence_obj.location.coordinate_source" type="text"
                             </div>
                         </template>
                         <select
-                            v-model="occurrence_obj.location.coordinate_source_id"
-                            class="form-select">
+                            v-model="
+                                occurrence_obj.location.coordinate_source_id
+                            "
+                            class="form-select"
+                        >
                             <option
                                 v-for="option in coordinate_source_list"
                                 :key="option.id"
@@ -262,8 +278,11 @@ v-if="occurrence_obj.location.coordinate_source" type="text"
                     </template>
                     <template v-else>
                         <input
-v-model="occurrence_obj.location.coordinate_source" class="form-control" type="text"
-                            :disabled="isReadOnly" />
+                            v-model="occurrence_obj.location.coordinate_source"
+                            class="form-control"
+                            type="text"
+                            :disabled="isReadOnly"
+                        />
                     </template>
                 </div>
             </div>
@@ -293,7 +312,10 @@ v-model="occurrence_obj.location.coordinate_source" class="form-control" type="t
                 <div class="col-sm-9">
                     <template v-if="!isReadOnly">
                         <template
-v-if="location_accuracy_list && location_accuracy_list.length > 0 && occurrence_obj.location
+                            v-if="
+                                location_accuracy_list &&
+                                location_accuracy_list.length > 0 &&
+                                occurrence_obj.location &&
                                 !location_accuracy_list
                                     .map((d) => d.id)
                                     .includes(
@@ -303,7 +325,8 @@ v-if="location_accuracy_list && location_accuracy_list.length > 0 && occurrence_
                             "
                         >
                             <input
-v-if="occurrence_obj.location.location_accuracy" type="text"
+                                v-if="occurrence_obj.location.location_accuracy"
+                                type="text"
                                 class="form-control mb-3"
                                 :value="
                                     occurrence_obj.location.location_accuracy +
@@ -316,8 +339,11 @@ v-if="occurrence_obj.location.location_accuracy" type="text"
                             </div>
                         </template>
                         <select
-                            v-model="occurrence_obj.location.location_accuracy_id"
-                            class="form-select">
+                            v-model="
+                                occurrence_obj.location.location_accuracy_id
+                            "
+                            class="form-select"
+                        >
                             <option
                                 v-for="option in location_accuracy_list"
                                 :key="option.id"
@@ -329,8 +355,11 @@ v-if="occurrence_obj.location.location_accuracy" type="text"
                     </template>
                     <template v-else>
                         <input
-v-model="occurrence_obj.location.location_accuracy" class="form-control" type="text"
-                            :disabled="isReadOnly" />
+                            v-model="occurrence_obj.location.location_accuracy"
+                            class="form-control"
+                            type="text"
+                            :disabled="isReadOnly"
+                        />
                     </template>
                 </div>
             </div>
@@ -350,8 +379,11 @@ v-model="occurrence_obj.location.location_accuracy" class="form-control" type="t
                 <div class="col-sm-12">
                     <!-- <button v-if="!updatingLocationDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
                     <button
-v-if="!updatingLocationDetails" class="btn btn-primary btn-sm float-end"
-                        :disabled="isReadOnly" @click.prevent="updateLocationDetails()">
+                        v-if="!updatingLocationDetails"
+                        class="btn btn-primary btn-sm float-end"
+                        :disabled="isReadOnly"
+                        @click.prevent="updateLocationDetails()"
+                    >
                         Update
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
@@ -372,7 +404,8 @@ v-if="!updatingLocationDetails" class="btn btn-primary btn-sm float-end"
             >
                 <div>
                     <OccurrenceSiteDatatable
-v-if="occurrence_obj" ref="occurrence_sites_datatable"
+                        v-if="occurrence_obj"
+                        ref="occurrence_sites_datatable"
                         :key="datatableOCCSiteKey"
                         :occurrence_obj="occurrence_obj"
                         @updated-sites="updatedSites"
@@ -388,7 +421,8 @@ v-if="occurrence_obj" ref="occurrence_sites_datatable"
             >
                 <div>
                     <OccurrenceTenureDatatable
-v-if="occurrence_obj" ref="occurrence_tenure_datatable"
+                        v-if="occurrence_obj"
+                        ref="occurrence_tenure_datatable"
                         :key="datatableOCCTenureKey"
                         :occurrence-id="occurrence_obj.id"
                         :href-container-id="getMapContainerId"
@@ -399,7 +433,9 @@ v-if="occurrence_obj" ref="occurrence_tenure_datatable"
                 </div>
             </FormSection>
             <RelatedReports
-v-if="occurrence_obj" ref="related_reports_datatable" :key="datatableRelatedOCRKey"
+                v-if="occurrence_obj"
+                ref="related_reports_datatable"
+                :key="datatableRelatedOCRKey"
                 :is-read-only="isReadOnly"
                 :occurrence_obj="occurrence_obj"
                 :section_type="'location'"
@@ -597,7 +633,6 @@ export default {
     },
     created: async function () {
         let vm = this;
-        let action = this.$route.query.action;
 
         fetch(
             helpers.add_endpoint_join(
@@ -769,7 +804,7 @@ export default {
                             customClass: {
                                 confirmButton: 'btn btn-primary',
                             },
-                        }).then((result) => {
+                        }).then(() => {
                             if (
                                 vm.occurrence_obj.processing_status ==
                                 'Unlocked'

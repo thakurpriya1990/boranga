@@ -88,7 +88,6 @@ export default {
         'help_text_assessor_url',
     ],
     data() {
-        let vm = this;
         return {
             showingComment: false,
         };

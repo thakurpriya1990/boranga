@@ -335,7 +335,6 @@ export default {
             };
         },
         column_action: function () {
-            let vm = this;
             return {
                 // 10. Action
                 data: 'id',
@@ -361,7 +360,6 @@ export default {
             let vm = this;
 
             let columns = [];
-            let search = null;
             let buttons = [
                 {
                     extend: 'excel',
@@ -390,7 +388,6 @@ export default {
                 vm.column_status,
                 vm.column_action,
             ];
-            search = false;
 
             return {
                 autoWidth: false,
@@ -470,14 +467,6 @@ export default {
                 vm.filterCSExCommunityName
             );
         },
-        filterCSScientificName: function () {
-            let vm = this;
-            vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(
-                vm.filterCSScientificName_cache,
-                vm.filterCSScientificName
-            );
-        },
         filterCSConservationList: function () {
             let vm = this;
             vm.$refs.conservation_status_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
@@ -526,13 +515,14 @@ export default {
             vm.initialiseScientificNameLookup();
             vm.initialiseCommunityNameLookup();
             vm.addEventListeners();
+            var newOption = null;
             // -- to set the select2 field with the session value if exists onload()
             if (
                 sessionStorage.getItem('filterCSScientificName') != 'all' &&
                 sessionStorage.getItem('filterCSScientificName') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterCSScientificNameText'),
                     vm.filterCSScientificName,
                     false,
@@ -545,7 +535,7 @@ export default {
                 sessionStorage.getItem('filterCSExCommunityName') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterCSExCommunityNameText'),
                     vm.filterCSExCommunityName,
                     false,
@@ -582,7 +572,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSScientificName = data;
                     sessionStorage.setItem(
@@ -590,12 +579,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSScientificName = 'all';
                     sessionStorage.setItem('filterCSScientificNameText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_scientific_name_lookup-results"]'
                     );
@@ -624,7 +612,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSExCommunityName = data;
                     sessionStorage.setItem(
@@ -632,12 +619,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSExCommunityName = 'all';
                     sessionStorage.setItem('filterCSExCommunityNameText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_community_name_lookup-results"]'
                     );
@@ -721,7 +707,7 @@ export default {
                             headers: { 'Content-Type': 'application/json' },
                         }
                     ).then(
-                        (response) => {
+                        () => {
                             swal.fire({
                                 title: 'Discarded',
                                 text: 'Your proposal has been discarded',
@@ -764,7 +750,7 @@ export default {
                             headers: { 'Content-Type': 'application/json' },
                         }
                     ).then(
-                        (response) => {
+                        () => {
                             swal.fire({
                                 title: 'Reinstated',
                                 text: 'Your proposal has been reinstated. You may continue to work on it now.',
@@ -806,7 +792,7 @@ export default {
             );
             vm.$refs.conservation_status_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

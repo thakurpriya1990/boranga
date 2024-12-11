@@ -160,7 +160,6 @@
 </template>
 
 <script>
-var select2 = require('select2');
 import Comment from './comment.vue';
 import HelpText from './help_text.vue';
 import HelpTextUrl from './help_text_url.vue';
@@ -229,7 +228,7 @@ export default {
         },
         init: function () {
             let vm = this;
-            setTimeout(function (e) {
+            setTimeout(function () {
                 $('#' + vm.selectid)
                     .select2({
                         theme: 'bootstrap',

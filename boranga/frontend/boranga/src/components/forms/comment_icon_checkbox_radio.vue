@@ -41,7 +41,6 @@ export default {
         'assessor_readonly',
     ],
     data() {
-        let vm = this;
         return {
             showingComment: false,
         };

@@ -78,7 +78,7 @@
 import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
-import { api_endpoints, helpers } from '@/utils/hooks';
+import { api_endpoints } from '@/utils/hooks';
 export default {
     name: 'SectionModal',
     components: {

@@ -281,7 +281,6 @@ export default {
         );
     },
     data: function () {
-        let vm = this;
         return {
             occurrence: null,
             form: null,
@@ -483,7 +482,7 @@ export default {
                 }
             );
         },
-        save_exit: async function (e) {
+        save_exit: async function () {
             let vm = this;
             var missing_data = vm.can_submit('');
             if (missing_data != true) {
@@ -509,8 +508,7 @@ export default {
                 }
             });
         },
-        save_before_submit: async function (e) {
-            //console.log('save before submit');
+        save_before_submit: async function () {
             let vm = this;
             vm.saveError = false;
 
@@ -523,7 +521,7 @@ export default {
                 },
                 body: JSON.stringify(payload),
             }).then(
-                async (response) => {
+                async () => {
                     //return true;
                 },
                 (err) => {
@@ -544,7 +542,7 @@ export default {
             );
             return result;
         },
-        can_submit: function (check_action) {
+        can_submit: function () {
             let vm = this;
             let blank_fields = [];
             if (
@@ -603,11 +601,11 @@ export default {
             }).then(
                 async (swalresult) => {
                     if (swalresult.isConfirmed) {
-                        let result = await vm.save_before_submit();
+                        await vm.save_before_submit();
                         if (!vm.saveError) {
                             let payload = new Object();
                             Object.assign(payload, vm.occurrence);
-                            helpers.add_endpoint_json(
+                            const submit_url = helpers.add_endpoint_json(
                                 api_endpoints.occurrence,
                                 vm.occurrence.id + '/submit'
                             );
@@ -638,7 +636,7 @@ export default {
                         }
                     }
                 },
-                (error) => {
+                () => {
                     vm.submitOccurrence = false;
                 }
             );
@@ -657,14 +655,13 @@ export default {
             vm.combine_key++;
         },
         activateOccurrence: async function () {
-            let vm = this;
             await fetch(`/api/occurrence/${this.occurrence.id}/activate.json`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
             }).then(
-                async (response) => {
+                async () => {
                     swal.fire({
                         title: 'Activated',
                         text: 'Occurrence has been Activated',
@@ -672,7 +669,7 @@ export default {
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
-                    }).then(async (swalresult) => {
+                    }).then(async () => {
                         this.$router.go(this.$router.currentRoute);
                     });
                 },
@@ -690,7 +687,6 @@ export default {
             );
         },
         lockOccurrence: async function () {
-            let vm = this;
             await fetch(
                 `/api/occurrence/${this.occurrence.id}/lock_occurrence.json`,
                 {
@@ -700,7 +696,7 @@ export default {
                     },
                 }
             ).then(
-                async (response) => {
+                async () => {
                     swal.fire({
                         title: 'Locked',
                         text: 'Occurrence has been Locked',
@@ -708,7 +704,7 @@ export default {
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
-                    }).then(async (swalresult) => {
+                    }).then(async () => {
                         this.$router.go(this.$router.currentRoute);
                     });
                 },
@@ -726,7 +722,6 @@ export default {
             );
         },
         unlockOccurrence: async function () {
-            let vm = this;
             await fetch(
                 `/api/occurrence/${this.occurrence.id}/unlock_occurrence.json`,
                 {
@@ -736,7 +731,7 @@ export default {
                     },
                 }
             ).then(
-                async (response) => {
+                async () => {
                     swal.fire({
                         title: 'Unlocked',
                         text: 'Occurrence has been Unlocked',
@@ -744,7 +739,7 @@ export default {
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
-                    }).then(async (swalresult) => {
+                    }).then(async () => {
                         this.$router.go(this.$router.currentRoute);
                     });
                 },
@@ -785,7 +780,7 @@ export default {
                             },
                         }
                     ).then(
-                        async (response) => {
+                        async () => {
                             swal.fire({
                                 title: 'Closed',
                                 text: 'Occurrence has been Closed',
@@ -793,7 +788,7 @@ export default {
                                 customClass: {
                                     confirmButton: 'btn btn-primary',
                                 },
-                            }).then(async (swalresult) => {
+                            }).then(async () => {
                                 vm.$router.push({
                                     name: 'internal-occurrence-dash',
                                 });
@@ -815,7 +810,6 @@ export default {
             });
         },
         reopenOccurrence: async function () {
-            let vm = this;
             swal.fire({
                 title: 'Reopen',
                 text: 'Are you sure you want to reopen this Occurrence?',
@@ -838,7 +832,7 @@ export default {
                             },
                         }
                     ).then(
-                        async (response) => {
+                        async () => {
                             swal.fire({
                                 title: 'Reopened',
                                 text: 'Occurrence has been Reopened',
@@ -846,7 +840,7 @@ export default {
                                 customClass: {
                                     confirmButton: 'btn btn-primary',
                                 },
-                            }).then(async (swalresult) => {
+                            }).then(async () => {
                                 this.$router.go(this.$router.currentRoute);
                             });
                         },

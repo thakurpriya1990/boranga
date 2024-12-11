@@ -110,7 +110,6 @@ export default {
         });
     },
     data: function () {
-        let vm = this;
         return {
             conservation_status_obj: {},
         };

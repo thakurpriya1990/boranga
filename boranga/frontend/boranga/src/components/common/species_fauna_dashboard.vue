@@ -1178,13 +1178,14 @@ export default {
             vm.initialiseFamilyLookup();
             vm.initialiseGeneraLookup();
             vm.addEventListeners();
+            var newOption = null;
             // -- to set the select2 field with the session value if exists onload()
             if (
                 sessionStorage.getItem('filterFaunaScientificName') != 'all' &&
                 sessionStorage.getItem('filterFaunaScientificName') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterFaunaScientificNameText'),
                     vm.filterFaunaScientificName,
                     false,
@@ -1197,7 +1198,7 @@ export default {
                 sessionStorage.getItem('filterFaunaCommonName') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterFaunaCommonNameText'),
                     vm.filterFaunaCommonName,
                     false,
@@ -1211,7 +1212,7 @@ export default {
                 sessionStorage.getItem('filterFaunaPhylogeneticGroup') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterFaunaPhylogeneticGroupText'),
                     vm.filterFaunaPhylogeneticGroup,
                     false,
@@ -1224,7 +1225,7 @@ export default {
                 sessionStorage.getItem('filterFaunaFamily') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterFaunaFamilyText'),
                     vm.filterFaunaFamily,
                     false,
@@ -1237,7 +1238,7 @@ export default {
                 sessionStorage.getItem('filterFaunaGenus') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterFaunaGenusText'),
                     vm.filterFaunaGenus,
                     false,
@@ -1282,7 +1283,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterFaunaScientificName = data; // this is id session
                     sessionStorage.setItem(
@@ -1290,12 +1290,11 @@ export default {
                         e.params.data.text
                     ); // this is name session
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterFaunaScientificName = 'all';
                     sessionStorage.setItem('filterFaunaScientificNameText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-scientific_name_lookup-results"]'
                     );
@@ -1325,7 +1324,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterFaunaCommonName = data;
                     sessionStorage.setItem(
@@ -1333,12 +1331,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterFaunaCommonName = 'all';
                     sessionStorage.setItem('filterFaunaCommonNameText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-common_name_lookup-results"]'
                     );
@@ -1368,7 +1365,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterFaunaPhylogeneticGroup = data;
                     sessionStorage.setItem(
@@ -1376,15 +1372,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterFaunaPhylogeneticGroup = 'all';
                     sessionStorage.setItem(
                         'filterFaunaPhylogeneticGroupText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-phylo_group_lookup-results"]'
                     );
@@ -1414,7 +1409,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterFaunaFamily = data;
                     sessionStorage.setItem(
@@ -1422,12 +1416,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterFaunaFamily = 'all';
                     sessionStorage.setItem('filterFaunaFamilyText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     //const searchField = $(".select2-search__field")
                     const searchField = $(
                         '[aria-controls="select2-family_lookup-results"]'
@@ -1458,7 +1451,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterFaunaGenus = data;
                     sessionStorage.setItem(
@@ -1466,12 +1458,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterFaunaGenus = 'all';
                     sessionStorage.setItem('filterFaunaGenusText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     //const searchField = $(".select2-search__field")
                     const searchField = $(
                         '[aria-controls="select2-genera_lookup-results"]'
@@ -1610,7 +1601,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'The fauna record has been discarded',
@@ -1660,7 +1651,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Reinstated',
                                     text: 'The fauna record has been reinstated',
@@ -1715,12 +1706,9 @@ export default {
                     vm.historyDocument(id);
                 }
             );
-            vm.$refs.fauna_datatable.vmDataTable.on(
-                'childRow.dt',
-                function (e, settings) {
-                    helpers.enablePopovers();
-                }
-            );
+            vm.$refs.fauna_datatable.vmDataTable.on('childRow.dt', function () {
+                helpers.enablePopovers();
+            });
         },
     },
 };

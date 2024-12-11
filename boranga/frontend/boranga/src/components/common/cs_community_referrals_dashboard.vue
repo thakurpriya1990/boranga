@@ -448,11 +448,12 @@ export default {
             vm.initialiseCommunityNameLookup();
             vm.initialiseCommunityIdLookup();
             vm.addEventListeners();
+            var newOption = null;
             if (
                 sessionStorage.getItem('filterCSRefCommunityName') != 'all' &&
                 sessionStorage.getItem('filterCSRefCommunityName') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterCSRefCommunityNameText'),
                     vm.filterCSRefCommunityName,
                     false,
@@ -465,7 +466,7 @@ export default {
                     'all' &&
                 sessionStorage.getItem('filterCSRefCommunityMigratedId') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem(
                         'filterCSRefCommunityMigratedIdText'
                     ),
@@ -505,7 +506,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSRefCommunityName = data;
                     sessionStorage.setItem(
@@ -513,12 +513,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSRefCommunityName = 'all';
                     sessionStorage.setItem('filterCSRefCommunityNameText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_ref_community_name_lookup-results"]'
                     );
@@ -547,7 +546,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSRefCommunityMigratedId = data;
                     sessionStorage.setItem(
@@ -555,15 +553,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSRefCommunityMigratedId = 'all';
                     sessionStorage.setItem(
                         'filterCSRefCommunityMigratedIdText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_ref_community_id_lookup-results"]'
                     );
@@ -574,7 +571,7 @@ export default {
             let vm = this;
             vm.$refs.cs_communities_ref_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

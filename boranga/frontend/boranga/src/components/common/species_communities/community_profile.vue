@@ -1354,7 +1354,7 @@ export default {
             }
             return [];
         },
-        chainedSelectDistricts: function (regions, action, deselect_region_id) {
+        chainedSelectDistricts: function (regions, action) {
             let vm = this;
             if (action != 'fetch') {
                 vm.species_community.districts = []; //-----to remove the previous selection
@@ -1430,17 +1430,7 @@ export default {
                 vm.species_community.last_data_curration_date = null;
             }
         },
-        eventListeners: function () {
-            let vm = this;
-
-            var date = new Date();
-            var today = new Date(
-                date.getFullYear(),
-                date.getMonth(),
-                date.getDate()
-            );
-        },
-        handleMinimumFireIntervalRange: function (e) {
+        handleMinimumFireIntervalRange: function () {
             if (this.minimum_fire_interval_range == false) {
                 this.species_community.conservation_attributes.minimum_fire_interval_to =
                     null;
@@ -1479,7 +1469,6 @@ export default {
                     title: 'Changing from Manual to Auto',
                     text: 'If you choose to revert back to manual in future the manually entered value will still be there for you. It is not deleted.',
                     icon: 'info',
-                    showCancelButton: true,
                     confirmButtonText: 'Ok',
                     showCancelButton: false,
                     customClass: {
@@ -1523,7 +1512,6 @@ export default {
                     title: 'Changing from Manual to Auto',
                     text: 'If you choose to revert back to manual in future the manually entered value will still be there for you. It is not deleted.',
                     icon: 'info',
-                    showCancelButton: true,
                     confirmButtonText: 'Ok',
                     showCancelButton: false,
                     customClass: {
@@ -1576,7 +1564,6 @@ export default {
                     title: 'Changing from Manual to Auto',
                     text: 'If you choose to revert back to manual in future the manually entered value will still be there for you. It is not deleted.',
                     icon: 'info',
-                    showCancelButton: true,
                     confirmButtonText: 'Ok',
                     showCancelButton: false,
                     customClass: {

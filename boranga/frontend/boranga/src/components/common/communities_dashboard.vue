@@ -594,7 +594,6 @@ export default {
         column_region: function () {
             return {
                 data: 'regions',
-                data: 'regions',
                 orderable: true,
                 searchable: false,
                 visible: true,
@@ -982,13 +981,14 @@ export default {
             vm.initialiseCommunityNameLookup();
             vm.initialiseCommunityIdLookup();
             vm.addEventListeners();
+            var newOption = null;
             // -- to set the select2 field with the session value if exists onload()
             if (
                 sessionStorage.getItem('filterCommunityName') != 'all' &&
                 sessionStorage.getItem('filterCommunityName') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterCommunityNameText'),
                     vm.filterCommunityName,
                     false,
@@ -1001,7 +1001,7 @@ export default {
                 sessionStorage.getItem('filterCommunityMigratedId') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterCommunityMigratedIdText'),
                     vm.filterCommunityMigratedId,
                     false,
@@ -1045,7 +1045,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCommunityName = data;
                     sessionStorage.setItem(
@@ -1053,12 +1052,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCommunityName = 'all';
                     sessionStorage.setItem('filterCommunityNameText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-community_name_lookup-results"]'
                     );
@@ -1087,7 +1085,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCommunityMigratedId = data;
                     sessionStorage.setItem(
@@ -1095,12 +1092,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCommunityMigratedId = 'all';
                     sessionStorage.setItem('filterCommunityMigratedIdText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-community_id_lookup-results"]'
                     );
@@ -1230,7 +1226,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'Your proposal has been discarded',
@@ -1280,7 +1276,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Reinstated',
                                     text: 'Your proposal has been reinstated',
@@ -1337,7 +1333,7 @@ export default {
             );
             vm.$refs.communities_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

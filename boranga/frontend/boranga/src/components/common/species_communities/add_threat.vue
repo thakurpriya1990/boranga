@@ -209,7 +209,10 @@
                                                     class="form-check form-check-inline"
                                                 >
                                                     <input
-                                                        :id="'current_impact_' + current_impact.id"
+                                                        :id="
+                                                            'current_impact_' +
+                                                            current_impact.id
+                                                        "
                                                         :key="current_impact.id"
                                                         v-model="
                                                             threatObj.current_impact
@@ -217,7 +220,6 @@
                                                         :disabled="isReadOnly"
                                                         type="radio"
                                                         class="form-check-input"
-                                                        "
                                                         :value="
                                                             current_impact.id
                                                         "
@@ -301,7 +303,10 @@
                                                     class="form-check form-check-inline"
                                                 >
                                                     <input
-                                                        :id="'potential_impact_' + potential_impact.id"
+                                                        :id="
+                                                            'potential_impact_' +
+                                                            potential_impact.id
+                                                        "
                                                         :key="
                                                             potential_impact.id
                                                         "
@@ -311,7 +316,9 @@
                                                         :disabled="isReadOnly"
                                                         type="radio"
                                                         class="form-check-input"
-                                                        :value="potential_impact.id"
+                                                        :value="
+                                                            potential_impact.id
+                                                        "
                                                     />
                                                     <label
                                                         :for="
@@ -393,7 +400,10 @@
                                                     class="form-check form-check-inline"
                                                 >
                                                     <input
-                                                        :id="'potential_threat_onset_' + potential_threat_onset.id"
+                                                        :id="
+                                                            'potential_threat_onset_' +
+                                                            potential_threat_onset.id
+                                                        "
                                                         :key="
                                                             potential_threat_onset.id
                                                         "
@@ -403,7 +413,9 @@
                                                         :disabled="isReadOnly"
                                                         type="radio"
                                                         class="form-check-input"
-                                                        :value="potential_threat_onset.id"
+                                                        :value="
+                                                            potential_threat_onset.id
+                                                        "
                                                     />
                                                     <label
                                                         :for="
@@ -464,7 +476,8 @@
                                             ref="date_observed"
                                             v-model="threatObj.date_observed"
                                             :disabled="isReadOnly"
-                                            type="date" class="form-control"
+                                            type="date"
+                                            class="form-control"
                                             name="date_observed"
                                         />
                                     </div>
@@ -562,7 +575,6 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
             isModalOpen: false,
             form: null,
@@ -630,9 +642,6 @@ export default {
     mounted: function () {
         let vm = this;
         vm.form = document.forms.threatForm;
-        this.$nextTick(() => {
-            vm.eventListeners();
-        });
     },
     methods: {
         ok: function () {
@@ -642,7 +651,7 @@ export default {
             }
         },
         cancel: function () {
-            this.close()
+            this.close();
         },
         close: function () {
             this.isModalOpen = false;
@@ -653,9 +662,12 @@ export default {
         sendData: function () {
             let vm = this;
             vm.errors = false;
-            vm.threatObj.date_observed = vm.threatObj.date_observed == "" ? null : vm.threatObj.date_observed
+            vm.threatObj.date_observed =
+                vm.threatObj.date_observed == ''
+                    ? null
+                    : vm.threatObj.date_observed;
             let threatObj = JSON.parse(JSON.stringify(vm.threatObj));
-            let formData = new FormData()
+            let formData = new FormData();
 
             if (vm.threatObj.id) {
                 vm.updatingThreat = true;
@@ -665,16 +677,19 @@ export default {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(formData)
-                }).then((response) => {
-                    vm.updatingThreat = false;
-                    vm.$parent.updatedThreats();
-                    vm.close();
-                }, (error) => {
-                    vm.errors = true;
-                    vm.errorString = helpers.apiVueResourceError(error);
-                    vm.updatingThreat = false;
-                });
+                    body: JSON.stringify(formData),
+                }).then(
+                    () => {
+                        vm.updatingThreat = false;
+                        vm.$parent.updatedThreats();
+                        vm.close();
+                    },
+                    (error) => {
+                        vm.errors = true;
+                        vm.errorString = helpers.apiVueResourceError(error);
+                        vm.updatingThreat = false;
+                    }
+                );
             } else {
                 vm.addingThreat = true;
                 formData.append('data', JSON.stringify(threatObj));
@@ -683,21 +698,21 @@ export default {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(formData)
-                }).then((response) => {
-                    vm.addingThreat = false;
-                    vm.close();
-                    vm.$parent.updatedThreats();
-                }, (error) => {
-                    vm.errors = true;
-                    vm.addingThreat = false;
-                    vm.errorString = helpers.apiVueResourceError(error);
-                });
+                    body: JSON.stringify(formData),
+                }).then(
+                    () => {
+                        vm.addingThreat = false;
+                        vm.close();
+                        vm.$parent.updatedThreats();
+                    },
+                    (error) => {
+                        vm.errors = true;
+                        vm.addingThreat = false;
+                        vm.errorString = helpers.apiVueResourceError(error);
+                    }
+                );
             }
         },
-        eventListeners: function () {
-            let vm = this;
-        }
     },
 };
 </script>

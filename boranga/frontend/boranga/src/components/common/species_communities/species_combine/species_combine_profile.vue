@@ -1683,7 +1683,7 @@
 
 <script>
 import FormSection from '@/components/forms/section_toggle.vue';
-import { api_endpoints, helpers } from '@/utils/hooks';
+import { api_endpoints } from '@/utils/hooks';
 export default {
     name: 'SpeciesCombineProfile',
     components: {
@@ -1964,7 +1964,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.species_community.taxonomy_id = data;
                     vm.species_community.taxonomy_details = e.params.data;
@@ -1978,8 +1977,7 @@ export default {
                     vm.name_authority = e.params.data.name_authority;
                     vm.name_comments = e.params.data.name_comments;
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.species_community.taxonomy_id = '';
                     vm.species_display = '';
                     vm.common_name = '';
@@ -1989,7 +1987,7 @@ export default {
                     (vm.family = ''), (vm.genus = ''), (vm.name_authority = '');
                     vm.name_comments = '';
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-' +
                             vm.scientific_name_lookup +
@@ -2400,7 +2398,7 @@ export default {
             }
             return [];
         },
-        chainedSelectDistricts: function (regions, action, deselect_region_id) {
+        chainedSelectDistricts: function (regions, action) {
             let vm = this;
             if (action != 'fetch') {
                 vm.species_community.districts = []; //-----to remove the previous selection

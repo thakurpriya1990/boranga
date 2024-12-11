@@ -439,7 +439,7 @@ export default {
                 name: 'internal-meetings-dash',
             });
         },
-        save: async function (e) {
+        save: async function () {
             let vm = this;
             var missing_data = vm.can_submit('');
             if (missing_data != true) {
@@ -464,7 +464,7 @@ export default {
                 },
                 body: JSON.stringify(payload),
             }).then(
-                async (response) => {
+                async () => {
                     swal.fire({
                         title: 'Saved',
                         text: 'Your changes have been saved',
@@ -517,7 +517,7 @@ export default {
                 }
             });
         },
-        save_before_submit: async function (e) {
+        save_before_submit: async function () {
             //console.log('save before submit');
             let vm = this;
             vm.saveError = false;
@@ -553,7 +553,7 @@ export default {
             );
             return result;
         },
-        can_schedule: function (check_action) {
+        can_schedule: function () {
             let vm = this;
             let blank_fields = [];
 
@@ -613,7 +613,7 @@ export default {
                 return blank_fields;
             }
             //to count if records exists in the minutes table
-            vm.$refs.minutes.$refs.minutes_datatable.vmDataTable.rows().count();
+            // vm.$refs.minutes.$refs.minutes_datatable.vmDataTable.rows().count();
         },
         isFutureMeeting: function () {
             let vm = this;
@@ -707,7 +707,7 @@ export default {
             }).then(
                 async (swalresult) => {
                     if (swalresult.isConfirmed) {
-                        let result = await vm.save_before_submit();
+                        await vm.save_before_submit();
                         if (!vm.saveError) {
                             let payload = new Object();
                             Object.assign(payload, vm.meeting_obj);
@@ -741,7 +741,7 @@ export default {
                         }
                     }
                 },
-                (error) => {
+                () => {
                     vm.submitMeeting = false;
                 }
             );
@@ -776,7 +776,7 @@ export default {
             }).then(
                 async (swalresult) => {
                     if (swalresult.isConfirmed) {
-                        let result = await vm.save_before_submit();
+                        await vm.save_before_submit();
                         if (!vm.saveError) {
                             let payload = new Object();
                             Object.assign(payload, vm.meeting_obj);
@@ -811,7 +811,7 @@ export default {
                         }
                     }
                 },
-                (error) => {
+                () => {
                     vm.completingMeeting = false;
                 }
             );
@@ -954,7 +954,7 @@ export default {
             }).then(
                 async (swalresult) => {
                     if (swalresult.isConfirmed) {
-                        let result = await vm.save_before_submit();
+                        await vm.save_before_submit();
                         if (!vm.saveError) {
                             let payload = new Object();
                             Object.assign(payload, vm.meeting_obj);
@@ -991,7 +991,7 @@ export default {
                         }
                     }
                 },
-                (error) => {
+                () => {
                     vm.submitMeeting = false;
                 }
             );
@@ -1006,10 +1006,7 @@ export default {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-            }).then(
-                async (response) => {},
-                (err) => {}
-            );
+            });
         },
     },
 };

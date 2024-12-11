@@ -1339,7 +1339,7 @@ export default {
         },
     },
     watch: {
-        canRefer: function (newVal, oldVal) {
+        canRefer: function (newVal) {
             // Had to add this hack as the select2 was not being removed when the parent div was removed
             // from the DOM when the CS was approved
             if (!newVal && Object.hasOwn(this.$refs, 'referees')) {
@@ -1476,7 +1476,7 @@ export default {
                             },
                         }
                     ).then(
-                        (response) => {
+                        () => {
                             swal.fire({
                                 title: 'Discarded',
                                 text: 'Your proposal has been discarded',
@@ -1540,7 +1540,7 @@ export default {
                             },
                         }
                     ).then(
-                        (response) => {
+                        () => {
                             swal.fire({
                                 title: 'Delisted',
                                 text: `Conservation Status ${this.conservation_status_obj.conservation_status_number} has been delisted.`,
@@ -1654,7 +1654,7 @@ export default {
                     : {};
             this.$refs.proposed_decline.isModalOpen = true;
         },
-        save: async function (e) {
+        save: async function () {
             let vm = this;
             var missing_data = vm.can_submit('');
             if (missing_data != true) {
@@ -1679,7 +1679,7 @@ export default {
                 },
                 body: JSON.stringify(payload),
             }).then(
-                async (response) => {
+                async () => {
                     swal.fire({
                         title: 'Saved',
                         text: 'Your changes have been saved',
@@ -1731,7 +1731,7 @@ export default {
                 }
             });
         },
-        save_before_submit: async function (e) {
+        save_before_submit: async function () {
             let vm = this;
             vm.saveError = false;
 
@@ -1744,7 +1744,7 @@ export default {
                 },
                 body: JSON.stringify(payload),
             }).then(
-                async (response) => {},
+                async () => {},
                 (err) => {
                     var errorText = helpers.apiVueResourceError(err);
                     swal.fire({
@@ -1857,7 +1857,7 @@ export default {
             }).then(
                 async (swalresult) => {
                     if (swalresult.isConfirmed) {
-                        let result = await vm.save_before_submit();
+                        await vm.save_before_submit();
                         if (!vm.saveError) {
                             let payload = new Object();
                             Object.assign(payload, vm.conservation_status_obj);
@@ -1897,7 +1897,7 @@ export default {
                         vm.submitConservationStatus = false;
                     }
                 },
-                (error) => {
+                () => {
                     vm.submitConservationStatus = false;
                 }
             );
@@ -1912,10 +1912,7 @@ export default {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-            }).then(
-                async (response) => {},
-                (err) => {}
-            );
+            });
         },
         refreshFromResponse: async function (response) {
             const data = await response.json();
@@ -2116,14 +2113,13 @@ export default {
                     }
                     vm.assignTo();
                 })
-                .on('select2:unselecting', function (e) {
+                .on('select2:unselecting', function () {
                     var self = $(this);
                     setTimeout(() => {
                         self.select2('close');
                     }, 0);
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     if (
                         [
                             'Ready For Agenda',
@@ -2211,8 +2207,7 @@ export default {
                             vm.$refs.referral_text.focus();
                         });
                     })
-                    .on('select2:unselect', function (e) {
-                        var selected = $(e.currentTarget);
+                    .on('select2:unselect', function () {
                         vm.selected_referral = null;
                     });
                 vm.initialiseAssignedOfficerSelect();
@@ -2228,7 +2223,6 @@ export default {
             vm.referral_text = '';
         },
         remindExternalReferee: function (external_referee_invite) {
-            let vm = this;
             fetch(
                 helpers.add_endpoint_join(
                     api_endpoints.cs_external_referee_invites,
@@ -2241,7 +2235,7 @@ export default {
                     },
                 }
             )
-                .then((response) => {
+                .then(() => {
                     swal.fire({
                         title: 'Reminder Email Sent',
                         text: `A reminder email was successfully sent to ${external_referee_invite.full_name} (${external_referee_invite.email}).`,
@@ -2280,7 +2274,7 @@ export default {
                             },
                         }
                     )
-                        .then((response) => {
+                        .then(() => {
                             this.fetchConservationStatus();
                             swal.fire({
                                 title: 'External Referee Invite Retracted',
@@ -2302,7 +2296,6 @@ export default {
         },
         sendReferral: function () {
             let vm = this;
-            let formData = new FormData(vm.form);
             vm.sendingReferral = true;
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
@@ -2312,7 +2305,7 @@ export default {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-            }).then(async (response) => {
+            }).then(async () => {
                 let data = {
                     email: vm.selected_referral,
                     text: vm.referral_text,

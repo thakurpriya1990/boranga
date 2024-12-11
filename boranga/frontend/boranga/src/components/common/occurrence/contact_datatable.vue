@@ -237,7 +237,7 @@ export default {
         };
     },
     watch: {
-        isReadOnly: function (newVal, oldVal) {
+        isReadOnly: function () {
             this.$refs.contact_detail_datatable.vmDataTable.ajax.reload();
         },
     },
@@ -289,7 +289,7 @@ export default {
             );
             vm.$refs.contact_detail_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );
@@ -332,7 +332,6 @@ export default {
             this.$refs.contact_detail.isModalOpen = true;
         },
         editContactDetail: function (id) {
-            let vm = this;
             this.$refs.contact_detail.contact_detail_id = id;
             this.$refs.contact_detail.contact_detail_action = 'edit';
             fetch(
@@ -349,7 +348,6 @@ export default {
             this.$refs.contact_detail.isModalOpen = true;
         },
         viewContactDetail: function (id) {
-            let vm = this;
             this.$refs.contact_detail.contact_detail_id = id;
             this.$refs.contact_detail.contact_detail_action = 'view';
             fetch(
@@ -391,7 +389,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'The Contact has been discarded',
@@ -399,7 +397,7 @@ export default {
                                     customClass: {
                                         confirmButton: 'btn btn-primary',
                                     },
-                                }).then((result) => {
+                                }).then(() => {
                                     vm.$refs.contact_detail_datatable.vmDataTable.ajax.reload();
                                     vm.$emit('refreshOccurrenceReport');
                                     if (
@@ -416,7 +414,7 @@ export default {
                         );
                     }
                 },
-                (error) => {}
+                () => {}
             );
         },
         reinstateContactDetail: function (id) {
@@ -431,7 +429,7 @@ export default {
                     headers: { 'Content-Type': 'application/json' },
                 }
             ).then(
-                (response) => {
+                () => {
                     swal.fire({
                         title: 'Reinstated',
                         text: 'The Contact has been reinstated',
@@ -439,7 +437,7 @@ export default {
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
-                    }).then((result) => {
+                    }).then(() => {
                         vm.$refs.contact_detail_datatable.vmDataTable.ajax.reload();
                         vm.$emit('refreshOccurrenceReport');
                         if (vm.occurrence_obj.processing_status == 'Unlocked') {
@@ -461,7 +459,6 @@ export default {
             );
         },
         updatedContactDetails() {
-            let vm = this;
             this.$refs.contact_detail_datatable.vmDataTable.ajax.reload();
         },
         historyContactDetail: function (id) {

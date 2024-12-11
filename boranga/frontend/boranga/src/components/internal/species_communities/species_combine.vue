@@ -348,7 +348,7 @@ export default {
         },
         combine_into_species_scientific_name: function () {
             return this.new_combine_species.scientific_name
-                ? vm.new_combine_species.scientific_name
+                ? this.new_combine_species.scientific_name
                 : '';
         },
     },
@@ -409,7 +409,7 @@ export default {
                     body: JSON.stringify(payload),
                 }
             ).then(
-                async (response) => {
+                async () => {
                     return true;
                 },
                 (err) => {
@@ -508,8 +508,7 @@ export default {
                             //---save and submit the new combine species
                             let new_species = vm.new_combine_species;
                             //-- save new species before submit
-                            let result =
-                                await vm.save_before_submit(new_species);
+                            await vm.save_before_submit(new_species);
                             if (!vm.saveError) {
                                 vm.finalise_combine_loading = true;
 
@@ -564,7 +563,6 @@ export default {
                 });
         },
         removeSpecies: function (species_id) {
-            let vm = this;
             try {
                 // In this case we are allowing a http DELETE call to remove the species
                 fetch(api_endpoints.remove_species_proposal(species_id), {

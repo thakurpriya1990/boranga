@@ -113,6 +113,7 @@ export default {
         },
     },
     mounted: function () {
+        // eslint-disable-next-line no-undef
         chevron_toggle.init();
     },
     methods: {

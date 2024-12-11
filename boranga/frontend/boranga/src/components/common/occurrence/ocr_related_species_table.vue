@@ -152,7 +152,6 @@ export default {
                 buttons: [],
                 columns: columns,
                 processing: true,
-                initComplete: function (settings, json) {},
             };
         },
         datatable_headers: function () {
@@ -181,7 +180,7 @@ export default {
                         '/add_related_species?species=' +
                         vm.selected_scientific_name
                 ).then(
-                    (response) => {
+                    () => {
                         swal.fire({
                             title: 'Added',
                             text: 'Related Species has been added',
@@ -229,7 +228,7 @@ export default {
                                 '/remove_related_species?species=' +
                                 id
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Removed',
                                     text: 'Related Species has been removed',
@@ -252,7 +251,7 @@ export default {
                         );
                     }
                 },
-                (error) => {}
+                () => {}
             );
         },
         initialiseScientificNameLookup: function () {
@@ -281,15 +280,13 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.selected_scientific_name = data;
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.selected_scientific_name = null;
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-' +
                             vm.scientific_name_lookup +

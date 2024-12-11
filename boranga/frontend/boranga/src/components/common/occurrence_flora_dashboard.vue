@@ -572,13 +572,13 @@ export default {
             vm.initialiseOccurrenceNameLookup();
             vm.initialiseScientificNameLookup();
             vm.addEventListeners();
-
+            var newOption = null;
             if (
                 sessionStorage.getItem('filterOCCFloraOccurrenceName') !=
                     'all' &&
                 sessionStorage.getItem('filterOCCFloraOccurrenceName') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterOCCFloraOccurrenceNameText'),
                     vm.filterOCCFloraOccurrenceName,
                     false,
@@ -591,7 +591,7 @@ export default {
                     'all' &&
                 sessionStorage.getItem('filterOCCFloraScientificName') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterOCCFloraScientificNameText'),
                     vm.filterOCCFloraScientificName,
                     false,
@@ -637,7 +637,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.text;
                     vm.filterOCCFloraOccurrenceName = data;
                     sessionStorage.setItem(
@@ -645,15 +644,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterOCCFloraOccurrenceName = 'all';
                     sessionStorage.setItem(
                         'filterOCCFloraOccurrenceNameText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-occurrence_name_lookup-results"]'
                     );
@@ -685,7 +683,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterOCCFloraScientificName = data;
                     sessionStorage.setItem(
@@ -693,15 +690,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterOCCFloraScientificName = 'all';
                     sessionStorage.setItem(
                         'filterOCCFloraScientificNameText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-occ_scientific_name_lookup_by_groupname-results"]'
                     );
@@ -806,7 +802,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'The occurrence has been discarded',
@@ -854,7 +850,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Reinstated',
                                     text: 'The occurrence has been reinstated',
@@ -911,7 +907,7 @@ export default {
             );
             vm.$refs.flora_occ_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

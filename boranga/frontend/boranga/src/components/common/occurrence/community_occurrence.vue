@@ -195,7 +195,6 @@ export default {
     mounted: function () {
         let vm = this;
         this.$nextTick(() => {
-            vm.eventListeners();
             vm.initialiseCommunityNameLookup();
         });
     },
@@ -226,20 +225,18 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.occurrence_obj.community = data;
                     vm.occurrence_obj.community_id = data.id;
                     vm.community_display = e.params.data.text;
                     vm.taxon_previous_name = e.params.data.taxon_previous_name;
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.occurrence_obj.community_id = null;
                     vm.community_display = '';
                     vm.taxon_previous_name = '';
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-' +
                             vm.community_name_lookup +
@@ -262,9 +259,6 @@ export default {
                     vm.community_display = data.name;
                 });
             }
-        },
-        eventListeners: function () {
-            let vm = this;
         },
     },
 };

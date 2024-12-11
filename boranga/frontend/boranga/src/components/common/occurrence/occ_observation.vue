@@ -771,6 +771,7 @@ export default {
             );
         },
         populatePlantCountLookups: function () {
+            let vm = this;
             // using child refs to assign the list values to avoid calling the above api again in plantCount component
             vm.$refs.plantCountDetail.plant_count_method_list =
                 vm.listOfValuesDict.plant_count_method_list;
@@ -798,6 +799,7 @@ export default {
             });
         },
         populateAnimalObservationLookups: function () {
+            let vm = this;
             // using child refs to assign the list values to avoid calling the above api again in AnimalObservation component
             vm.$refs.animalObservationDetail.primary_detection_method_list =
                 vm.listOfValuesDict.primary_detection_method_list;

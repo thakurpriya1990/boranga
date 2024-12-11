@@ -17,7 +17,10 @@
             </div>
             <div class="row mb-3">
                 <MapComponent
-ref="component_map" :key="componentMapKey" class="me-3" :context="occurrence_report_obj"
+                    ref="component_map"
+                    :key="componentMapKey"
+                    class="me-3"
+                    :context="occurrence_report_obj"
                     :is_external="is_external"
                     :point-features-supported="true"
                     :polygon-features-supported="isFauna == false"
@@ -54,8 +57,11 @@ ref="component_map" :key="componentMapKey" class="me-3" :context="occurrence_rep
                 <label for="" class="col-sm-3 control-label">Region:</label>
                 <div class="col-sm-9">
                     <select
-v-model="occurrence_report_obj.location.region_id" :disabled="isReadOnly" class="form-select"
-                        @change="filterDistrict($event)">
+                        v-model="occurrence_report_obj.location.region_id"
+                        :disabled="isReadOnly"
+                        class="form-select"
+                        @change="filterDistrict($event)"
+                    >
                         <option
                             v-for="option in region_list"
                             :key="option.id"
@@ -70,8 +76,10 @@ v-model="occurrence_report_obj.location.region_id" :disabled="isReadOnly" class=
                 <label for="" class="col-sm-3 control-label">District:</label>
                 <div class="col-sm-9">
                     <select
-v-model="occurrence_report_obj.location.district_id" :disabled="isReadOnly"
-                        class="form-select">
+                        v-model="occurrence_report_obj.location.district_id"
+                        :disabled="isReadOnly"
+                        class="form-select"
+                    >
                         <option
                             v-for="option in filtered_district_list"
                             :key="option.id"
@@ -86,7 +94,8 @@ v-model="occurrence_report_obj.location.district_id" :disabled="isReadOnly"
                 <label for="" class="col-sm-3 control-label">Locality:</label>
                 <div class="col-sm-9">
                     <textarea
-id="locality" v-model="occurrence_report_obj.location.locality
+                        id="locality"
+                        v-model="occurrence_report_obj.location.locality"
                         :disabled="isReadOnly"
                         class="form-control"
                         rows="1"
@@ -103,7 +112,9 @@ id="locality" v-model="occurrence_report_obj.location.locality
                 >
                 <div class="col-sm-9">
                     <textarea
-id="loc_description" v-model="occurrence_report_obj.location.location_description
+                        id="loc_description"
+                        v-model="
+                            occurrence_report_obj.location.location_description
                         "
                         :disabled="isReadOnly"
                         class="form-control"
@@ -118,7 +129,9 @@ id="loc_description" v-model="occurrence_report_obj.location.location_descriptio
                 >
                 <div class="col-sm-9">
                     <textarea
-id="boundary_descr" v-model="occurrence_report_obj.location.boundary_description
+                        id="boundary_descr"
+                        v-model="
+                            occurrence_report_obj.location.boundary_description
                         "
                         :disabled="isReadOnly"
                         class="form-control"
@@ -217,7 +230,10 @@ id="boundary_descr" v-model="occurrence_report_obj.location.boundary_description
                 <div class="col-sm-9">
                     <template v-if="!isReadOnly">
                         <template
-v-if="coordinate_source_list && coordinate_source_list.length > 0 && occurrence_report_obj.location
+                            v-if="
+                                coordinate_source_list &&
+                                coordinate_source_list.length > 0 &&
+                                occurrence_report_obj.location
                                     .coordinate_source_id &&
                                 !coordinate_source_list
                                     .map((d) => d.id)
@@ -228,7 +244,11 @@ v-if="coordinate_source_list && coordinate_source_list.length > 0 && occurrence_
                             "
                         >
                             <input
-v-if="occurrence_report_obj.location.coordinate_source" type="text"
+                                v-if="
+                                    occurrence_report_obj.location
+                                        .coordinate_source
+                                "
+                                type="text"
                                 class="form-control mb-3"
                                 :value="
                                     occurrence_report_obj.location
@@ -241,8 +261,12 @@ v-if="occurrence_report_obj.location.coordinate_source" type="text"
                             </div>
                         </template>
                         <select
-                            v-model="occurrence_report_obj.location.coordinate_source_id"
-                            class="form-select">
+                            v-model="
+                                occurrence_report_obj.location
+                                    .coordinate_source_id
+                            "
+                            class="form-select"
+                        >
                             <option
                                 v-for="option in coordinate_source_list"
                                 :key="option.id"
@@ -254,8 +278,14 @@ v-if="occurrence_report_obj.location.coordinate_source" type="text"
                     </template>
                     <template v-else>
                         <input
-v-model="occurrence_report_obj.location.coordinate_source_id" class="form-control" type="text"
-                            :disabled="isReadOnly" />
+                            v-model="
+                                occurrence_report_obj.location
+                                    .coordinate_source_id
+                            "
+                            class="form-control"
+                            type="text"
+                            :disabled="isReadOnly"
+                        />
                     </template>
                 </div>
             </div>
@@ -284,7 +314,10 @@ v-model="occurrence_report_obj.location.coordinate_source_id" class="form-contro
                 <div class="col-sm-9">
                     <template v-if="!isReadOnly">
                         <template
-v-if="location_accuracy_list && location_accuracy_list.length > 0 && occurrence_report_obj.location
+                            v-if="
+                                location_accuracy_list &&
+                                location_accuracy_list.length > 0 &&
+                                occurrence_report_obj.location
                                     .location_accuracy_id &&
                                 !location_accuracy_list
                                     .map((d) => d.id)
@@ -295,7 +328,11 @@ v-if="location_accuracy_list && location_accuracy_list.length > 0 && occurrence_
                             "
                         >
                             <input
-v-if="occurrence_report_obj.location.location_accuracy" type="text"
+                                v-if="
+                                    occurrence_report_obj.location
+                                        .location_accuracy
+                                "
+                                type="text"
                                 class="form-control mb-3"
                                 :value="
                                     occurrence_report_obj.location
@@ -308,8 +345,12 @@ v-if="occurrence_report_obj.location.location_accuracy" type="text"
                             </div>
                         </template>
                         <select
-                            v-model="occurrence_report_obj.location.location_accuracy_id"
-                            class="form-select">
+                            v-model="
+                                occurrence_report_obj.location
+                                    .location_accuracy_id
+                            "
+                            class="form-select"
+                        >
                             <option
                                 v-for="option in location_accuracy_list"
                                 :key="option.id"
@@ -321,8 +362,13 @@ v-if="occurrence_report_obj.location.location_accuracy" type="text"
                     </template>
                     <template v-else>
                         <input
-v-model="occurrence_report_obj.location.location_accuracy" class="form-control" type="text"
-                            :disabled="isReadOnly" />
+                            v-model="
+                                occurrence_report_obj.location.location_accuracy
+                            "
+                            class="form-control"
+                            type="text"
+                            :disabled="isReadOnly"
+                        />
                     </template>
                 </div>
             </div>
@@ -331,8 +377,11 @@ v-model="occurrence_report_obj.location.location_accuracy" class="form-control" 
                 <div class="col-sm-12">
                     <!-- <button v-if="!updatingLocationDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
                     <button
-v-if="!updatingLocationDetails" class="btn btn-primary btn-sm float-end"
-                        :disabled="isReadOnly" @click.prevent="updateLocationDetails()">
+                        v-if="!updatingLocationDetails"
+                        class="btn btn-primary btn-sm float-end"
+                        :disabled="isReadOnly"
+                        @click.prevent="updateLocationDetails()"
+                    >
                         Update
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
@@ -538,8 +587,6 @@ export default {
     created: async function () {
         let vm = this;
         this.uuid = uuid();
-        //------fetch list of values according to action
-        let action = this.$route.query.action;
 
         //------fetch list of values
         fetch(
@@ -663,7 +710,7 @@ export default {
                             customClass: {
                                 confirmButton: 'btn btn-primary',
                             },
-                        }).then((result) => {
+                        }).then(() => {
                             if (
                                 vm.occurrence_report_obj.processing_status ==
                                 'Unlocked'

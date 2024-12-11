@@ -379,12 +379,13 @@ export default {
             vm.initialiseScientificNameLookup();
             vm.initialiseCommunityNameLookup();
             vm.addEventListeners();
+            var newOption = null;
             if (
                 sessionStorage.getItem('filterCSRefFloraScientificName') !=
                     'all' &&
                 sessionStorage.getItem('filterCSRefFloraScientificName') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem(
                         'filterCSRefFloraScientificNameText'
                     ),
@@ -400,7 +401,7 @@ export default {
                 sessionStorage.getItem('filterCSRefFloraCommunityName') != null
             ) {
                 // contructor new Option(text, value, defaultSelected, selected)
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterCSRefFloraCommunityNameText'),
                     vm.filterCSRefFloraCommunityName,
                     false,
@@ -438,7 +439,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSRefFloraScientificName = data;
                     sessionStorage.setItem(
@@ -446,15 +446,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSRefFloraScientificName = 'all';
                     sessionStorage.setItem(
                         'filterCSRefFloraScientificNameText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_ref_scientific_name_lookup-results"]'
                     );
@@ -483,7 +482,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterCSRefFloraCommunityName = data;
                     sessionStorage.setItem(
@@ -491,15 +489,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterCSRefFloraCommunityName = 'all';
                     sessionStorage.setItem(
                         'filterCSRefFloraCommunityNameText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-cs_referrals_community_name_lookup-results"]'
                     );
@@ -511,7 +508,7 @@ export default {
             let vm = this;
             vm.$refs.flora_cs_ref_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

@@ -64,12 +64,10 @@
 </template>
 
 <script>
-//import $ from 'jquery'
-
 import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
 
-import { helpers, api_endpoints } from '@/utils/hooks.js';
+import { helpers } from '@/utils/hooks.js';
 export default {
     name: 'AmendmentRequest',
     components: {
@@ -164,8 +162,7 @@ export default {
                 },
                 body: JSON.stringify(amendment),
             }).then(
-                (response) => {
-                    //vm.$parent.loading.splice('processing contact',1);
+                () => {
                     swal(
                         'Sent',
                         'An email has been sent to proponent with the request to amend this Proposal',
@@ -173,7 +170,6 @@ export default {
                     );
                     vm.amendingProposal = true;
                     vm.close();
-                    //vm.$emit('refreshFromResponse',response);
                     fetch(
                         `/api/proposal/${vm.proposal_id}/internal_proposal.json`
                     ).then(
@@ -200,7 +196,7 @@ export default {
         },
         formatText: function (text) {
             let s = text.replace(/\n/g, '<br/>');
-            s = s.replace(/[\u2018|\u2019|\u201A]/g, "\'");
+            s = s.replace(/[\u2018|\u2019|\u201A]/g, "'");
             // smart double quotes
             s = s.replace(/[\u201C|\u201D|\u201E]/g, '"');
             // ellipsis

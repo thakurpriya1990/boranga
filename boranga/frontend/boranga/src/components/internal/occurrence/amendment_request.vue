@@ -87,7 +87,7 @@ import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
 import FileField2 from '@/components/forms/filefield.vue';
 
-import { helpers, api_endpoints } from '@/utils/hooks.js';
+import { helpers } from '@/utils/hooks.js';
 export default {
     name: 'AmendmentRequest',
     components: {
@@ -212,7 +212,7 @@ export default {
                     'Content-Type': 'multipart/form-data',
                 },
             }).then(
-                (response) => {
+                () => {
                     swal.fire({
                         title: 'Sent',
                         text: 'An email has been sent to proponent with the request to amend this Proposal',

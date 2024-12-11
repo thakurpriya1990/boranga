@@ -7,8 +7,12 @@
                 >
                 <div class="col-sm-9">
                     <select
-ref="primary_detection_select" v-model="animal_observation.primary_detection_method" :disabled="isReadOnly"
-                        style="width:100%;" class="form-select input-sm">
+                        ref="primary_detection_select"
+                        v-model="animal_observation.primary_detection_method"
+                        :disabled="isReadOnly"
+                        style="width: 100%"
+                        class="form-select input-sm"
+                    >
                         <option
                             v-for="option in primary_detection_method_list"
                             :key="option.id"
@@ -36,7 +40,9 @@ ref="primary_detection_select" v-model="animal_observation.primary_detection_met
                             "
                         >
                             <input
-v-if="animal_observation.secondary_sign_name" type="text" class="form-control mb-3"
+                                v-if="animal_observation.secondary_sign_name"
+                                type="text"
+                                class="form-control mb-3"
                                 :value="
                                     animal_observation.secondary_sign_name +
                                     ' (Now Archived)'
@@ -89,7 +95,11 @@ v-if="animal_observation.secondary_sign_name" type="text" class="form-control mb
                             "
                         >
                             <input
-v-if="animal_observation.reproductive_state_name" type="text" class="form-control mb-3"
+                                v-if="
+                                    animal_observation.reproductive_state_name
+                                "
+                                type="text"
+                                class="form-control mb-3"
                                 :value="
                                     animal_observation.reproductive_state_name +
                                     ' (Now Archived)'
@@ -162,7 +172,9 @@ v-if="animal_observation.reproductive_state_name" type="text" class="form-contro
                             "
                         >
                             <input
-v-if="animal_observation.death_reason" type="text" class="form-control mb-3"
+                                v-if="animal_observation.death_reason"
+                                type="text"
+                                class="form-control mb-3"
                                 :value="
                                     animal_observation.death_reason +
                                     ' (Now Archived)'
@@ -203,8 +215,14 @@ v-if="animal_observation.death_reason" type="text" class="form-control mb-3"
                 >
                 <div class="col-sm-9">
                     <textarea
-id="distinct_features" v-model="animal_observation.distinctive_feature" :disabled="isReadOnly" type="text" row="2"
-                        class="form-control" placeholder="" />
+                        id="distinct_features"
+                        v-model="animal_observation.distinctive_feature"
+                        :disabled="isReadOnly"
+                        type="text"
+                        row="2"
+                        class="form-control"
+                        placeholder=""
+                    />
                 </div>
             </div>
 
@@ -214,8 +232,14 @@ id="distinct_features" v-model="animal_observation.distinctive_feature" :disable
                 >
                 <div class="col-sm-9">
                     <textarea
-id="distinct_features" v-model="animal_observation.action_taken" :disabled="isReadOnly" type="text" row="2"
-                        class="form-control" placeholder="" />
+                        id="distinct_features"
+                        v-model="animal_observation.action_taken"
+                        :disabled="isReadOnly"
+                        type="text"
+                        row="2"
+                        class="form-control"
+                        placeholder=""
+                    />
                 </div>
             </div>
 
@@ -225,8 +249,14 @@ id="distinct_features" v-model="animal_observation.action_taken" :disabled="isRe
                 >
                 <div class="col-sm-9">
                     <textarea
-id="distinct_features" v-model="animal_observation.action_required" :disabled="isReadOnly" type="text" row="2"
-                        class="form-control" placeholder="" />
+                        id="distinct_features"
+                        v-model="animal_observation.action_required"
+                        :disabled="isReadOnly"
+                        type="text"
+                        row="2"
+                        class="form-control"
+                        placeholder=""
+                    />
                 </div>
             </div>
 
@@ -236,8 +266,14 @@ id="distinct_features" v-model="animal_observation.action_required" :disabled="i
                 >
                 <div class="col-sm-9">
                     <textarea
-id="distinct_features" v-model="animal_observation.observation_detail_comment" :disabled="isReadOnly" type="text" row="2"
-                        class="form-control" placeholder="" />
+                        id="distinct_features"
+                        v-model="animal_observation.observation_detail_comment"
+                        :disabled="isReadOnly"
+                        type="text"
+                        row="2"
+                        class="form-control"
+                        placeholder=""
+                    />
                 </div>
             </div>
             <div class="row mb-3">
@@ -246,7 +282,7 @@ id="distinct_features" v-model="animal_observation.observation_detail_comment" :
                 </label>
                 <div class="col-sm-9">
                     <input
-v-model="animal_observation.count_date
+                        v-model="animal_observation.count_date"
                         :disabled="true"
                         type="datetime-local"
                         class="form-control"
@@ -266,7 +302,10 @@ v-model="animal_observation.count_date
                 </div>
                 <div class="col-sm-2">
                     <input
-id="not-counted" v-model="animal_observation.counted" type="checkbox" true-value="false"
+                        id="not-counted"
+                        v-model="animal_observation.counted"
+                        type="checkbox"
+                        true-value="false"
                         false-value="true"
                         @change="checkboxChanged"
                     />
@@ -283,23 +322,41 @@ id="not-counted" v-model="animal_observation.counted" type="checkbox" true-value
                 <div class="col-sm-2">
                     Male
                     <input
-id="alive_adult_male" v-model="animal_observation.alive_adult_male" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="alive_adult_male"
+                        v-model="animal_observation.alive_adult_male"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
                 <div class="col-sm-2">
                     Male
                     <input
-id="alive_juvenile_male" v-model="animal_observation.alive_juvenile_male" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="alive_juvenile_male"
+                        v-model="animal_observation.alive_juvenile_male"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
                 <div class="col-sm-2">
                     Male
                     <input
-id="alive_unsure_male" v-model="animal_observation.alive_unsure_male" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="alive_unsure_male"
+                        v-model="animal_observation.alive_unsure_male"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
             </div>
             <div class="row mb-3">
@@ -307,23 +364,41 @@ id="alive_unsure_male" v-model="animal_observation.alive_unsure_male" :disabled=
                 <div class="col-sm-2">
                     Female
                     <input
-id="alive_adult_female" v-model="animal_observation.alive_adult_female" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="alive_adult_female"
+                        v-model="animal_observation.alive_adult_female"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
                 <div class="col-sm-2">
                     Female
                     <input
-id="alive_juvenile_female" v-model="animal_observation.alive_juvenile_female" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="alive_juvenile_female"
+                        v-model="animal_observation.alive_juvenile_female"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
                 <div class="col-sm-2">
                     Female
                     <input
-id="alive_unsure_female" v-model="animal_observation.alive_unsure_female" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="alive_unsure_female"
+                        v-model="animal_observation.alive_unsure_female"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
             </div>
             <div class="row mb-3">
@@ -331,23 +406,41 @@ id="alive_unsure_female" v-model="animal_observation.alive_unsure_female" :disab
                 <div class="col-sm-2">
                     Sex Unknown
                     <input
-id="alive_adult_unknown" v-model="animal_observation.alive_adult_unknown" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="alive_adult_unknown"
+                        v-model="animal_observation.alive_adult_unknown"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
                 <div class="col-sm-2">
                     Sex Unknown
                     <input
-id="alive_juvenile_unknown" v-model="animal_observation.alive_juvenile_unknown" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="alive_juvenile_unknown"
+                        v-model="animal_observation.alive_juvenile_unknown"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
                 <div class="col-sm-2">
                     Sex Unknown
                     <input
-id="alive_unsure_unknown" v-model="animal_observation.alive_unsure_unknown" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="alive_unsure_unknown"
+                        v-model="animal_observation.alive_unsure_unknown"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
             </div>
 
@@ -362,23 +455,41 @@ id="alive_unsure_unknown" v-model="animal_observation.alive_unsure_unknown" :dis
                 <div class="col-sm-2">
                     Male
                     <input
-id="dead_adult_male" v-model="animal_observation.dead_adult_male" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="dead_adult_male"
+                        v-model="animal_observation.dead_adult_male"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
                 <div class="col-sm-2">
                     Male
                     <input
-id="dead_juvenile_male" v-model="animal_observation.dead_juvenile_male" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="dead_juvenile_male"
+                        v-model="animal_observation.dead_juvenile_male"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
                 <div class="col-sm-2">
                     Male
                     <input
-id="dead_unsure_male" v-model="animal_observation.dead_unsure_male" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="dead_unsure_male"
+                        v-model="animal_observation.dead_unsure_male"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
             </div>
             <div class="row mb-3">
@@ -386,23 +497,41 @@ id="dead_unsure_male" v-model="animal_observation.dead_unsure_male" :disabled="i
                 <div class="col-sm-2">
                     Female
                     <input
-id="dead_adult_female" v-model="animal_observation.dead_adult_female" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="dead_adult_female"
+                        v-model="animal_observation.dead_adult_female"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
                 <div class="col-sm-2">
                     Female
                     <input
-id="dead_juvenile_female" v-model="animal_observation.dead_juvenile_female" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="dead_juvenile_female"
+                        v-model="animal_observation.dead_juvenile_female"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
                 <div class="col-sm-2">
                     Female
                     <input
-id="dead_unsure_female" v-model="animal_observation.dead_unsure_female" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="dead_unsure_female"
+                        v-model="animal_observation.dead_unsure_female"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
             </div>
             <div class="row mb-4">
@@ -410,23 +539,41 @@ id="dead_unsure_female" v-model="animal_observation.dead_unsure_female" :disable
                 <div class="col-sm-2">
                     Sex Unknown
                     <input
-id="dead_adult_unknown" v-model="animal_observation.dead_adult_unknown" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="dead_adult_unknown"
+                        v-model="animal_observation.dead_adult_unknown"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
                 <div class="col-sm-2">
                     Sex Unknown
                     <input
-id="dead_juvenile_unknown" v-model="animal_observation.dead_juvenile_unknown" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="dead_juvenile_unknown"
+                        v-model="animal_observation.dead_juvenile_unknown"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
                 <div class="col-sm-2">
                     Sex Unknown
                     <input
-id="dead_unsure_unknown" v-model="animal_observation.dead_unsure_unknown" :disabled="isReadOnly || not_counted"
-                        type="number" class="form-control animal-count-input" placeholder="" min="0"
-                        step="1" />
+                        id="dead_unsure_unknown"
+                        v-model="animal_observation.dead_unsure_unknown"
+                        :disabled="isReadOnly || not_counted"
+                        type="number"
+                        class="form-control animal-count-input"
+                        placeholder=""
+                        min="0"
+                        step="1"
+                    />
                 </div>
             </div>
 
@@ -436,8 +583,14 @@ id="dead_unsure_unknown" v-model="animal_observation.dead_unsure_unknown" :disab
                 >
                 <div class="col-sm-6">
                     <input
-id="quadrats_surveyed" v-model="total_seen" readonly type="number" class="form-control ocr_number"
-                        placeholder="" min="0" />
+                        id="quadrats_surveyed"
+                        v-model="total_seen"
+                        readonly
+                        type="number"
+                        class="form-control ocr_number"
+                        placeholder=""
+                        min="0"
+                    />
                 </div>
             </div>
             <div class="row mb-3">
@@ -453,7 +606,8 @@ id="quadrats_surveyed" v-model="total_seen" readonly type="number" class="form-c
                 <div class="col-sm-12">
                     <!-- <button v-if="!updatingAnimalOnservationDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
                     <button
-v-if="!updatingAnimalOnservationDetails" :disabled="isReadOnly"
+                        v-if="!updatingAnimalOnservationDetails"
+                        :disabled="isReadOnly"
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateAnimalObservationDetails()"
                     >
@@ -485,36 +639,35 @@ export default {
     props: {
         animal_observation: {
             type: Object,
-            required: true
+            required: true,
         },
         is_report: {
             type: Boolean,
-            required: true
+            required: true,
         },
         occurrence_id: {
             type: Number,
-            required: true
+            required: true,
         },
         processing_status: {
             type: String,
-            required: false
+            required: false,
         },
         // this prop is only send from split species form to make the original species readonly
         is_readonly: {
             type: Boolean,
-            default: false
+            default: false,
         },
         is_external: {
             type: Boolean,
-            default: false
+            default: false,
         },
         isReadOnly: {
             type: Boolean,
-            default: false
+            default: false,
         },
     },
     data: function () {
-        let vm = this;
         return {
             //----list of values dictionary
             primary_detection_method_list: [],
@@ -526,7 +679,7 @@ export default {
             total_seen: 0,
             listOfAnimalValuesDict: {},
             not_counted: false,
-        }
+        };
     },
     watch: {
         animal_observation: function () {
@@ -542,38 +695,36 @@ export default {
     },
     created: async function () {
         let vm = this;
-        const response = await fetch(`/api/occurrence/animal_observation_list_of_values.json`);
+        const response = await fetch(
+            `/api/occurrence/animal_observation_list_of_values.json`
+        );
         vm.listOfAnimalValuesDict = await response.json();
-        vm.primary_detection_method_list = vm.listOfAnimalValuesDict.primary_detection_method_list;
-        vm.primary_detection_method_list.splice(0, 0,
-            {
-                id: '',
-                name: '',
-            });
+        vm.primary_detection_method_list =
+            vm.listOfAnimalValuesDict.primary_detection_method_list;
+        vm.primary_detection_method_list.splice(0, 0, {
+            id: '',
+            name: '',
+        });
         vm.secondary_sign_list = vm.listOfAnimalValuesDict.secondary_sign_list;
-        vm.secondary_sign_list.splice(0, 0,
-            {
-                id: '',
-                name: '',
-            });
+        vm.secondary_sign_list.splice(0, 0, {
+            id: '',
+            name: '',
+        });
         vm.reprod_state_list = vm.listOfAnimalValuesDict.reprod_state_list;
-        vm.reprod_state_list.splice(0, 0,
-            {
-                id: '',
-                name: '',
-            });
+        vm.reprod_state_list.splice(0, 0, {
+            id: '',
+            name: '',
+        });
         vm.death_reason_list = vm.listOfAnimalValuesDict.death_reason_list;
-        vm.death_reason_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
+        vm.death_reason_list.splice(0, 0, {
+            id: null,
+            name: null,
+        });
         vm.animal_health_list = vm.listOfAnimalValuesDict.animal_health_list;
-        vm.animal_health_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
+        vm.animal_health_list.splice(0, 0, {
+            id: null,
+            name: null,
+        });
     },
     mounted: function () {
         let vm = this;
@@ -598,35 +749,39 @@ export default {
         initialisePrimaryDetectionSelect: function () {
             let vm = this;
             // Initialise select2 for proposed Conservation Criteria
-            $(vm.$refs.primary_detection_select).select2({
-                "theme": "bootstrap-5",
-                allowClear: true,
-                multiple: true,
-                placeholder: "Select Primary Detection Method",
-            }).
-                on("select2:select", function (e) {
+            $(vm.$refs.primary_detection_select)
+                .select2({
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    multiple: true,
+                    placeholder: 'Select Primary Detection Method',
+                })
+                .on('select2:select', function (e) {
                     var selected = $(e.currentTarget);
-                    vm.animal_observation.primary_detection_method = selected.val();
-                }).
-                on("select2:unselect", function (e) {
+                    vm.animal_observation.primary_detection_method =
+                        selected.val();
+                })
+                .on('select2:unselect', function (e) {
                     var selected = $(e.currentTarget);
-                    vm.animal_observation.primary_detection_method = selected.val();
+                    vm.animal_observation.primary_detection_method =
+                        selected.val();
                 });
         },
         initialiseSecondarySignSelect: function () {
             let vm = this;
             // Initialise select2 for proposed Conservation Criteria
-            $(vm.$refs.secondary_sign_select).select2({
-                "theme": "bootstrap-5",
-                allowClear: true,
-                multiple: true,
-                placeholder: "Select Secondary Signs",
-            }).
-                on("select2:select", function (e) {
+            $(vm.$refs.secondary_sign_select)
+                .select2({
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    multiple: true,
+                    placeholder: 'Select Secondary Signs',
+                })
+                .on('select2:select', function (e) {
                     var selected = $(e.currentTarget);
                     vm.animal_observation.secondary_sign = selected.val();
-                }).
-                on("select2:unselect", function (e) {
+                })
+                .on('select2:unselect', function (e) {
                     var selected = $(e.currentTarget);
                     vm.animal_observation.secondary_sign = selected.val();
                 });
@@ -634,17 +789,18 @@ export default {
         initialiseReprodStateSelect: function () {
             let vm = this;
             // Initialise select2 for proposed Conservation Criteria
-            $(vm.$refs.reproductive_state_select).select2({
-                "theme": "bootstrap-5",
-                allowClear: true,
-                multiple: true,
-                placeholder: "Select Reproductive State",
-            }).
-                on("select2:select", function (e) {
+            $(vm.$refs.reproductive_state_select)
+                .select2({
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    multiple: true,
+                    placeholder: 'Select Reproductive State',
+                })
+                .on('select2:select', function (e) {
                     var selected = $(e.currentTarget);
                     vm.animal_observation.reproductive_state = selected.val();
-                }).
-                on("select2:unselect", function (e) {
+                })
+                .on('select2:unselect', function (e) {
                     var selected = $(e.currentTarget);
                     vm.animal_observation.reproductive_state = selected.val();
                 });
@@ -656,38 +812,49 @@ export default {
             if (vm.is_report) {
                 endpoint = api_endpoints.occurrence_report;
             }
-            fetch(helpers.add_endpoint_json(endpoint, (vm.occurrence_id + '/update_animal_observation_details')), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
+            fetch(
+                helpers.add_endpoint_json(
+                    endpoint,
+                    vm.occurrence_id + '/update_animal_observation_details'
+                ),
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(vm.animal_observation),
+                }
+            ).then(
+                () => {
+                    vm.updatingAnimalOnservationDetails = false;
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Animal Observation details have been saved',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    }).then(() => {
+                        if (vm.processing_status == 'Unlocked') {
+                            vm.$router.go();
+                        }
+                    });
                 },
-                body: JSON.stringify(vm.animal_observation),
-            }).then((response) => {
-                vm.updatingAnimalOnservationDetails = false;
-                swal.fire({
-                    title: 'Saved',
-                    text: 'Animal Observation details have been saved',
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary'
-                    },
-                }).then((result) => {
-                    if (vm.processing_status == "Unlocked") {
-                        vm.$router.go();
-                    }
-                });
-            }, (error) => {
-                var text = helpers.apiVueResourceError(error);
-                swal.fire({
-                    title: 'Error',
-                    text: 'Animal Observation details cannot be saved because of the following error: ' + text,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary'
-                    },
-                });
-                vm.updatingAnimalOnservationDetails = false;
-            });
+                (error) => {
+                    var text = helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error',
+                        text:
+                            'Animal Observation details cannot be saved because of the following error: ' +
+                            text,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.updatingAnimalOnservationDetails = false;
+                }
+            );
         },
     },
 };

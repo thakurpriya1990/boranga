@@ -60,7 +60,9 @@
                 </div>
                 <div class="row">
                     <FormSection
-v-if="new_community" :form-collapse="false" label="New Community Taxonomy Information"
+                        v-if="new_community"
+                        :form-collapse="false"
+                        label="New Community Taxonomy Information"
                         Index="new-community"
                     >
                         <form
@@ -106,8 +108,16 @@ v-if="new_community" :form-collapse="false" label="New Community Taxonomy Inform
                                 >
                                 <div class="col-sm-6">
                                     <textarea
-id="community_name" ref="community_name" v-model="new_community.taxonomy_details.community_name" class="form-control"
-                                        rows="1" placeholder="" />
+                                        id="community_name"
+                                        ref="community_name"
+                                        v-model="
+                                            new_community.taxonomy_details
+                                                .community_name
+                                        "
+                                        class="form-control"
+                                        rows="1"
+                                        placeholder=""
+                                    />
                                 </div>
                             </div>
                             <div class="row mb-3">
@@ -119,10 +129,16 @@ id="community_name" ref="community_name" v-model="new_community.taxonomy_details
                                 >
                                 <div class="col-sm-6">
                                     <input
-id="community_migrated_id" ref="community_migrated_id" v-model="new_community.taxonomy_details.community_migrated_id"
+                                        id="community_migrated_id"
+                                        ref="community_migrated_id"
+                                        v-model="
+                                            new_community.taxonomy_details
+                                                .community_migrated_id
+                                        "
                                         type="text"
                                         class="form-control"
-                                        placeholder="" />
+                                        placeholder=""
+                                    />
                                 </div>
                             </div>
                             <div class="row mb-3">
@@ -131,12 +147,23 @@ id="community_migrated_id" ref="community_migrated_id" v-model="new_community.ta
                                 >
                                 <div class="col-sm-6">
                                     <textarea
-id="community_description" v-model="new_community.taxonomy_details.community_description" class="form-control" rows="2"
-                                        placeholder="" />
+                                        id="community_description"
+                                        v-model="
+                                            new_community.taxonomy_details
+                                                .community_description
+                                        "
+                                        class="form-control"
+                                        rows="2"
+                                        placeholder=""
+                                    />
                                 </div>
                                 <div class="col-sm-3">
                                     <button
-v-if="species_community_original.taxonomy_details.community_description"
+                                        v-if="
+                                            species_community_original
+                                                .taxonomy_details
+                                                .community_description
+                                        "
                                         class="btn btn-primary w-100"
                                         @click.prevent="
                                             new_community.taxonomy_details.community_description =
@@ -156,12 +183,21 @@ v-if="species_community_original.taxonomy_details.community_description"
                                 >
                                 <div class="col-sm-6">
                                     <textarea
-id="community_previous_name" v-model="new_community.taxonomy_details.previous_name" class="form-control"
-                                        placeholder="" />
+                                        id="community_previous_name"
+                                        v-model="
+                                            new_community.taxonomy_details
+                                                .previous_name
+                                        "
+                                        class="form-control"
+                                        placeholder=""
+                                    />
                                 </div>
                                 <div class="col-sm-3">
                                     <button
-v-if="species_community_original.taxonomy_details.previous_name"
+                                        v-if="
+                                            species_community_original
+                                                .taxonomy_details.previous_name
+                                        "
                                         class="btn btn-primary w-100"
                                         @click.prevent="
                                             new_community.taxonomy_details.previous_name =
@@ -181,12 +217,22 @@ v-if="species_community_original.taxonomy_details.previous_name"
                                 >
                                 <div class="col-sm-6">
                                     <textarea
-id="name_authority" v-model="new_community.taxonomy_details.name_authority" rows="1" class="form-control"
-                                        placeholder="" />
+                                        id="name_authority"
+                                        v-model="
+                                            new_community.taxonomy_details
+                                                .name_authority
+                                        "
+                                        rows="1"
+                                        class="form-control"
+                                        placeholder=""
+                                    />
                                 </div>
                                 <div class="col-sm-3">
                                     <button
-v-if="species_community_original.taxonomy_details.name_authority"
+                                        v-if="
+                                            species_community_original
+                                                .taxonomy_details.name_authority
+                                        "
                                         class="btn btn-primary w-100"
                                         @click.prevent="
                                             new_community.taxonomy_details.name_authority =
@@ -206,12 +252,21 @@ v-if="species_community_original.taxonomy_details.name_authority"
                                 >
                                 <div class="col-sm-6">
                                     <textarea
-id="community_comment" v-model="new_community.taxonomy_details.name_comments" class="form-control"
-                                        placeholder="" />
+                                        id="community_comment"
+                                        v-model="
+                                            new_community.taxonomy_details
+                                                .name_comments
+                                        "
+                                        class="form-control"
+                                        placeholder=""
+                                    />
                                 </div>
                                 <div class="col-sm-3">
                                     <button
-v-if="species_community_original.taxonomy_details.name_comments"
+                                        v-if="
+                                            species_community_original
+                                                .taxonomy_details.name_comments
+                                        "
                                         class="btn btn-primary w-100"
                                         @click.prevent="
                                             new_community.taxonomy_details.name_comments =
@@ -230,8 +285,13 @@ v-if="species_community_original.taxonomy_details.name_comments"
                                 <div class="col-sm-9">
                                     <button
                                         class="btn btn-primary float-end mt-2"
-                                        :disabled="!new_community.taxonomy_details.community_name || !new_community.taxonomy_details.community_migrated_id"
-                                        @click.prevent="finaliseRenameCommunity"><i
+                                        :disabled="
+                                            !new_community.taxonomy_details
+                                                .community_name ||
+                                            !new_community.taxonomy_details
+                                                .community_migrated_id
+                                        "
+                                        @click.prevent="finaliseRenameCommunity"
                                     >
                                         <i class="bi bi-check2-circle"></i>
                                         Finalise Rename Community<template
@@ -259,11 +319,15 @@ v-if="species_community_original.taxonomy_details.name_comments"
                         <div>
                             <div class="col-md-12">
                                 <FormSpeciesCommunities
-v-if="species_community_original" id="rename_community"
+                                    v-if="species_community_original"
+                                    id="rename_community"
                                     ref="rename_community"
                                     :species_community_original="
                                         species_community_original
-                                    " :species_community="species_community_original"
+                                    "
+                                    :species_community="
+                                        species_community_original
+                                    "
                                     :is_internal="true"
                                     :is_readonly="true"
                                     :rename_species="true"
@@ -277,10 +341,16 @@ v-if="species_community_original" id="rename_community"
                 </div>
             </div>
             <template #footer>
-<div >
-                <button type="button" class="btn btn-secondary" @click="close">Cancel</button>
-            </div>
-</template>
+                <div>
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        @click="close"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </template>
         </modal>
     </div>
 </template>
@@ -330,13 +400,17 @@ export default {
         isModalOpen: function (val) {
             if (val) {
                 this.$nextTick(() => {
-                    this.new_community = structuredClone(this.species_community_original);
+                    this.new_community = structuredClone(
+                        this.species_community_original
+                    );
                     this.new_community.id = null;
                     this.new_community.community_number = '';
                     this.new_community.taxonomy_details.community_id = null;
                     this.new_community.taxonomy_details.community_name = null;
-                    this.new_community.taxonomy_details.community_migrated_id = null;
-                    this.new_community.taxonomy_details.previous_name = this.species_community_original.taxonomy_details.community_name;
+                    this.new_community.taxonomy_details.community_migrated_id =
+                        null;
+                    this.new_community.taxonomy_details.previous_name =
+                        this.species_community_original.taxonomy_details.community_name;
                     this.$nextTick(() => {
                         this.$refs.community_name.focus();
                     });

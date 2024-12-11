@@ -501,7 +501,7 @@ export default {
             );
             vm.$refs.occurrence_tenure_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

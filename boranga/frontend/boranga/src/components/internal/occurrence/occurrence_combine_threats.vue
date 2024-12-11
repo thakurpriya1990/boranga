@@ -99,7 +99,7 @@ export default {
                     },
                     {
                         data: 'date_observed',
-                        mRender: function (data, type, full) {
+                        mRender: function (data) {
                             return data != '' && data != null
                                 ? moment(data).format('DD/MM/YYYY HH:mm')
                                 : '';
@@ -116,7 +116,7 @@ export default {
                     },
                     {
                         data: 'comment',
-                        render: function (value, type, full) {
+                        render: function (value, type) {
                             let result = helpers.dtPopover(value, 30, 'hover');
                             return type == 'export' ? value : result;
                         },
@@ -274,12 +274,12 @@ export default {
                     }
                 }
             );
-            vm.$refs.threats_datatable.vmDataTable.on('draw', function (e) {
+            vm.$refs.threats_datatable.vmDataTable.on('draw', function () {
                 helpers.enablePopovers();
             });
             vm.$refs.threats_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

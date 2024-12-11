@@ -329,7 +329,7 @@ export default {
             vm.$refs.documents_datatable.vmDataTable.on(
                 'click',
                 'input[data-add-document]',
-                function (e) {
+                function () {
                     //e.preventDefault();
                     let id = $(this).attr('data-add-document');
                     let chkbox = $(this).attr('id');
@@ -347,7 +347,7 @@ export default {
             );
             vm.$refs.documents_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

@@ -239,7 +239,6 @@ export default {
     },
     beforeRouteEnter: function (to, from, next) {
         if (to.params.occurrence_report_id) {
-            let vm = this;
             fetch(
                 `/api/occurrence_report/${to.params.occurrence_report_id}.json`
             ).then(
@@ -260,7 +259,7 @@ export default {
                                     '/amendment_request'
                             )
                         ).then(
-                            async (response) => {
+                            async () => {
                                 vm.setAmendmentData(data);
                             },
                             (err) => {
@@ -357,10 +356,9 @@ export default {
     },
     methods: {
         submit_text: function () {
-            let vm = this;
             return 'Submit';
         },
-        set_formData: function (e) {
+        set_formData: function () {
             let vm = this;
             let formData = new FormData(vm.form);
             return formData;
@@ -501,9 +499,8 @@ export default {
                 }
             });
         },
-        save_wo_confirm: function (e) {
+        save_wo_confirm: function () {
             let vm = this;
-            let formData = vm.set_formData();
             fetch(vm.ocr_proposal_form_url, {
                 method: 'POST',
                 headers: {
@@ -511,7 +508,7 @@ export default {
                 },
             });
         },
-        save_before_submit: async function (e) {
+        save_before_submit: async function () {
             console.log('save before submit');
             let vm = this;
             vm.saveError = false;
@@ -565,7 +562,7 @@ export default {
                 },
                 body: JSON.stringify(payload),
             }).then(
-                async (response) => {
+                async () => {
                     console.log('saved before submit');
                 },
                 (err) => {
@@ -632,9 +629,10 @@ export default {
             // loop through all (non-hidden) required fields, and check data has been entered
             required_fields.each(function () {
                 var id = 'id_' + this.name;
+                var text = null;
                 if (this.type == 'radio') {
                     if (!$('input[name=' + this.name + ']').is(':checked')) {
-                        var text = $('#' + id).text();
+                        text = $('#' + id).text();
                         console.log(
                             'radio not checked: ' + this.type + ' ' + text
                         );
@@ -643,12 +641,12 @@ export default {
                 }
 
                 if (this.type == 'checkbox') {
-                    var id = 'id_' + this.classList['value'];
+                    id = 'id_' + this.classList['value'];
                     if (
                         $('[class=' + this.classList['value'] + ']:checked')
                             .length == 0
                     ) {
-                        var text = $('#' + id).text();
+                        text = $('#' + id).text();
                         console.log(
                             'checkbox not checked: ' + this.type + ' ' + text
                         );
@@ -658,8 +656,8 @@ export default {
 
                 if (this.type == 'select-one') {
                     if ($(this).val() == '') {
-                        var text = $('#' + id).text(); // this is the (question) label
-                        var id = 'id_' + $(this).prop('name'); // the label id
+                        text = $('#' + id).text(); // this is the (question) label
+                        id = 'id_' + $(this).prop('name'); // the label id
                         console.log(
                             'selector not selected: ' + this.type + ' ' + text
                         );
@@ -670,7 +668,7 @@ export default {
                 if (this.type == 'file') {
                     var num_files = $('#' + id).attr('num_files');
                     if (num_files == '0') {
-                        var text = $('#' + id).text();
+                        text = $('#' + id).text();
                         console.log(
                             'file not uploaded: ' + this.type + ' ' + this.name
                         );
@@ -680,7 +678,7 @@ export default {
 
                 if (this.type == 'text') {
                     if (this.value == '') {
-                        var text = $('#' + id).text();
+                        text = $('#' + id).text();
                         console.log(
                             'text not provided: ' + this.type + ' ' + this.name
                         );
@@ -690,7 +688,7 @@ export default {
 
                 if (this.type == 'textarea') {
                     if (this.value == '') {
-                        var text = $('#' + id).text();
+                        text = $('#' + id).text();
                         console.log(
                             'textarea not provided: ' +
                                 this.type +
@@ -861,7 +859,7 @@ export default {
                     }
                     vm.submitting = false;
                 },
-                (error) => {
+                () => {
                     vm.submitting = false;
                 }
             );

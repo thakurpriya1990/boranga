@@ -11,7 +11,8 @@
             >
                 <template v-if="!is_external">
                     <CollapsibleComponent
-ref="assessment_comments" component_title="Assessment Comments"
+                        ref="assessment_comments"
+                        component_title="Assessment Comments"
                         :collapsed="false"
                     >
                         <div class="row">
@@ -20,9 +21,14 @@ ref="assessment_comments" component_title="Assessment Comments"
                                     <div class="col">
                                         <div class="form-floating m-3">
                                             <textarea
-id="assessor_deficiencies" v-model="occurrence_report_obj.deficiency_data"
-                                                :disabled="deficiency_readonly" class="form-control"
-                                                placeholder="Deficiency Comments" />
+                                                id="assessor_deficiencies"
+                                                v-model="
+                                                    occurrence_report_obj.deficiency_data
+                                                "
+                                                :disabled="deficiency_readonly"
+                                                class="form-control"
+                                                placeholder="Deficiency Comments"
+                                            />
                                             <label
                                                 for="assessor_deficiencies"
                                                 class="form-label"
@@ -35,9 +41,17 @@ id="assessor_deficiencies" v-model="occurrence_report_obj.deficiency_data"
                                     <div class="col">
                                         <div class="form-floating m-3 mt-1">
                                             <textarea
-id="assessor_comment" v-model="occurrence_report_obj.assessor_data"
-                                                :disabled="assessor_comment_readonly" class="form-control" rows="3"
-                                                placeholder="Assessor Comments" />
+                                                id="assessor_comment"
+                                                v-model="
+                                                    occurrence_report_obj.assessor_data
+                                                "
+                                                :disabled="
+                                                    assessor_comment_readonly
+                                                "
+                                                class="form-control"
+                                                rows="3"
+                                                placeholder="Assessor Comments"
+                                            />
                                             <label
                                                 for=""
                                                 class="col-sm-4 col-form-label"
@@ -64,13 +78,22 @@ id="assessor_comment" v-model="occurrence_report_obj.assessor_data"
                                                         class="form-floating m-3 mt-1"
                                                     >
                                                         <textarea
-v-if='!ref.readonly' :id="ref.name" v-model="referral.referral_comment"
+                                                            v-if="!ref.readonly"
+                                                            :id="ref.name"
+                                                            v-model="
+                                                                referral.referral_comment
+                                                            "
                                                             :disabled="true"
                                                             :name="ref.name"
                                                             class="form-control"
-                                                            :placeholder="ref.label" />
+                                                            :placeholder="
+                                                                ref.label
+                                                            "
+                                                        />
                                                         <textarea
-v-else :disabled="true" :name="ref.name"
+                                                            v-else
+                                                            :disabled="true"
+                                                            :name="ref.name"
                                                             :value="
                                                                 ref.value || ''
                                                             "
@@ -104,7 +127,9 @@ v-else :disabled="true" :name="ref.name"
                         >
                         <div :id="select_scientific_name" class="col-sm-9">
                             <select
-:id="scientific_name_lookup" :ref="scientific_name_lookup" :disabled="isReadOnly"
+                                :id="scientific_name_lookup"
+                                :ref="scientific_name_lookup"
+                                :disabled="isReadOnly"
                                 :name="scientific_name_lookup"
                                 class="form-control"
                             />
@@ -114,7 +139,10 @@ v-else :disabled="true" :name="ref.name"
                         <label for="" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
                             <textarea
-id="species_display" v-model="species_display" disabled class="form-control"
+                                id="species_display"
+                                v-model="species_display"
+                                disabled
+                                class="form-control"
                                 rows="2"
                             />
                         </div>
@@ -125,7 +153,10 @@ id="species_display" v-model="species_display" disabled class="form-control"
                         >
                         <div class="col-sm-9">
                             <input
-id="previous_name" v-model="taxon_previous_name" readonly type="text"
+                                id="previous_name"
+                                v-model="taxon_previous_name"
+                                readonly
+                                type="text"
                                 class="form-control"
                                 placeholder=""
                             />
@@ -139,7 +170,9 @@ id="previous_name" v-model="taxon_previous_name" readonly type="text"
                         >
                         <div :id="select_community_name" class="col-sm-9">
                             <select
-:id="community_name_lookup" :ref="community_name_lookup" :disabled="isReadOnly"
+                                :id="community_name_lookup"
+                                :ref="community_name_lookup"
+                                :disabled="isReadOnly"
                                 :name="community_name_lookup"
                                 class="form-control"
                             />
@@ -149,7 +182,10 @@ id="previous_name" v-model="taxon_previous_name" readonly type="text"
                         <label for="" class="col-sm-3 col-form-label"></label>
                         <div class="col-sm-9">
                             <textarea
-id="community_display" v-model="community_display" disabled class="form-control"
+                                id="community_display"
+                                v-model="community_display"
+                                disabled
+                                class="form-control"
                                 rows="2"
                             />
                         </div>
@@ -166,7 +202,9 @@ id="community_display" v-model="community_display" disabled class="form-control"
                     >
                     <div class="col-sm-9">
                         <input
-id="migrated_from_id" :value="occurrence_report_obj.migrated_from_id" disabled
+                            id="migrated_from_id"
+                            :value="occurrence_report_obj.migrated_from_id"
+                            disabled
                             type="text"
                             class="form-control"
                         />
@@ -176,7 +214,8 @@ id="migrated_from_id" :value="occurrence_report_obj.migrated_from_id" disabled
                     <label for="" class="col-sm-3 col-form-label">Site:</label>
                     <div class="col-sm-9">
                         <textarea
-id="site" v-model="occurrence_report_obj.site
+                            id="site"
+                            v-model="occurrence_report_obj.site"
                             :disabled="isReadOnly"
                             class="form-control"
                             rows="1"
@@ -196,8 +235,15 @@ id="site" v-model="occurrence_report_obj.site
                         </label>
                         <div class="col-sm-9">
                             <input
-id="occurrence_report_is_for_occurrence_number" v-model="occurrence_report_obj.ocr_for_occ_number
-                                " type="text" :disabled="isReadOnly" class="form-control" autocomplete="new-password" />
+                                id="occurrence_report_is_for_occurrence_number"
+                                v-model="
+                                    occurrence_report_obj.ocr_for_occ_number
+                                "
+                                type="text"
+                                :disabled="isReadOnly"
+                                class="form-control"
+                                autocomplete="new-password"
+                            />
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -211,8 +257,13 @@ id="occurrence_report_is_for_occurrence_number" v-model="occurrence_report_obj.o
                         </label>
                         <div class="col-sm-9">
                             <input
-id="occurrence_report_for_occurrence_name" v-model="occurrence_report_obj.ocr_for_occ_name
-                                " type="text" :disabled="isReadOnly" class="form-control" autocomplete="new-password" />
+                                id="occurrence_report_for_occurrence_name"
+                                v-model="occurrence_report_obj.ocr_for_occ_name"
+                                type="text"
+                                :disabled="isReadOnly"
+                                class="form-control"
+                                autocomplete="new-password"
+                            />
                         </div>
                     </div>
                 </template>
@@ -223,7 +274,7 @@ id="occurrence_report_for_occurrence_name" v-model="occurrence_report_obj.ocr_fo
                     >
                     <div class="col-sm-9">
                         <input
-v-model="occurrence_report_obj.observation_date
+                            v-model="occurrence_report_obj.observation_date"
                             :disabled="isReadOnly"
                             type="datetime-local"
                             class="form-control"
@@ -233,7 +284,8 @@ v-model="occurrence_report_obj.observation_date
                     </div>
                 </div>
                 <ObserverDatatable
-ref="observer_datatable" :occurrence_report_obj="occurrence_report_obj"
+                    ref="observer_datatable"
+                    :occurrence_report_obj="occurrence_report_obj"
                     :is_external="is_external"
                     :is-read-only="isReadOnly"
                     :show_observer_contact_information="
@@ -262,16 +314,16 @@ export default {
         FormSection,
         HelpText,
         ObserverDatatable,
-        CollapsibleComponent
+        CollapsibleComponent,
     },
     props: {
         occurrence_report_obj: {
             type: Object,
-            required: true
+            required: true,
         },
         referral: {
             type: Object,
-            required: false
+            required: false,
         },
         is_external: {
             type: Boolean,
@@ -287,10 +339,8 @@ export default {
         let vm = this;
         return {
             uuid: null,
-            scientific_name_lookup:
-                'scientific_name_lookup' + vm._uid,
-            select_scientific_name:
-                'select_scientific_name' + vm._uid,
+            scientific_name_lookup: 'scientific_name_lookup' + vm._uid,
+            select_scientific_name: 'select_scientific_name' + vm._uid,
             community_name_lookup: 'community_name_lookup' + vm._uid,
             select_community_name: 'select_community_name' + vm._uid,
             isFauna:
@@ -303,7 +353,7 @@ export default {
             community_display: '',
             taxon_previous_name: '',
             referral_comments_boxes: [],
-        }
+        };
     },
     computed: {
         isReadOnly: function () {
@@ -373,19 +423,19 @@ export default {
         let dict_url =
             action == 'view'
                 ? api_endpoints.cs_profile_dict +
-                '?group_type=' +
-                vm.occurrence_report_obj.group_type +
-                '&action=' +
-                action
+                  '?group_type=' +
+                  vm.occurrence_report_obj.group_type +
+                  '&action=' +
+                  action
                 : api_endpoints.cs_profile_dict +
-                '?group_type=' +
-                vm.occurrence_report_obj.group_type;
-        fetch(dict_url).then(async (response) => {
+                  '?group_type=' +
+                  vm.occurrence_report_obj.group_type;
+        fetch(dict_url).then(
+            async (response) => {
                 vm.cs_profile_dict = await response.json();
                 if (!vm.isCommunity) {
                     this.getSpeciesDisplay();
-                }
-                else {
+                } else {
                     this.getCommunityDisplay();
                 }
             },
@@ -409,7 +459,7 @@ export default {
     },
     methods: {
         test: function () {
-            console.log('test')
+            console.log('test');
         },
         initialiseScientificNameLookup: function () {
             let vm = this;
@@ -438,8 +488,8 @@ export default {
                 .on('select2:select', function (e) {
                     // eslint-disable-next-line no-unused-vars
                     var selected = $(e.currentTarget);
-                    let data = e.params.data.id;
-                    vm.occurrence_report_obj.species_id = e.params.data.species_id;
+                    vm.occurrence_report_obj.species_id =
+                        e.params.data.species_id;
                     vm.species_display = e.params.data.text;
                     vm.taxon_previous_name = e.params.data.taxon_previous_name;
                     // Unfortunate to call this twice but the change event on the fieldset fires before
@@ -458,8 +508,8 @@ export default {
                 .on('select2:open', function (e) {
                     const searchField = $(
                         '[aria-controls="select2-' +
-                        vm.scientific_name_lookup +
-                        '-results"]'
+                            vm.scientific_name_lookup +
+                            '-results"]'
                     );
                     // move focus to select2 field
                     searchField[0].focus();
@@ -468,14 +518,17 @@ export default {
         getSpeciesDisplay: function () {
             let vm = this;
             if (vm.occurrence_report_obj.species_taxonomy_id != null) {
-                let species_display_url = api_endpoints.species_display + "?taxon_id=" + vm.occurrence_report_obj.species_taxonomy_id
+                let species_display_url =
+                    api_endpoints.species_display +
+                    '?taxon_id=' +
+                    vm.occurrence_report_obj.species_taxonomy_id;
                 fetch(species_display_url).then(async (response) => {
-                        const data = await response.json();
-                        var newOption = new Option(data.name, data.id, false, true);
-                        $('#' + vm.scientific_name_lookup).append(newOption);
-                        vm.species_display = data.name
-                        vm.taxon_previous_name = data.taxon_previous_name
-                    })
+                    const data = await response.json();
+                    var newOption = new Option(data.name, data.id, false, true);
+                    $('#' + vm.scientific_name_lookup).append(newOption);
+                    vm.species_display = data.name;
+                    vm.taxon_previous_name = data.taxon_previous_name;
+                });
             }
         },
         initialiseCommunityNameLookup: function () {
@@ -519,8 +572,8 @@ export default {
                 .on('select2:open', function (e) {
                     const searchField = $(
                         '[aria-controls="select2-' +
-                        vm.community_name_lookup +
-                        '-results"]'
+                            vm.community_name_lookup +
+                            '-results"]'
                     );
                     // move focus to select2 field
                     searchField[0].focus();
@@ -529,21 +582,23 @@ export default {
         getCommunityDisplay: function () {
             let vm = this;
             if (vm.occurrence_report_obj?.community_id) {
-                let community_display_url = api_endpoints.community_display +
-                    "?community_id=" + vm.occurrence_report_obj.community_id
+                let community_display_url =
+                    api_endpoints.community_display +
+                    '?community_id=' +
+                    vm.occurrence_report_obj.community_id;
                 fetch(community_display_url).then(async (response) => {
-                        const data = await response.json();
-                        var newOption = new Option(data.name, data.id, false, true);
-                        $('#' + vm.community_name_lookup).append(newOption);
-                        vm.community_display = data.name
-                    })
+                    const data = await response.json();
+                    var newOption = new Option(data.name, data.id, false, true);
+                    $('#' + vm.community_name_lookup).append(newOption);
+                    vm.community_display = data.name;
+                });
             }
         },
         incrementComponentMapKey: function () {
             this.uuid = uuid();
         },
         formatObservationDate: function () {
-            if (this.occurrence_report_obj.observation_date === "") {
+            if (this.occurrence_report_obj.observation_date === '') {
                 this.occurrence_report_obj.observation_date = null;
             }
         },
@@ -575,9 +630,9 @@ export default {
                     var referral_name = `comment-field-Referral-${v.referral.email}`;
                     var referral_visibility =
                         assessor_mode == 'referral' &&
-                            this.occurrence_report_obj.assessor_mode
-                                .assessor_can_assess &&
-                            this.referral.referral == v.referral.id
+                        this.occurrence_report_obj.assessor_mode
+                            .assessor_can_assess &&
+                        this.referral.referral == v.referral.id
                             ? false
                             : true;
                     var referral_label = `${v.referral.fullname}`;
@@ -596,11 +651,14 @@ export default {
             this.$emit('refreshOccurrenceReport');
         },
         saveOccurrenceReport: function (e) {
-            console.log(e.target.id)
-            if (e.target.id != 'select_scientific_name' && e.target.id != 'select_community_name') {
+            console.log(e.target.id);
+            if (
+                e.target.id != 'select_scientific_name' &&
+                e.target.id != 'select_community_name'
+            ) {
                 this.$emit('saveOccurrenceReport');
             }
-        }
+        },
     },
 };
 </script>

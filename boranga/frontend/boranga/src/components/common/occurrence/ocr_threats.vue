@@ -528,7 +528,6 @@ export default {
             this.$refs.threat_detail.isModalOpen = true;
         },
         editThreat: function (id) {
-            let vm = this;
             this.$refs.threat_detail.threat_id = id;
             this.$refs.threat_detail.threat_action = 'edit';
             fetch(helpers.add_endpoint_json(api_endpoints.ocr_threat, id)).then(
@@ -548,7 +547,6 @@ export default {
             this.$refs.threat_detail.isModalOpen = true;
         },
         viewThreat: function (id) {
-            let vm = this;
             this.$refs.threat_detail.threat_id = id;
             this.$refs.threat_detail.threat_action = 'view';
             fetch(helpers.add_endpoint_json(api_endpoints.ocr_threat, id)).then(
@@ -600,7 +598,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'Your threat has been removed',
@@ -608,7 +606,7 @@ export default {
                                     customClass: {
                                         confirmButton: 'btn btn-primary',
                                     },
-                                }).then((result) => {
+                                }).then(() => {
                                     vm.$refs.threats_datatable.vmDataTable.ajax.reload();
                                     if (
                                         vm.occurrence_report_obj
@@ -624,7 +622,7 @@ export default {
                         );
                     }
                 },
-                (error) => {}
+                () => {}
             );
         },
         reinstateThreat: function (id) {
@@ -650,7 +648,7 @@ export default {
                             headers: { 'Content-Type': 'application/json' },
                         }
                     ).then(
-                        (response) => {
+                        () => {
                             swal.fire({
                                 title: 'Reinstated',
                                 text: 'Your threat has been reinstated',
@@ -658,7 +656,7 @@ export default {
                                 customClass: {
                                     confirmButton: 'btn btn-primary',
                                 },
-                            }).then((result) => {
+                            }).then(() => {
                                 vm.$refs.threats_datatable.vmDataTable.ajax.reload();
                                 if (
                                     vm.occurrence_report_obj
@@ -733,7 +731,7 @@ export default {
             );
             vm.$refs.threats_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

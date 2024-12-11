@@ -841,11 +841,9 @@ export default {
                 vm.uploadingImage = true;
                 let data = new FormData();
                 data.append('speciesCommunitiesImage', imageFile);
-
+                var api_url = api_endpoints.species;
                 if (this.species_community.group_type == 'community') {
-                    var api_url = api_endpoints.community;
-                } else {
-                    var api_url = api_endpoints.species;
+                    api_url = api_endpoints.community;
                 }
                 fetch(
                     helpers.add_endpoint_json(
@@ -894,7 +892,6 @@ export default {
             this.$refs.reinstateImage.isModalOpen = true;
         },
         reopen: async function () {
-            let vm = this;
             swal.fire({
                 title: 'Reopen',
                 text: 'Are you sure you want to reopen this record?',
@@ -922,7 +919,7 @@ export default {
                             },
                         }
                     ).then(
-                        async (response) => {
+                        async () => {
                             swal.fire({
                                 title: 'Reopened',
                                 text: 'Record has been reopened',
@@ -930,7 +927,7 @@ export default {
                                 customClass: {
                                     confirmButton: 'btn btn-primary',
                                 },
-                            }).then(async (swalresult) => {
+                            }).then(async () => {
                                 this.$router.go(this.$router.currentRoute);
                             });
                         },
@@ -950,11 +947,9 @@ export default {
             });
         },
         reinstateImage: function (image) {
-            let vm = this;
+            var api_url = api_endpoints.species;
             if (this.species_community.group_type == 'community') {
-                var api_url = api_endpoints.community;
-            } else {
-                var api_url = api_endpoints.species;
+                api_url = api_endpoints.community;
             }
             fetch(
                 helpers.add_endpoint_json(
@@ -1008,10 +1003,9 @@ export default {
         },
         discardImage: async function () {
             let vm = this;
+            var api_url = api_endpoints.species;
             if (this.species_community.group_type == 'community') {
-                var api_url = api_endpoints.community;
-            } else {
-                var api_url = api_endpoints.species;
+                api_url = api_endpoints.community;
             }
 
             if (vm.speciesCommunitiesImage == null) {
@@ -1096,7 +1090,7 @@ export default {
                                 },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'The proposal has been discarded',
@@ -1115,7 +1109,7 @@ export default {
                         );
                     }
                 },
-                (error) => {}
+                () => {}
             );
         },
         save: async function () {
@@ -1183,7 +1177,7 @@ export default {
                 }
             );
         },
-        save_exit: async function (e) {
+        save_exit: async function () {
             let vm = this;
             var missing_data = vm.can_submit('');
             if (missing_data != true) {
@@ -1209,7 +1203,7 @@ export default {
                 }
             });
         },
-        save_before_submit: async function (e) {
+        save_before_submit: async function () {
             //console.log('save before submit');
             let vm = this;
             vm.saveError = false;
@@ -1228,7 +1222,7 @@ export default {
                     'Content-Type': 'application/json',
                 },
             }).then(
-                async (response) => {
+                async () => {
                     //return true;
                 },
                 (err) => {
@@ -1356,7 +1350,7 @@ export default {
                 .then(
                     async (swalresult) => {
                         if (swalresult.isConfirmed) {
-                            let result = await vm.save_before_submit();
+                            await vm.save_before_submit();
                             if (!vm.saveError) {
                                 let payload = new Object();
                                 Object.assign(payload, vm.species_community);
@@ -1425,16 +1419,15 @@ export default {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-            }).then(
-                async (response) => {},
-                (err) => {}
-            );
+            });
         },
         refreshFromResponse: async function (response) {
             let vm = this;
             const data = await response.json();
             vm.species_community = helpers.copyObject(data);
-            vm.species_community_original = copyObject(vm.species_community);
+            vm.species_community_original = helpers.copyObject(
+                vm.species_community
+            );
         },
         refreshSpeciesCommunity: function () {
             let vm = this;
@@ -1678,7 +1671,7 @@ export default {
                 }
             );
         },
-        onImageLoad: function (e) {
+        onImageLoad: function () {
             this.downloadingImage = false;
         },
     },

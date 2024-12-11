@@ -254,7 +254,7 @@ export default {
                 drawCallback: function () {
                     helpers.enablePopovers();
                 },
-                initComplete: function (settings, json) {
+                initComplete: function () {
                     helpers.enablePopovers();
                     // another option to fix the responsive table overflow css on tab switch
                     setTimeout(function () {
@@ -291,7 +291,6 @@ export default {
             this.$refs.site_detail.isModalOpen = true;
         },
         editSite: function (id) {
-            let vm = this;
             this.$refs.site_detail.site_id = id;
             this.$refs.site_detail.site_action = 'edit';
             fetch(helpers.add_endpoint_json(api_endpoints.occ_site, id)).then(
@@ -305,7 +304,6 @@ export default {
             this.$refs.site_detail.isModalOpen = true;
         },
         viewSite: function (id) {
-            let vm = this;
             this.$refs.site_detail.site_id = id;
             this.$refs.site_detail.site_action = 'view';
             fetch(helpers.add_endpoint_json(api_endpoints.occ_site, id)).then(
@@ -350,7 +348,7 @@ export default {
                                 },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'The Site has been discarded',
@@ -358,7 +356,7 @@ export default {
                                     customClass: {
                                         confirmButton: 'btn btn-primary',
                                     },
-                                }).then((result) => {
+                                }).then(() => {
                                     vm.updatedSites();
                                 });
                             },
@@ -368,7 +366,7 @@ export default {
                         );
                     }
                 },
-                (error) => {}
+                () => {}
             );
         },
         reinstateSite: function (id) {
@@ -385,7 +383,7 @@ export default {
                     },
                 }
             ).then(
-                (response) => {
+                () => {
                     swal.fire({
                         title: 'Reinstated',
                         text: 'The Site has been reinstated',
@@ -393,7 +391,7 @@ export default {
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
-                    }).then((result) => {
+                    }).then(() => {
                         vm.updatedSites();
                     });
                 },
@@ -466,7 +464,7 @@ export default {
             );
             vm.$refs.occurrence_site_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

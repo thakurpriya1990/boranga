@@ -79,7 +79,6 @@ export default {
                     ),
                     dataSrc: '',
                 },
-                order: [],
                 dom:
                     "<'d-flex align-items-center'<'me-auto'l>fB>" +
                     "<'row'<'col-sm-12'tr>>" +
@@ -133,7 +132,7 @@ export default {
                     {
                         data: 'scientific_name',
                         searchable: true,
-                        render: function (value, type, full) {
+                        render: function (value, type) {
                             let result = helpers.dtPopover(value, 30, 'hover');
                             return type == 'export' ? value : result;
                         },
@@ -142,7 +141,7 @@ export default {
                     {
                         data: 'change_code',
                         searchable: true,
-                        render: function (value, type, full) {
+                        render: function (value, type) {
                             let result = helpers.dtPopover(value, 30, 'hover');
                             return type == 'export' ? value : result;
                         },
@@ -298,7 +297,7 @@ export default {
 
             vm.$refs.cs_queue_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );
@@ -360,10 +359,10 @@ export default {
                         );
                     }
                 },
-                (error) => {}
+                () => {}
             );
         },
-        addTableListeners: function (e) {
+        addTableListeners: function () {
             let vm = this;
             // for "...more" tooltip to work after reload
             helpers.enablePopovers();
@@ -381,7 +380,6 @@ export default {
             $('.dtMoveDown').off('click');
         },
         async sendDirection(req, direction) {
-            let vm = this;
             let movement = direction == 'down' ? 'move_down' : 'move_up';
             try {
                 await fetch(

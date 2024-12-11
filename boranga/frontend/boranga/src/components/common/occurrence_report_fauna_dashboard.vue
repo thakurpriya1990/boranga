@@ -367,7 +367,6 @@ export default {
             };
         },
         column_number: function () {
-            let vm = this;
             return {
                 data: 'occurrence_report_number',
                 orderable: true,
@@ -472,7 +471,6 @@ export default {
             };
         },
         column_action: function () {
-            let vm = this;
             return {
                 data: 'id',
                 orderable: false,
@@ -725,11 +723,12 @@ export default {
             vm.initialiseOccurrenceLookup();
             vm.initialiseScientificNameLookup();
             vm.addEventListeners();
+            var newOption = null;
             if (
                 sessionStorage.getItem('filterOCRFaunaOccurrence') != 'all' &&
                 sessionStorage.getItem('filterOCRFaunaOccurrence') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterOCRFaunaOccurrenceText'),
                     vm.filterOCRFaunaOccurrence,
                     false,
@@ -742,7 +741,7 @@ export default {
                     'all' &&
                 sessionStorage.getItem('filterOCRFaunaScientificName') != null
             ) {
-                var newOption = new Option(
+                newOption = new Option(
                     sessionStorage.getItem('filterOCRFaunaScientificNameText'),
                     vm.filterOCRFaunaScientificName,
                     false,
@@ -788,7 +787,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterOCRFaunaOccurrence = data;
                     sessionStorage.setItem(
@@ -796,12 +794,11 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterOCRFaunaOccurrence = 'all';
                     sessionStorage.setItem('filterOCRFaunaOccurrenceText', '');
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-ocr_occurrence_lookup-results"]'
                     );
@@ -831,7 +828,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    var selected = $(e.currentTarget);
                     let data = e.params.data.id;
                     vm.filterOCRFaunaScientificName = data;
                     sessionStorage.setItem(
@@ -839,15 +835,14 @@ export default {
                         e.params.data.text
                     );
                 })
-                .on('select2:unselect', function (e) {
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.filterOCRFaunaScientificName = 'all';
                     sessionStorage.setItem(
                         'filterOCRFaunaScientificNameText',
                         ''
                     );
                 })
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-ocr_scientific_name_lookup_by_groupname-results"]'
                     );
@@ -944,7 +939,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'Your report has been discarded',
@@ -994,7 +989,7 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 swal.fire({
                                     title: 'Reinstated',
                                     text: 'Your report has been reinstated',
@@ -1051,7 +1046,7 @@ export default {
             );
             vm.$refs.fauna_ocr_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

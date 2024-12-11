@@ -218,15 +218,11 @@ export default {
     mounted: function () {
         let vm = this;
         vm.form = document.forms.new_conservation_status;
-        vm.eventListener();
     },
     methods: {
         //----function to resolve datatable exceeding beyond the div
-        tabClicked: function (param) {
+        tabClicked: function () {
             this.reloadcount = this.reloadcount + 1;
-        },
-        eventListener: function () {
-            let vm = this;
         },
     },
 };

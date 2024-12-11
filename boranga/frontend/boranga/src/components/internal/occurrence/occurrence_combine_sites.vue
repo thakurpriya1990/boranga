@@ -247,15 +247,12 @@ export default {
                     }
                 }
             );
-            vm.$refs.sites_datatable.vmDataTable.on('draw', function (e) {
+            vm.$refs.sites_datatable.vmDataTable.on('draw', function () {
                 helpers.enablePopovers();
             });
-            vm.$refs.sites_datatable.vmDataTable.on(
-                'childRow.dt',
-                function (e, settings) {
-                    helpers.enablePopovers();
-                }
-            );
+            vm.$refs.sites_datatable.vmDataTable.on('childRow.dt', function () {
+                helpers.enablePopovers();
+            });
         },
     },
 };

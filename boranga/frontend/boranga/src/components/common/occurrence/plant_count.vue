@@ -17,7 +17,9 @@
                         "
                     >
                         <input
-v-if="plant_count.plant_count_method" type="text" class="form-control mb-3"
+                            v-if="plant_count.plant_count_method"
+                            type="text"
+                            class="form-control mb-3"
                             :value="
                                 plant_count.plant_count_method +
                                 ' (Now Archived)'
@@ -33,16 +35,21 @@ v-if="plant_count.plant_count_method" type="text" class="form-control mb-3"
                         class="form-select"
                     >
                         <option
-v-for="plant_count_method in plant_count_method_list" :key="plant_count_method.id"
-                            :value="plant_count_method.id">
+                            v-for="plant_count_method in plant_count_method_list"
+                            :key="plant_count_method.id"
+                            :value="plant_count_method.id"
+                        >
                             {{ plant_count_method.name }}
                         </option>
                     </select>
                 </template>
                 <template v-else>
                     <input
-v-model="plant_count.plant_count_method" class="form-control" type="text"
-                        :disabled="isReadOnly" />
+                        v-model="plant_count.plant_count_method"
+                        class="form-control"
+                        type="text"
+                        :disabled="isReadOnly"
+                    />
                 </template>
             </div>
         </div>
@@ -63,7 +70,9 @@ v-model="plant_count.plant_count_method" class="form-control" type="text"
                         "
                     >
                         <input
-v-if="plant_count.plant_count_accuracy" type="text" class="form-control mb-3"
+                            v-if="plant_count.plant_count_accuracy"
+                            type="text"
+                            class="form-control mb-3"
                             :value="
                                 plant_count.plant_count_accuracy +
                                 ' (Now Archived)'
@@ -79,16 +88,21 @@ v-if="plant_count.plant_count_accuracy" type="text" class="form-control mb-3"
                         class="form-select"
                     >
                         <option
-v-for="plant_count_accuracy in plant_count_accuracy_list" :key="plant_count_accuracy.id"
-                            :value="plant_count_accuracy.id">
+                            v-for="plant_count_accuracy in plant_count_accuracy_list"
+                            :key="plant_count_accuracy.id"
+                            :value="plant_count_accuracy.id"
+                        >
                             {{ plant_count_accuracy.name }}
                         </option>
                     </select>
                 </template>
                 <template v-else>
                     <input
-v-model="plant_count.plant_count_accuracy" class="form-control" type="text"
-                        :disabled="isReadOnly" />
+                        v-model="plant_count.plant_count_accuracy"
+                        class="form-control"
+                        type="text"
+                        :disabled="isReadOnly"
+                    />
                 </template>
             </div>
         </div>
@@ -109,7 +123,9 @@ v-model="plant_count.plant_count_accuracy" class="form-control" type="text"
                         "
                     >
                         <input
-v-if="plant_count.counted_subject" type="text" class="form-control mb-3"
+                            v-if="plant_count.counted_subject"
+                            type="text"
+                            class="form-control mb-3"
                             :value="
                                 plant_count.counted_subject + ' (Now Archived)'
                             "
@@ -124,16 +140,21 @@ v-if="plant_count.counted_subject" type="text" class="form-control mb-3"
                         class="form-select"
                     >
                         <option
-v-for="counted_subject in counted_subject_list" :key="counted_subject.id"
-                            :value="counted_subject.id">
+                            v-for="counted_subject in counted_subject_list"
+                            :key="counted_subject.id"
+                            :value="counted_subject.id"
+                        >
                             {{ counted_subject.name }}
                         </option>
                     </select>
                 </template>
                 <template v-else>
                     <input
-v-model="plant_count.counted_subject" class="form-control" type="text"
-                        :disabled="isReadOnly" />
+                        v-model="plant_count.counted_subject"
+                        class="form-control"
+                        type="text"
+                        :disabled="isReadOnly"
+                    />
                 </template>
             </div>
         </div>
@@ -143,7 +164,7 @@ v-model="plant_count.counted_subject" class="form-control" type="text"
             </label>
             <div class="col-sm-9">
                 <input
-v-model="plant_count.count_date
+                    v-model="plant_count.count_date"
                     :disabled="true"
                     type="datetime-local"
                     class="form-control"
@@ -157,7 +178,10 @@ v-model="plant_count.count_date
             >
             <div class="col-sm-6">
                 <input
-id="est_population_area" v-model="plant_count.estimated_population_area" :disabled="isReadOnly" type="number"
+                    id="est_population_area"
+                    v-model="plant_count.estimated_population_area"
+                    :disabled="isReadOnly"
+                    type="number"
                     class="form-control ocr_number"
                     placeholder=""
                     min="0"
@@ -181,7 +205,9 @@ id="est_population_area" v-model="plant_count.estimated_population_area" :disabl
                         "
                     >
                         <input
-v-if="plant_count.plant_condition" type="text" class="form-control mb-3"
+                            v-if="plant_count.plant_condition"
+                            type="text"
+                            class="form-control mb-3"
                             :value="
                                 plant_count.plant_condition + ' (Now Archived)'
                             "
@@ -196,16 +222,21 @@ v-if="plant_count.plant_condition" type="text" class="form-control mb-3"
                         class="form-select"
                     >
                         <option
-v-for="plant_condition in plant_condition_list" :key="plant_condition.id"
-                            :value="plant_condition.id">
+                            v-for="plant_condition in plant_condition_list"
+                            :key="plant_condition.id"
+                            :value="plant_condition.id"
+                        >
                             {{ plant_condition.name }}
                         </option>
                     </select>
                 </template>
                 <template v-else>
                     <input
-v-model="plant_count.plant_condition" class="form-control" type="text"
-                        :disabled="isReadOnly" />
+                        v-model="plant_count.plant_condition"
+                        class="form-control"
+                        type="text"
+                        :disabled="isReadOnly"
+                    />
                 </template>
             </div>
         </div>
@@ -220,7 +251,10 @@ v-model="plant_count.plant_condition" class="form-control" type="text"
             </div>
             <div class="col-sm-2">
                 <input
-id="not-counted" v-model="plant_count.counted" type="checkbox" true-value="false"
+                    id="not-counted"
+                    v-model="plant_count.counted"
+                    type="checkbox"
+                    true-value="false"
                     false-value="true"
                     @change="checkboxChanged"
                 />
@@ -237,46 +271,94 @@ id="not-counted" v-model="plant_count.counted" type="checkbox" true-value="false
             <div class="col-sm-3 fw-bold">Alive</div>
             <div class="col-sm-2">
                 <input
-id="alive_mature" v-model="plant_count.detailed_alive_mature" :disabled="isReadOnly || not_counted"
-                    type="number" class="form-control plant_count" placeholder="" min="0" />
+                    id="alive_mature"
+                    v-model="plant_count.detailed_alive_mature"
+                    :disabled="isReadOnly || not_counted"
+                    type="number"
+                    class="form-control plant_count"
+                    placeholder=""
+                    min="0"
+                />
             </div>
             <div class="col-sm-2">
                 <input
-id="plant_alive_juvenile" v-model="plant_count.detailed_alive_juvenile" :disabled="isReadOnly || not_counted"
-                    type="number" class="form-control plant_count" placeholder="" min="0" />
+                    id="plant_alive_juvenile"
+                    v-model="plant_count.detailed_alive_juvenile"
+                    :disabled="isReadOnly || not_counted"
+                    type="number"
+                    class="form-control plant_count"
+                    placeholder=""
+                    min="0"
+                />
             </div>
             <div class="col-sm-2">
                 <input
-id="alive_seedling" v-model="plant_count.detailed_alive_seedling" :disabled="isReadOnly || not_counted"
-                    type="number" class="form-control plant_count" placeholder="" min="0" />
+                    id="alive_seedling"
+                    v-model="plant_count.detailed_alive_seedling"
+                    :disabled="isReadOnly || not_counted"
+                    type="number"
+                    class="form-control plant_count"
+                    placeholder=""
+                    min="0"
+                />
             </div>
             <div class="col-sm-2">
                 <input
-id="alive_unknown" v-model="plant_count.detailed_alive_unknown" :disabled="isReadOnly || not_counted"
-                    type="number" class="form-control plant_count" placeholder="" min="0" />
+                    id="alive_unknown"
+                    v-model="plant_count.detailed_alive_unknown"
+                    :disabled="isReadOnly || not_counted"
+                    type="number"
+                    class="form-control plant_count"
+                    placeholder=""
+                    min="0"
+                />
             </div>
         </div>
         <div class="row mb-3">
             <div class="col-sm-3 fw-bold">Dead</div>
             <div class="col-sm-2">
                 <input
-id="dead_mature" v-model="plant_count.detailed_dead_mature" :disabled="isReadOnly || not_counted"
-                    type="number" class="form-control plant_count" placeholder="" min="0" />
+                    id="dead_mature"
+                    v-model="plant_count.detailed_dead_mature"
+                    :disabled="isReadOnly || not_counted"
+                    type="number"
+                    class="form-control plant_count"
+                    placeholder=""
+                    min="0"
+                />
             </div>
             <div class="col-sm-2">
                 <input
-id="plant_dead_juvenile" v-model="plant_count.detailed_dead_juvenile" :disabled="isReadOnly || not_counted"
-                    type="number" class="form-control plant_count" placeholder="" min="0" />
+                    id="plant_dead_juvenile"
+                    v-model="plant_count.detailed_dead_juvenile"
+                    :disabled="isReadOnly || not_counted"
+                    type="number"
+                    class="form-control plant_count"
+                    placeholder=""
+                    min="0"
+                />
             </div>
             <div class="col-sm-2">
                 <input
-id="dead_seedling" v-model="plant_count.detailed_dead_seedling" :disabled="isReadOnly || not_counted"
-                    type="number" class="form-control plant_count" placeholder="" min="0" />
+                    id="dead_seedling"
+                    v-model="plant_count.detailed_dead_seedling"
+                    :disabled="isReadOnly || not_counted"
+                    type="number"
+                    class="form-control plant_count"
+                    placeholder=""
+                    min="0"
+                />
             </div>
             <div class="col-sm-2">
                 <input
-id="dead_unknown" v-model="plant_count.detailed_dead_unknown" :disabled="isReadOnly || not_counted"
-                    type="number" class="form-control plant_count" placeholder="" min="0" />
+                    id="dead_unknown"
+                    v-model="plant_count.detailed_dead_unknown"
+                    :disabled="isReadOnly || not_counted"
+                    type="number"
+                    class="form-control plant_count"
+                    placeholder=""
+                    min="0"
+                />
             </div>
         </div>
         <label for="" class="col-lg-3 control-label fs-5 fw-bold"
@@ -286,16 +368,28 @@ id="dead_unknown" v-model="plant_count.detailed_dead_unknown" :disabled="isReadO
             <label for="" class="col-sm-3 control-label">Number alive :</label>
             <div class="col-sm-6">
                 <input
-id="simple_alive" v-model="plant_count.simple_alive" :disabled="isReadOnly || not_counted"
-                    type="number" class="form-control ocr_number" placeholder="" min="0" />
+                    id="simple_alive"
+                    v-model="plant_count.simple_alive"
+                    :disabled="isReadOnly || not_counted"
+                    type="number"
+                    class="form-control ocr_number"
+                    placeholder=""
+                    min="0"
+                />
             </div>
         </div>
         <div class="row mb-3">
             <label for="" class="col-sm-3 control-label">Number dead :</label>
             <div class="col-sm-6">
                 <input
-id="simple_dead" v-model="plant_count.simple_dead" :disabled="isReadOnly || not_counted"
-                    type="number" class="form-control ocr_number" placeholder="" min="0" />
+                    id="simple_dead"
+                    v-model="plant_count.simple_dead"
+                    :disabled="isReadOnly || not_counted"
+                    type="number"
+                    class="form-control ocr_number"
+                    placeholder=""
+                    min="0"
+                />
             </div>
         </div>
         <label for="" class="col-lg-3 control-label fs-5 fw-bold"
@@ -307,14 +401,24 @@ id="simple_dead" v-model="plant_count.simple_dead" :disabled="isReadOnly || not_
                 <div class="form-check form-check-inline">
                     <label for="quadratsPresentYes">Yes</label>
                     <input
-id="quadratsPresentYes" v-model="plant_count.quadrats_present" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="true">&nbsp;
+                        id="quadratsPresentYes"
+                        v-model="plant_count.quadrats_present"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="true"
+                    />&nbsp;
                 </div>
                 <div class="form-check form-check-inline">
                     <label for="quadratsPresentNo">No</label>
                     <input
-id="quadratsPresentNo" v-model="plant_count.quadrats_present" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="false">&nbsp;
+                        id="quadratsPresentNo"
+                        v-model="plant_count.quadrats_present"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="false"
+                    />&nbsp;
                 </div>
             </div>
         </div>
@@ -326,14 +430,24 @@ id="quadratsPresentNo" v-model="plant_count.quadrats_present" :disabled="isReadO
                 <div class="form-check form-check-inline">
                     <label for="quadratsDataYes">Yes</label>
                     <input
-id="quadratsDataYes" v-model="plant_count.quadrats_data_attached" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="true">&nbsp;
+                        id="quadratsDataYes"
+                        v-model="plant_count.quadrats_data_attached"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="true"
+                    />&nbsp;
                 </div>
                 <div class="form-check form-check-inline">
                     <label for="quadratsDataNo">No</label>
                     <input
-id="quadratsDataNo" v-model="plant_count.quadrats_data_attached" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="false">&nbsp;
+                        id="quadratsDataNo"
+                        v-model="plant_count.quadrats_data_attached"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="false"
+                    />&nbsp;
                 </div>
             </div>
         </div>
@@ -343,7 +457,10 @@ id="quadratsDataNo" v-model="plant_count.quadrats_data_attached" :disabled="isRe
             >
             <div class="col-sm-6">
                 <input
-id="quadrats_surveyed" v-model="plant_count.quadrats_surveyed" :disabled="isReadOnly" type="number"
+                    id="quadrats_surveyed"
+                    v-model="plant_count.quadrats_surveyed"
+                    :disabled="isReadOnly"
+                    type="number"
                     class="form-control ocr_number"
                     placeholder=""
                     min="0"
@@ -356,7 +473,10 @@ id="quadrats_surveyed" v-model="plant_count.quadrats_surveyed" :disabled="isRead
             >
             <div class="col-sm-6">
                 <input
-id="ind_quadrat_area" v-model="plant_count.individual_quadrat_area" :disabled="isReadOnly" type="number"
+                    id="ind_quadrat_area"
+                    v-model="plant_count.individual_quadrat_area"
+                    :disabled="isReadOnly"
+                    type="number"
                     class="form-control ocr_number"
                     placeholder=""
                     min="0"
@@ -369,7 +489,10 @@ id="ind_quadrat_area" v-model="plant_count.individual_quadrat_area" :disabled="i
             >
             <div class="col-sm-6">
                 <input
-id="tot_quadrat_area" v-model="plant_count.total_quadrat_area" :disabled="isReadOnly" type="number"
+                    id="tot_quadrat_area"
+                    v-model="plant_count.total_quadrat_area"
+                    :disabled="isReadOnly"
+                    type="number"
                     class="form-control ocr_number"
                     placeholder=""
                     min="0"
@@ -382,7 +505,10 @@ id="tot_quadrat_area" v-model="plant_count.total_quadrat_area" :disabled="isRead
             >
             <div class="col-sm-6">
                 <input
-id="flow_plant_per" v-model="plant_count.flowering_plants_per" :disabled="isReadOnly" type="number"
+                    id="flow_plant_per"
+                    v-model="plant_count.flowering_plants_per"
+                    :disabled="isReadOnly"
+                    type="number"
                     class="form-control ocr_number"
                     placeholder=""
                     min="0"
@@ -399,14 +525,24 @@ id="flow_plant_per" v-model="plant_count.flowering_plants_per" :disabled="isRead
                 <div class="form-check form-check-inline">
                     <label for="reprodPresentYes">Yes</label>
                     <input
-id="reprodPresentYes" v-model="plant_count.clonal_reproduction_present" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="true">&nbsp;
+                        id="reprodPresentYes"
+                        v-model="plant_count.clonal_reproduction_present"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="true"
+                    />&nbsp;
                 </div>
                 <div class="form-check form-check-inline">
                     <label for="reprodPresentNo">No</label>
                     <input
-id="reprodPresentNo" v-model="plant_count.clonal_reproduction_present" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="false">&nbsp;
+                        id="reprodPresentNo"
+                        v-model="plant_count.clonal_reproduction_present"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="false"
+                    />&nbsp;
                 </div>
             </div>
         </div>
@@ -418,14 +554,24 @@ id="reprodPresentNo" v-model="plant_count.clonal_reproduction_present" :disabled
                 <div class="form-check form-check-inline">
                     <label for="vegStatePresentYes">Yes</label>
                     <input
-id="vegStatePresentYes" v-model="plant_count.vegetative_state_present" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="true">&nbsp;
+                        id="vegStatePresentYes"
+                        v-model="plant_count.vegetative_state_present"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="true"
+                    />&nbsp;
                 </div>
                 <div class="form-check form-check-inline">
                     <label for="vegStatePresentNo">No</label>
                     <input
-id="vegStatePresentNo" v-model="plant_count.vegetative_state_present" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="false">&nbsp;
+                        id="vegStatePresentNo"
+                        v-model="plant_count.vegetative_state_present"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="false"
+                    />&nbsp;
                 </div>
             </div>
         </div>
@@ -435,14 +581,24 @@ id="vegStatePresentNo" v-model="plant_count.vegetative_state_present" :disabled=
                 <div class="form-check form-check-inline">
                     <label for="flowerBudsPresentYes">Yes</label>
                     <input
-id="flowerBudsPresentYes" v-model="plant_count.flower_bud_present" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="true">&nbsp;
+                        id="flowerBudsPresentYes"
+                        v-model="plant_count.flower_bud_present"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="true"
+                    />&nbsp;
                 </div>
                 <div class="form-check form-check-inline">
                     <label for="flowerBudsPresentNo">No</label>
                     <input
-id="flowerBudsPresentNo" v-model="plant_count.flower_bud_present" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="false">&nbsp;
+                        id="flowerBudsPresentNo"
+                        v-model="plant_count.flower_bud_present"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="false"
+                    />&nbsp;
                 </div>
             </div>
         </div>
@@ -452,14 +608,24 @@ id="flowerBudsPresentNo" v-model="plant_count.flower_bud_present" :disabled="isR
                 <div class="form-check form-check-inline">
                     <label for="flowerPresentYes">Yes</label>
                     <input
-id="flowerPresentYes" v-model="plant_count.flower_present" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="true">&nbsp;
+                        id="flowerPresentYes"
+                        v-model="plant_count.flower_present"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="true"
+                    />&nbsp;
                 </div>
                 <div class="form-check form-check-inline">
                     <label for="flowerPresentNo">No</label>
                     <input
-id="flowerPresentNo" v-model="plant_count.flower_present" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="false">&nbsp;
+                        id="flowerPresentNo"
+                        v-model="plant_count.flower_present"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="false"
+                    />&nbsp;
                 </div>
             </div>
         </div>
@@ -471,14 +637,24 @@ id="flowerPresentNo" v-model="plant_count.flower_present" :disabled="isReadOnly"
                 <div class="form-check form-check-inline">
                     <label for="immFruitPresentYes">Yes</label>
                     <input
-id="immFruitPresentYes" v-model="plant_count.immature_fruit_present" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="true">&nbsp;
+                        id="immFruitPresentYes"
+                        v-model="plant_count.immature_fruit_present"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="true"
+                    />&nbsp;
                 </div>
                 <div class="form-check form-check-inline">
                     <label for="immFruitPresentNo">No</label>
                     <input
-id="immFruitPresentNo" v-model="plant_count.immature_fruit_present" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="false">&nbsp;
+                        id="immFruitPresentNo"
+                        v-model="plant_count.immature_fruit_present"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="false"
+                    />&nbsp;
                 </div>
             </div>
         </div>
@@ -488,14 +664,24 @@ id="immFruitPresentNo" v-model="plant_count.immature_fruit_present" :disabled="i
                 <div class="form-check form-check-inline">
                     <label for="ripeFruitPresentYes">Yes</label>
                     <input
-id="ripeFruitPresentYes" v-model="plant_count.ripe_fruit_present" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="true">&nbsp;
+                        id="ripeFruitPresentYes"
+                        v-model="plant_count.ripe_fruit_present"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="true"
+                    />&nbsp;
                 </div>
                 <div class="form-check form-check-inline">
                     <label for="ripeFruitPresentNo">No</label>
                     <input
-id="ripeFruitPresentNo" v-model="plant_count.ripe_fruit_present" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="false">&nbsp;
+                        id="ripeFruitPresentNo"
+                        v-model="plant_count.ripe_fruit_present"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="false"
+                    />&nbsp;
                 </div>
             </div>
         </div>
@@ -507,14 +693,24 @@ id="ripeFruitPresentNo" v-model="plant_count.ripe_fruit_present" :disabled="isRe
                 <div class="form-check form-check-inline">
                     <label for="dehFruitPresentYes">Yes</label>
                     <input
-id="dehFruitPresentYes" v-model="plant_count.dehisced_fruit_present" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="true">&nbsp;
+                        id="dehFruitPresentYes"
+                        v-model="plant_count.dehisced_fruit_present"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="true"
+                    />&nbsp;
                 </div>
                 <div class="form-check form-check-inline">
                     <label for="dehFruitPresentNo">No</label>
                     <input
-id="dehFruitPresentNo" v-model="plant_count.dehisced_fruit_present" :disabled="isReadOnly" class="form-check-input"
-                        type="radio" value="false">&nbsp;
+                        id="dehFruitPresentNo"
+                        v-model="plant_count.dehisced_fruit_present"
+                        :disabled="isReadOnly"
+                        class="form-check-input"
+                        type="radio"
+                        value="false"
+                    />&nbsp;
                 </div>
             </div>
         </div>
@@ -524,8 +720,14 @@ id="dehFruitPresentNo" v-model="plant_count.dehisced_fruit_present" :disabled="i
             >
             <div class="col-sm-9">
                 <textarea
-id="pollinator_obs" v-model="plant_count.pollinator_observation" :disabled="isReadOnly" type="text" row="2"
-                    class="form-control" placeholder="" />
+                    id="pollinator_obs"
+                    v-model="plant_count.pollinator_observation"
+                    :disabled="isReadOnly"
+                    type="text"
+                    row="2"
+                    class="form-control"
+                    placeholder=""
+                />
             </div>
         </div>
         <div class="row mb-3">
@@ -534,8 +736,14 @@ id="pollinator_obs" v-model="plant_count.pollinator_observation" :disabled="isRe
             >
             <div class="col-sm-9">
                 <textarea
-id="plant_count_comment" v-model="plant_count.comment" :disabled="isReadOnly" type="text" row="2"
-                    class="form-control" placeholder="" />
+                    id="plant_count_comment"
+                    v-model="plant_count.comment"
+                    :disabled="isReadOnly"
+                    type="text"
+                    row="2"
+                    class="form-control"
+                    placeholder=""
+                />
             </div>
         </div>
         <div class="row mb-3">
@@ -548,7 +756,8 @@ id="plant_count_comment" v-model="plant_count.comment" :disabled="isReadOnly" ty
         <div class="row mb-3">
             <div class="col-sm-12">
                 <button
-v-if="!updatingPlantCountDetails" :disabled="isReadOnly"
+                    v-if="!updatingPlantCountDetails"
+                    :disabled="isReadOnly"
                     class="btn btn-primary btn-sm float-end"
                     @click.prevent="updatePlantCountDetails()"
                 >
@@ -579,36 +788,35 @@ export default {
     props: {
         plant_count: {
             type: Object,
-            required: true
+            required: true,
         },
         is_report: {
             type: Boolean,
-            required: true
+            required: true,
         },
         occurrence_id: {
             type: Number,
-            required: true
+            required: true,
         },
         processing_status: {
             type: String,
-            required: false
+            required: false,
         },
         // this prop is only send from split species form to make the original species readonly
         is_readonly: {
             type: Boolean,
-            default: false
+            default: false,
         },
         is_external: {
             type: Boolean,
-            default: false
+            default: false,
         },
         isReadOnly: {
             type: Boolean,
-            default: false
+            default: false,
         },
     },
     data: function () {
-        let vm = this;
         return {
             //----list of values dictionary
             listOfPlantValuesDict: {},
@@ -618,39 +826,38 @@ export default {
             counted_subject_list: [],
             updatingPlantCountDetails: false,
             not_counted: false,
-        }
+        };
     },
     computed: {},
     watch: {},
     created: async function () {
         let vm = this;
-        const response = await fetch(`/api/occurrence/plant_count_list_of_values.json`);
+        const response = await fetch(
+            `/api/occurrence/plant_count_list_of_values.json`
+        );
         vm.listOfPlantValuesDict = await response.json();
-        vm.plant_count_method_list = vm.listOfPlantValuesDict.plant_count_method_list;
-        vm.plant_count_method_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
-        vm.plant_count_accuracy_list = vm.listOfPlantValuesDict.plant_count_accuracy_list;
-        vm.plant_count_accuracy_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
+        vm.plant_count_method_list =
+            vm.listOfPlantValuesDict.plant_count_method_list;
+        vm.plant_count_method_list.splice(0, 0, {
+            id: null,
+            name: null,
+        });
+        vm.plant_count_accuracy_list =
+            vm.listOfPlantValuesDict.plant_count_accuracy_list;
+        vm.plant_count_accuracy_list.splice(0, 0, {
+            id: null,
+            name: null,
+        });
         vm.plant_condition_list = vm.listOfPlantValuesDict.plant_condition_list;
-        vm.plant_condition_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
+        vm.plant_condition_list.splice(0, 0, {
+            id: null,
+            name: null,
+        });
         vm.counted_subject_list = vm.listOfPlantValuesDict.counted_subject_list;
-        vm.counted_subject_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
-
+        vm.counted_subject_list.splice(0, 0, {
+            id: null,
+            name: null,
+        });
     },
     mounted: function () {
         let vm = this;
@@ -658,8 +865,7 @@ export default {
         vm.not_counted = !vm.plant_count.counted;
     },
     methods: {
-        eventListeners: function () {
-        },
+        eventListeners: function () {},
         checkboxChanged: function () {
             this.not_counted = this.plant_count.counted == 'false';
         },
@@ -670,38 +876,49 @@ export default {
             if (vm.is_report) {
                 endpoint = api_endpoints.occurrence_report;
             }
-            fetch(helpers.add_endpoint_json(endpoint, (vm.occurrence_id + '/update_plant_count_details')), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
+            fetch(
+                helpers.add_endpoint_json(
+                    endpoint,
+                    vm.occurrence_id + '/update_plant_count_details'
+                ),
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(vm.plant_count),
+                }
+            ).then(
+                () => {
+                    vm.updatingPlantCountDetails = false;
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Plant Count details have been saved',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    }).then(() => {
+                        if (vm.processing_status == 'Unlocked') {
+                            vm.$router.go();
+                        }
+                    });
                 },
-                body: JSON.stringify(vm.plant_count),
-            }).then((response) => {
-                vm.updatingPlantCountDetails = false;
-                swal.fire({
-                    title: 'Saved',
-                    text: 'Plant Count details have been saved',
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary'
-                    },
-                }).then((result) => {
-                    if (vm.processing_status == "Unlocked") {
-                        vm.$router.go();
-                    }
-                });
-            }, (error) => {
-                var text = helpers.apiVueResourceError(error);
-                swal.fire({
-                    title: 'Error',
-                    text: 'Plant Count details cannot be saved because of the following error: ' + text,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary'
-                    },
-                });
-                vm.updatingPlantCountDetails = false;
-            });
+                (error) => {
+                    var text = helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error',
+                        text:
+                            'Plant Count details cannot be saved because of the following error: ' +
+                            text,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.updatingPlantCountDetails = false;
+                }
+            );
         },
     },
 };

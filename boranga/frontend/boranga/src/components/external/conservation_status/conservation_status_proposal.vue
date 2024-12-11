@@ -252,7 +252,6 @@ export default {
     },
     beforeRouteEnter: function (to, from, next) {
         if (to.params.conservation_status_id) {
-            let vm = this;
             fetch(
                 `/api/conservation_status/${to.params.conservation_status_id}.json`
             ).then(
@@ -268,7 +267,7 @@ export default {
                                     '/amendment_request'
                             )
                         ).then(
-                            async (response) => {
+                            async () => {
                                 vm.setAmendmentData(data);
                             },
                             (err) => {
@@ -365,12 +364,12 @@ export default {
         window.removeEventListener('beforeunload', this.leaving);
     },
     methods: {
-        set_formData: function (e) {
+        set_formData: function () {
             let vm = this;
             let formData = new FormData(vm.form);
             return formData;
         },
-        save: async function (e) {
+        save: async function () {
             let vm = this;
             var missing_data = vm.can_submit('');
             if (missing_data != true) {
@@ -395,7 +394,7 @@ export default {
                 },
                 body: JSON.stringify(payload),
             }).then(
-                async (response) => {
+                async () => {
                     let swalHtml =
                         '<p>Your conservation status proposal has been saved as a draft.</p>';
                     if (vm.saveExitCSProposal) {
@@ -465,20 +464,20 @@ export default {
                 },
                 body: JSON.stringify(this.conservation_status_obj),
             }).then(
-                async (response) => {},
+                async () => {},
                 (err) => {
                     console.log(err);
                 }
             );
         },
-        save_before_submit: async function (e) {
+        save_before_submit: async function () {
             let vm = this;
             vm.saveError = false;
 
             let payload = new Object();
             Object.assign(payload, vm.conservation_status_obj);
             const result = await fetch(vm.cs_proposal_form_url, payload).then(
-                async (response) => {},
+                async () => {},
                 (err) => {
                     var errorText = helpers.apiVueResourceError(err);
                     swal.fire({
@@ -635,7 +634,7 @@ export default {
             }).then(
                 async (result) => {
                     if (result.isConfirmed) {
-                        let result = await vm.save_before_submit();
+                        await vm.save_before_submit();
                         if (!vm.saveError) {
                             let payload = new Object();
                             Object.assign(payload, vm.conservation_status_obj);
@@ -674,7 +673,7 @@ export default {
                         vm.paySubmitting = false;
                     }
                 },
-                (error) => {
+                () => {
                     vm.submitting = true;
                     vm.paySubmitting = false;
                 }

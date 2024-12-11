@@ -684,7 +684,7 @@ export default {
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
-                    }).then((result) => {
+                    }).then(() => {
                         if (
                             vm.occurrence_report_obj.processing_status ==
                             'Unlocked'
@@ -739,7 +739,7 @@ export default {
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
-                    }).then((result) => {
+                    }).then(() => {
                         if (
                             vm.occurrence_report_obj.processing_status ==
                             'Unlocked'

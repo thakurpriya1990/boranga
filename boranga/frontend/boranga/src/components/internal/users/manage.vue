@@ -659,7 +659,6 @@ export default {
         },
     },
     mounted: function () {
-        let vm = this;
         this.personal_form = document.forms.personal_form;
     },
     methods: {
@@ -669,10 +668,6 @@ export default {
             if (vm.user.residential_address == null) {
                 vm.user.residential_address = {};
             }
-            let params = '?';
-            params += '&first_name=' + vm.user.first_name;
-            params += '&last_name=' + vm.user.last_name;
-            //params += '&dob=' + vm.user.dob;
             if (vm.user.first_name == '' || vm.user.last_name == '') {
                 let error_msg = 'Please ensure all fields are filled in.';
                 swal({
@@ -699,7 +694,7 @@ export default {
                     body: JSON.stringify(vm.user),
                 }
             ).then(
-                (response) => {
+                () => {
                     swal({
                         title: 'Update Personal Details',
                         html: 'User personal details has been successfully updated.',
@@ -844,7 +839,7 @@ export default {
                                 body: JSON.stringify({ user_id: vm.user.id }),
                             }
                         ).then(
-                            (response) => {
+                            () => {
                                 fetch(
                                     helpers.add_endpoint_json(
                                         api_endpoints.users,
@@ -875,10 +870,10 @@ export default {
                                             'success'
                                         );
                                     },
-                                    (error) => {}
+                                    () => {}
                                 );
                             },
-                            (error) => {
+                            () => {
                                 swal(
                                     'Unlink',
                                     'There was an error unlinking the user from ' +
@@ -890,7 +885,7 @@ export default {
                         );
                     }
                 },
-                (error) => {}
+                () => {}
             );
         },
         readFileID: function () {
@@ -935,7 +930,7 @@ export default {
                         body: data,
                     }
                 ).then(
-                    (response) => {
+                    () => {
                         vm.uploadingID = false;
                         vm.uploadedID = null;
                         swal({

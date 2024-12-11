@@ -166,7 +166,7 @@ export default {
                         break;
                     }
                 }
-                for (var i = 0; i < vm.selectedOccurrences.length; i++) {
+                for (i = 0; i < vm.selectedOccurrences.length; i++) {
                     if (vm.selectedOccurrences[i].id == id) {
                         vm.selectedOccurrences.splice(i, 1);
                         break;
@@ -240,7 +240,7 @@ export default {
             );
             vm.$refs.occurrences_datatable.vmDataTable.on(
                 'childRow.dt',
-                function (e, settings) {
+                function () {
                     helpers.enablePopovers();
                 }
             );

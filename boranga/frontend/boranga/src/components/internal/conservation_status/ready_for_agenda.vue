@@ -117,7 +117,7 @@ export default {
                     }),
                 }
             ).then(
-                (response) => {
+                () => {
                     vm.$router.push({ path: '/internal/conservation-status/' });
                 },
                 (error) => {
