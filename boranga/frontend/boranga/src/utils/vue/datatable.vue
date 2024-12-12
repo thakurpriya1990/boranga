@@ -42,12 +42,9 @@ export default {
             vmDataTable: null,
         };
     },
-    computed: {},
     mounted: function () {
         let vm = this;
         vm.table = $('#' + vm.id);
-        //$.fn.dataTable.ext.errMode = 'throw';
-        //$.fn.dataTable.ext.classes.sPageButton = 'page-link page-item';
         vm.initEvents();
     },
     methods: {
