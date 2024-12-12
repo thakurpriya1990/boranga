@@ -459,7 +459,7 @@
                                                     style="margin-top: 5px"
                                                     disabled
                                                 >
-                                                    Submit
+                                                    Activate
                                                     <span
                                                         class="spinner-border spinner-border-sm"
                                                         role="status"
@@ -480,7 +480,7 @@
                                                     "
                                                     @click.prevent="submit()"
                                                 >
-                                                    Submit
+                                                    Activate
                                                 </button>
                                             </div>
                                             <div
@@ -1338,11 +1338,11 @@ export default {
 
             vm.submitSpeciesCommunity = true;
             swal.fire({
-                title: 'Submit',
-                text: 'Are you sure you want to submit this application?',
+                title: 'Activate Record',
+                text: 'Are you sure you want to activate this record?',
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: 'submit',
+                confirmButtonText: 'Activate',
                 customClass: {
                     confirmButton: 'btn btn-primary',
                     cancelButton: 'btn btn-secondary',
