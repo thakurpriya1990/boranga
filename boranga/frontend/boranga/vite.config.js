@@ -59,6 +59,9 @@ export default defineConfig({
         publicPath: '/static/boranga_vue/',
         sourcemap: true,
         rollupOptions: {
+            input: {
+                main: path.resolve(__dirname, 'src/main.js'),
+            },
             output: {
                 entryFileNames: 'js/[name].js',
                 chunkFileNames: 'js/[name].js',
