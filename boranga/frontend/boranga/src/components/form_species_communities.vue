@@ -171,6 +171,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import Species from '@/components/common/species_communities/species_profile.vue';
 import Community from '@/components/common/species_communities/community_profile.vue';
 import SpeciesDocuments from '@/components/common/species_communities/species_documents.vue';
@@ -216,12 +217,11 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
-            profileBody: 'profileBody' + vm._uid,
-            documentBody: 'documentBody' + vm._uid,
-            threatBody: 'threatBody' + vm._uid,
-            relatedItemBody: 'relatedItemBody' + vm._uid,
+            profileBody: 'profileBody' + uuid(),
+            documentBody: 'documentBody' + uuid(),
+            threatBody: 'threatBody' + uuid(),
+            relatedItemBody: 'relatedItemBody' + uuid(),
             values: null,
             reloadcount: 0,
         };

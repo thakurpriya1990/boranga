@@ -327,6 +327,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
@@ -469,9 +470,8 @@ export default {
         },
     },
     data() {
-        let vm = this;
         return {
-            datatable_id: 'cs-communities-datatable-' + vm._uid,
+            datatable_id: 'cs-communities-datatable-' + uuid(),
             communityConservationStatusHistoryId: null,
             communityHistoryId: null,
             listHistoryId: null,

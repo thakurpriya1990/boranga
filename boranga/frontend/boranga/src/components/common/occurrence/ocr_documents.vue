@@ -50,6 +50,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import alert from '@vue-utils/alert.vue';
 import datatable from '@vue-utils/datatable.vue';
 import ViewDocument from '@/components/common/view_document.vue';
@@ -91,7 +92,7 @@ export default {
         return {
             uuid: 0,
             occurenceReportDocumentHistoryId: null,
-            panelBody: 'ocr-documents-' + vm._uid,
+            panelBody: 'ocr-documents-' + uuid(),
             values: null,
             ocr_document_url: api_endpoints.occurrence_report_documents,
             documents_headers: [

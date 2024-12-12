@@ -12,6 +12,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import { constants, api_endpoints, helpers } from '@/utils/hooks';
 
 export default {
@@ -255,8 +256,8 @@ export default {
             myDefaultAllowList.table = [];
 
             let vm = this;
-            let table_id = 'cs-more-referrals-table' + vm._uid;
-            let popover_name = 'popover-' + vm._uid;
+            let table_id = 'cs-more-referrals-table' + uuid();
+            let popover_name = 'popover-' + uuid();
             let my_content =
                 '<table id="' +
                 table_id +

@@ -1439,6 +1439,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import FormSection from '@/components/forms/section_toggle.vue';
 import CollapsibleComponent from '@/components/forms/collapsible_component.vue';
 import { api_endpoints } from '@/utils/hooks';
@@ -1469,10 +1470,9 @@ export default {
     },
     emits: ['saveConservationStatus'],
     data: function () {
-        let vm = this;
         return {
-            community_name_lookup: 'community_name_lookup' + vm._uid,
-            select_community_name: 'select_community_name' + vm._uid,
+            community_name_lookup: 'community_name_lookup' + uuid(),
+            select_community_name: 'select_community_name' + uuid(),
             isShowComment: false,
             cs_profile_dict: {},
             wa_legislative_lists: [],

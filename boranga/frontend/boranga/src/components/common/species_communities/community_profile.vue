@@ -974,6 +974,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import FormSection from '@/components/forms/section_toggle.vue';
 import BasicConservationStatus from './basic_conservation_status.vue';
 import HelpText from '@/components/common/help_text.vue';
@@ -1005,10 +1006,9 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
             updatingPublishing: false,
-            conservationStatusBody: 'conservationStatusBody' + vm._uid,
+            conservationStatusBody: 'conservationStatusBody' + uuid(),
             species_list: [],
             community_profile_dict: {},
             post_fire_habitatat_interactions_list: [],

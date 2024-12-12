@@ -45,6 +45,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import alert from '@vue-utils/alert.vue';
 import datatable from '@vue-utils/datatable.vue';
 import DocumentDetail from '../add_document.vue';
@@ -81,7 +82,7 @@ export default {
         return {
             uuid: 0,
             communityDocumentHistoryId: null,
-            panelBody: 'community-documents-' + vm._uid,
+            panelBody: 'community-documents-' + uuid(),
             values: null,
             community_document_url: api_endpoints.community_documents,
             documents_headers: [

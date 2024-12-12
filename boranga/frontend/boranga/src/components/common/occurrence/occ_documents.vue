@@ -46,6 +46,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import alert from '@vue-utils/alert.vue';
 import datatable from '@vue-utils/datatable.vue';
 import DocumentDetail from '@/components/common/add_document.vue';
@@ -81,7 +82,7 @@ export default {
         return {
             uuid: 0,
             occurenceDocumentHistoryId: null,
-            panelBody: 'occ-documents-' + vm._uid,
+            panelBody: 'occ-documents-' + uuid(),
             values: null,
             occ_document_url: api_endpoints.occurrence_documents,
             documents_headers: [

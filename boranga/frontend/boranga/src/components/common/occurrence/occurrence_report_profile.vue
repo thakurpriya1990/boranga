@@ -339,10 +339,10 @@ export default {
         let vm = this;
         return {
             uuid: null,
-            scientific_name_lookup: 'scientific_name_lookup' + vm._uid,
-            select_scientific_name: 'select_scientific_name' + vm._uid,
-            community_name_lookup: 'community_name_lookup' + vm._uid,
-            select_community_name: 'select_community_name' + vm._uid,
+            scientific_name_lookup: 'scientific_name_lookup' + uuid(),
+            select_scientific_name: 'select_scientific_name' + uuid(),
+            community_name_lookup: 'community_name_lookup' + uuid(),
+            select_community_name: 'select_community_name' + uuid(),
             isFauna:
                 vm.occurrence_report_obj.group_type === 'fauna' ? true : false,
             isCommunity:

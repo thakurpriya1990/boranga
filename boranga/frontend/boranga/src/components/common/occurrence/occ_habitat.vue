@@ -944,6 +944,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import FormSection from '@/components/forms/section_toggle.vue';
 import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue';
 import RelatedSpecies from '@/components/common/occurrence/occ_related_species_table.vue';
@@ -973,11 +974,11 @@ export default {
     data: function () {
         let vm = this;
         return {
-            habitatCompositionBody: 'habitatCompositionBody' + vm._uid,
-            habitatConditionBody: 'habitatConditionBody' + vm._uid,
-            vegetationStructureBody: 'vegetationStructureBody' + vm._uid,
-            fireHistoryBody: 'fireHistoryBody' + vm._uid,
-            associatedSpeciesBody: 'associatedSpeciesBody' + vm._uid,
+            habitatCompositionBody: 'habitatCompositionBody' + uuid(),
+            habitatConditionBody: 'habitatConditionBody' + uuid(),
+            vegetationStructureBody: 'vegetationStructureBody' + uuid(),
+            fireHistoryBody: 'fireHistoryBody' + uuid(),
+            associatedSpeciesBody: 'associatedSpeciesBody' + uuid(),
             //---to show fields related to Fauna
             isFauna: vm.occurrence_obj.group_type === 'fauna' ? true : false,
             //----list of values dictionary

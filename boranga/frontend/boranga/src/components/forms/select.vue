@@ -160,6 +160,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import Comment from './comment.vue';
 import HelpText from './help_text.vue';
 import HelpTextUrl from './help_text_url.vue';
@@ -193,10 +194,9 @@ export default {
         readonly: Boolean,
     },
     data: function () {
-        let vm = this;
         return {
             selected: this.isMultiple ? [] : '',
-            selectid: 'select' + vm._uid,
+            selectid: 'select' + uuid(),
             multipleSelected: [],
             showingComment: false,
         };

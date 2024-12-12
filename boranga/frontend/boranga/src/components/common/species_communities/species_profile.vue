@@ -1240,6 +1240,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import FormSection from '@/components/forms/section_toggle.vue';
 import BasicConservationStatus from './basic_conservation_status.vue';
 import HelpText from '@/components/common/help_text.vue';
@@ -1287,14 +1288,14 @@ export default {
                 allowInputToggle: true,
             },
             updatingPublishing: false,
-            scientific_name_lookup: 'scientific_name_lookup' + vm._uid,
-            select_scientific_name: 'select_scientific_name' + vm._uid,
-            select_flowering_period: 'select_flowering_period' + vm._uid,
-            taxonBody: 'taxonBody' + vm._uid,
-            distributionBody: 'distributionBody' + vm._uid,
-            conservationStatusBody: 'conservationStatusBody' + vm._uid,
-            conservationBody: 'conservationBody' + vm._uid,
-            generalBody: 'generalBody' + vm._uid,
+            scientific_name_lookup: 'scientific_name_lookup' + uuid(),
+            select_scientific_name: 'select_scientific_name' + uuid(),
+            select_flowering_period: 'select_flowering_period' + uuid(),
+            taxonBody: 'taxonBody' + uuid(),
+            distributionBody: 'distributionBody' + uuid(),
+            conservationStatusBody: 'conservationStatusBody' + uuid(),
+            conservationBody: 'conservationBody' + uuid(),
+            generalBody: 'generalBody' + uuid(),
             //---to show fields related to Fauna
             isFauna: vm.species_community.group_type === 'fauna' ? true : false,
             //----list of values dictionary

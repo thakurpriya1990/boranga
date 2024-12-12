@@ -580,6 +580,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import FormSection from '@/components/forms/section_toggle.vue';
 import PlantCount from './plant_count.vue';
 import AnimalObservation from './animal_observation.vue';
@@ -611,10 +612,10 @@ export default {
     data: function () {
         let vm = this;
         return {
-            observationDetailBody: 'observationDetailBody' + vm._uid,
-            plantCountBody: 'plantCountBody' + vm._uid,
-            animalObsBody: 'animalObsBody' + vm._uid,
-            identificationBody: 'identificationBody' + vm._uid,
+            observationDetailBody: 'observationDetailBody' + uuid(),
+            plantCountBody: 'plantCountBody' + uuid(),
+            animalObsBody: 'animalObsBody' + uuid(),
+            identificationBody: 'identificationBody' + uuid(),
             //---to show fields related to Fauna
             isFauna: vm.occurrence_obj.group_type === 'fauna' ? true : false,
             isFlora: vm.occurrence_obj.group_type === 'flora' ? true : false,

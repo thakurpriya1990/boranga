@@ -558,6 +558,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import { api_endpoints, helpers } from '@/utils/hooks';
 import datatable from '@vue-utils/datatable.vue';
 import CommsLogs from '@common-utils/comms_logs.vue';
@@ -602,12 +603,12 @@ export default {
     data() {
         let vm = this;
         return {
-            adBody: 'adBody' + vm._uid,
-            pdBody: 'pdBody' + vm._uid,
-            cdBody: 'cdBody' + vm._uid,
-            odBody: 'odBody' + vm._uid,
-            idBody: 'idBody' + vm._uid,
-            dTab: 'dTab' + vm._uid,
+            adBody: 'adBody' + uuid(),
+            pdBody: 'pdBody' + uuid(),
+            cdBody: 'cdBody' + uuid(),
+            odBody: 'odBody' + uuid(),
+            idBody: 'idBody' + uuid(),
+            dTab: 'dTab' + uuid(),
             user: {
                 residential_address: {},
                 borangacompliance_organisations: [],

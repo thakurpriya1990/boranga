@@ -22,6 +22,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@vue-utils/datatable.vue';
 import { constants, api_endpoints, helpers } from '@/utils/hooks';
 import SectionModal from '@/components/common/occurrence/occ_section_modal.vue';
@@ -107,7 +108,7 @@ export default {
 
         return {
             tableKey: 0,
-            panelBody: 'occ-combine-select-' + vm._uid,
+            panelBody: 'occ-combine-select-' + uuid(),
             sectionTypeFormatted: null,
             sectionObj: null,
             sectionOCCId: null,

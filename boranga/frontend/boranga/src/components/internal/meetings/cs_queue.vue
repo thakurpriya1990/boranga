@@ -29,8 +29,8 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
-
 import datatable from '@/utils/vue/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
 import AgendaModal from './agenda_datatable.vue';
@@ -51,8 +51,8 @@ export default {
     data: function () {
         let vm = this;
         return {
-            csQueueBody: 'csQueueBody' + vm._uid,
-            datatable_id: 'cs-queue-datatable-' + vm._uid,
+            csQueueBody: 'csQueueBody' + uuid(),
+            datatable_id: 'cs-queue-datatable-' + uuid(),
             cs_queue_headers: [
                 'Order',
                 'Number',

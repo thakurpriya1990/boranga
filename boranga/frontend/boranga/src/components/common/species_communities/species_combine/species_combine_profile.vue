@@ -1682,6 +1682,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import FormSection from '@/components/forms/section_toggle.vue';
 import { api_endpoints } from '@/utils/hooks';
 export default {
@@ -1720,10 +1721,10 @@ export default {
                 'select_breeding_period_readonly' + vm.species_community.id,
             select_regions: 'select_regions' + vm.species_community.id,
             select_districts: 'select_districts' + vm.species_community.id,
-            taxonBody: 'taxonBody' + vm._uid,
-            distributionBody: 'distributionBody' + vm._uid,
-            conservationBody: 'conservationBody' + vm._uid,
-            generalBody: 'generalBody' + vm._uid,
+            taxonBody: 'taxonBody' + uuid(),
+            distributionBody: 'distributionBody' + uuid(),
+            conservationBody: 'conservationBody' + uuid(),
+            generalBody: 'generalBody' + uuid(),
             //---to show fields related to Fauna
             isFauna: vm.species_community.group_type === 'fauna' ? true : false,
             //----list of values dictionary

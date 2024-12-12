@@ -10,6 +10,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@vue-utils/datatable.vue';
 import { constants, helpers } from '@/utils/hooks';
 
@@ -35,7 +36,7 @@ export default {
     data: function () {
         let vm = this;
         return {
-            panelBody: 'tenure-combine-select-' + vm._uid,
+            panelBody: 'tenure-combine-select-' + uuid(),
             checkedTenureNames: [],
             tenures_headers: [
                 'Occurrence',

@@ -106,8 +106,8 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
-
 import datatable from '@/utils/vue/datatable.vue';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
 import moment from 'moment';
@@ -150,9 +150,8 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
-            datatable_id: 'meetings-datatable-' + vm._uid,
+            datatable_id: 'meetings-datatable-' + uuid(),
 
             filterFromMeetingStartDate: sessionStorage.getItem(
                 this.filterFromMeetingStartDate_cache

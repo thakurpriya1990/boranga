@@ -10,6 +10,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@vue-utils/datatable.vue';
 import { constants, helpers } from '@/utils/hooks';
 
@@ -36,7 +37,7 @@ export default {
         let vm = this;
         return {
             checkedOriginalReports: [],
-            panelBody: 'threat-combine-select-' + vm._uid,
+            panelBody: 'threat-combine-select-' + uuid(),
             threats_headers: [
                 'Occurrence',
                 'Number',

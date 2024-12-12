@@ -46,6 +46,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@vue-utils/datatable.vue';
 import DocumentDetail from '@/components/common/add_document.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
@@ -75,8 +76,8 @@ export default {
         return {
             uuid: 0,
             minutesHistoryId: null,
-            minutesBody: 'minutesBody' + vm._uid,
-            panelBody: 'meeting-minutes' + vm._uid,
+            minutesBody: 'minutesBody' + uuid(),
+            panelBody: 'meeting-minutes' + uuid(),
             values: null,
             minutes_url: api_endpoints.minutes,
             minutes_headers: [

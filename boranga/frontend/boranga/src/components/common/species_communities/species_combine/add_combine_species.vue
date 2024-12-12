@@ -54,6 +54,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
 import { helpers, api_endpoints } from '@/utils/hooks.js';
@@ -64,7 +65,6 @@ export default {
         alert,
     },
     data: function () {
-        let vm = this;
         return {
             isModalOpen: false,
             form: null,
@@ -72,8 +72,8 @@ export default {
             errorString: '',
             species_list: [],
             combineSpeciesId: null,
-            scientific_name_lookup: 'scientific_name_lookup' + vm._uid,
-            select_scientific_name: 'select_scientific_name' + vm._uid,
+            scientific_name_lookup: 'scientific_name_lookup' + uuid(),
+            select_scientific_name: 'select_scientific_name' + uuid(),
         };
     },
     computed: {

@@ -109,6 +109,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import SpeciesProfile from '@/components/common/species_communities/species_combine/species_combine_profile.vue';
 import SpeciesDocuments from '@/components/common/species_communities/species_combine/species_combine_documents.vue';
 import SpeciesThreats from '@/components/common/species_communities/species_combine/species_combine_threats.vue';
@@ -138,11 +139,10 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
-            profileBody: 'profileBody' + vm._uid,
-            documentBody: 'documentBody' + vm._uid,
-            threatBody: 'threatBody' + vm._uid,
+            profileBody: 'profileBody' + uuid(),
+            documentBody: 'documentBody' + uuid(),
+            threatBody: 'threatBody' + uuid(),
             values: null,
             reloadcount: 0,
         };

@@ -39,6 +39,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue';
 import SiteDetail from '@/components/internal/occurrence/add_site.vue';
 import OCCSiteHistory from '../../internal/occurrence/occ_site_history.vue';
@@ -58,12 +59,11 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
             uuid: 0,
             occSiteHistoryId: null,
             occ_site_url: api_endpoints.occ_site,
-            datatable_id: 'occurrence-site-datatable-' + vm._uid,
+            datatable_id: 'occurrence-site-datatable-' + uuid(),
             headers: [
                 'Site Number',
                 'Site Name',

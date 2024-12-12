@@ -50,6 +50,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import alert from '@vue-utils/alert.vue';
 import datatable from '@vue-utils/datatable.vue';
 import ViewDocument from '@/components/common/view_document.vue';
@@ -83,8 +84,8 @@ export default {
         return {
             uuid: 0,
             conservationStatusDocumentHistoryId: null,
-            documentBody: 'documentBody' + vm._uid,
-            panelBody: 'conservation-status-documents-' + vm._uid,
+            documentBody: 'documentBody' + uuid(),
+            panelBody: 'conservation-status-documents-' + uuid(),
             values: null,
             cs_document_url: api_endpoints.conservation_status_documents,
             documents_headers: [

@@ -213,6 +213,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import OCCLocations from '@/components/common/occurrence/occ_locations.vue';
 import OCCHabitat from '@/components/common/occurrence/occ_habitat.vue';
 import OCCObservation from '@/components/common/occurrence/occ_observation.vue';
@@ -257,19 +258,18 @@ export default {
     },
     emits: ['refreshFromResponse'],
     data: function () {
-        let vm = this;
         return {
             values: null,
             reloadcount: 0,
-            locationBody: 'locationBody' + vm._uid,
-            habitatBody: 'habitatBody' + vm._uid,
-            observationBody: 'observationBody' + vm._uid,
-            threatBody: 'threatBody' + vm._uid,
-            documentBody: 'documentBody' + vm._uid,
-            relatedItemBody: 'relatedItemBody' + vm._uid,
-            reportBody: 'reportBody' + vm._uid,
-            sitesBody: 'sitesBody' + vm._uid,
-            occurrenceBody: 'occurrenceBody' + vm._uid,
+            locationBody: 'locationBody' + uuid(),
+            habitatBody: 'habitatBody' + uuid(),
+            observationBody: 'observationBody' + uuid(),
+            threatBody: 'threatBody' + uuid(),
+            documentBody: 'documentBody' + uuid(),
+            relatedItemBody: 'relatedItemBody' + uuid(),
+            reportBody: 'reportBody' + uuid(),
+            sitesBody: 'sitesBody' + uuid(),
+            occurrenceBody: 'occurrenceBody' + uuid(),
         };
     },
     computed: {

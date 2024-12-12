@@ -272,6 +272,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
 import FileField2 from '@/components/forms/filefield.vue';
@@ -301,10 +302,9 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
-            originalBody: 'originalBody' + vm._uid,
-            species2Body: 'species2Body' + vm._uid,
+            originalBody: 'originalBody' + uuid(),
+            species2Body: 'species2Body' + uuid(),
             species_community_original: null,
             submitSpeciesSplit: false,
             isModalOpen: false,

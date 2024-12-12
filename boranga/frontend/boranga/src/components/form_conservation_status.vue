@@ -150,6 +150,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import SubmitterInformation from '@/components/common/submitter_information.vue';
 import SpeciesStatus from '@/components/common/conservation_status/species_status.vue';
 import CommunityStatus from '@/components/common/conservation_status/community_status.vue';
@@ -188,13 +189,12 @@ export default {
     },
     emits: ['saveConservationStatus'],
     data: function () {
-        let vm = this;
         return {
             values: null,
             reloadcount: 0,
-            statusBody: 'statusBody' + vm._uid,
-            documentBody: 'documentBody' + vm._uid,
-            relatedItemBody: 'relatedItemBody' + vm._uid,
+            statusBody: 'statusBody' + uuid(),
+            documentBody: 'documentBody' + uuid(),
+            relatedItemBody: 'relatedItemBody' + uuid(),
         };
     },
     computed: {

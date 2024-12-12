@@ -174,6 +174,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import FormSection from '@/components/forms/section_toggle.vue';
 import ContactDatatable from './contact_datatable.vue';
 import RelatedReports from '@/components/common/occurrence/occ_related_ocr_table.vue';
@@ -193,11 +194,10 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
-            scientific_name_lookup: 'scientific_name_lookup' + vm._uid,
-            select_scientific_name: 'select_scientific_name' + vm._uid,
-            select_wild_status: 'select_wild_status' + vm._uid,
+            scientific_name_lookup: 'scientific_name_lookup' + uuid(),
+            select_scientific_name: 'select_scientific_name' + uuid(),
+            select_wild_status: 'select_wild_status' + uuid(),
             common_name: null,
             occ_profile_dict: {},
             wild_status_list: [],

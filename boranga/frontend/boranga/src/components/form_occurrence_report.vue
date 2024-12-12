@@ -190,6 +190,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import OCRLocation from '@/components/common/occurrence/ocr_location.vue';
 import OCRHabitat from '@/components/common/occurrence/ocr_habitat.vue';
 import OCRObservation from '@/components/common/occurrence/ocr_observation.vue';
@@ -240,18 +241,17 @@ export default {
         'saveOccurrenceReport',
     ],
     data: function () {
-        let vm = this;
         return {
             values: null,
             reloadcount: 0,
             threatsKey: 0,
-            occurrenceReportBody: 'occurrenceReportBody' + vm._uid,
-            locationBody: 'locationBody' + vm._uid,
-            habitatBody: 'habitatBody' + vm._uid,
-            observationBody: 'observationBody' + vm._uid,
-            threatBody: 'threatBody' + vm._uid,
-            documentBody: 'documentBody' + vm._uid,
-            relatedItemBody: 'relatedItemBody' + vm._uid,
+            occurrenceReportBody: 'occurrenceReportBody' + uuid(),
+            locationBody: 'locationBody' + uuid(),
+            habitatBody: 'habitatBody' + uuid(),
+            observationBody: 'observationBody' + uuid(),
+            threatBody: 'threatBody' + uuid(),
+            documentBody: 'documentBody' + uuid(),
+            relatedItemBody: 'relatedItemBody' + uuid(),
         };
     },
     computed: {

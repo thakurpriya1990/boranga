@@ -10,6 +10,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@vue-utils/datatable.vue';
 import { constants, helpers } from '@/utils/hooks';
 
@@ -35,7 +36,7 @@ export default {
     data: function () {
         let vm = this;
         return {
-            panelBody: 'contact-combine-select-' + vm._uid,
+            panelBody: 'contact-combine-select-' + uuid(),
             checkedContactNames: [],
             contacts_headers: [
                 'Occurrence',

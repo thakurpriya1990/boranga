@@ -66,6 +66,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
 
@@ -99,9 +100,8 @@ export default {
         },
     },
     data() {
-        let vm = this;
         return {
-            datatable_id: 'ocr_external_ref-datatable-' + vm._uid,
+            datatable_id: 'ocr_external_ref-datatable-' + uuid(),
 
             filterCSRefFloraScientificName: sessionStorage.getItem(
                 this.filterCSRefFloraScientificName_cache

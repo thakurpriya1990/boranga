@@ -143,6 +143,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@vue-utils/datatable.vue';
 import ThreatDetail from '@/components/common/species_communities/add_threat.vue';
 import ConservationThreatHistory from '../../internal/occurrence/occ_conservation_threat_history.vue';
@@ -169,8 +170,8 @@ export default {
             uuid: 0,
             occConservationThreatHistoryId: null,
             showExisting: false,
-            threatBody: 'threatBody' + vm._uid,
-            panelBody: 'species-threats-' + vm._uid,
+            threatBody: 'threatBody' + uuid(),
+            panelBody: 'species-threats-' + uuid(),
             values: null,
             occ_threat_url: api_endpoints.occ_threat,
 

@@ -40,6 +40,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import datatable from '@vue-utils/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
 import { constants, api_endpoints, helpers } from '@/utils/hooks';
@@ -64,8 +65,8 @@ export default {
         let vm = this;
         return {
             uuid: 0,
-            threatBody: 'threatBody' + vm._uid,
-            panelBody: 'species-combine-threats-' + vm._uid,
+            threatBody: 'threatBody' + uuid(),
+            panelBody: 'species-combine-threats-' + uuid(),
             values: null,
             // to store all the documents of original on first load.
             original_species_threats: [],

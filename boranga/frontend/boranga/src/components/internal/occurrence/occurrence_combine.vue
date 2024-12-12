@@ -875,6 +875,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
@@ -905,7 +906,6 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
             occ_form_key: 0,
             contact_table_key: 0,
@@ -913,12 +913,12 @@ export default {
             threat_table_key: 0,
             site_table_key: 0,
             tenure_table_key: 0,
-            locationBody: 'locationBody' + vm._uid,
-            habitatBody: 'habitatBody' + vm._uid,
-            observationBody: 'observationBody' + vm._uid,
-            threatBody: 'threatBody' + vm._uid,
-            documentBody: 'documentBody' + vm._uid,
-            occurrenceBody: 'occurrenceBody' + vm._uid,
+            locationBody: 'locationBody' + uuid(),
+            habitatBody: 'habitatBody' + uuid(),
+            observationBody: 'observationBody' + uuid(),
+            threatBody: 'threatBody' + uuid(),
+            documentBody: 'documentBody' + uuid(),
+            occurrenceBody: 'occurrenceBody' + uuid(),
             isModalOpen: false,
             selectedOccurrences: [this.main_occurrence_obj],
             selectedOccurrenceIds: [this.main_occurrence_obj.id],

@@ -280,6 +280,7 @@
 </template>
 
 <script>
+import { v4 as uuid } from 'uuid';
 import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
 import FileField2 from '@/components/forms/filefield.vue';
@@ -312,10 +313,9 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
-            newSpeciesBody: 'newSpeciesBody' + vm._uid,
-            speciesBody: 'speciesBody' + vm._uid,
+            newSpeciesBody: 'newSpeciesBody' + uuid(),
+            speciesBody: 'speciesBody' + uuid(),
             speciesCombineFormKey: 0,
             new_combine_species: null,
             new_combine_species_display: '',
