@@ -612,8 +612,6 @@ export default {
             } else {
                 return blank_fields;
             }
-            //to count if records exists in the minutes table
-            // vm.$refs.minutes.$refs.minutes_datatable.vmDataTable.rows().count();
         },
         isFutureMeeting: function () {
             let vm = this;
