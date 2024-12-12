@@ -4,15 +4,11 @@ var group_type_fauna = 'fauna';
 var group_type_community = 'community';
 
 export default {
-    access_types: '/api/access_types.json',
-    activity_matrix: '/api/activity_matrix.json',
     amendment_request: '/api/amendment_request.json',
     application_types: '/api/application_types.json',
     approvals: '/api/approvals.json',
-    assessments: '/api/assessments.json',
     community_documents: '/api/community_documents.json',
     community: '/api/community',
-    compliances: '/api/compliances.json',
     conservation_status_documents: '/api/conservation_status_documents.json',
     conservation_status: '/api/conservation_status',
     content_types: '/api/content_types/',
@@ -26,7 +22,6 @@ export default {
     help_text_entries: '/api/help_text_entries',
     lookup_schema_types:
         '/api/occurrence_report_bulk_import_schema_columns/get_lookup_filter_types/',
-    marine_treeview: '/api/marine_treeview',
     occurrence_report_bulk_imports: '/api/occurrence_report_bulk_imports/',
     occurrence_report_bulk_import_schemas:
         '/api/occurrence_report_bulk_import_schemas/',
@@ -55,7 +50,6 @@ export default {
     submitter_categories: '/api/submitter_categories',
     taxonomy: '/api/taxonomy',
     threat: '/api/threat.json',
-    trails: '/api/trails.json',
     users_api: '/api/users',
     users: '/api/users.json',
 
@@ -79,8 +73,6 @@ export default {
     community_filter_dict: '/api/community_filter_dict',
     community_id_lookup: '/api/community_id_lookup',
     community_name_lookup: '/api/community_name_lookup',
-    compliances_paginated_external:
-        '/api/compliance_paginated/compliances_external/?format=datatables',
     conservation_status_paginated_external:
         '/api/conservation_status_paginated/conservation_status_external?format=datatables',
     conservation_status_referred_to_me:
@@ -150,10 +142,6 @@ export default {
     occurrence_tenure_purpose_lookup:
         '/api/occurrence_tenure_paginated/occurrence_tenure_purpose_lookup',
 
-    // Pending - need to create viewsets for the below when working on search filters for OR dashboard
-    or_status_lookup: '/api/or_status_lookup',
-    or_submitted_from_lookup: '/api/or_submitted_from_lookup',
-
     //conservation Status profile page list of value dict
     species_display: '/api/species_display',
     community_display: '/api/community_display',
@@ -161,7 +149,6 @@ export default {
 
     filter_list: '/api/proposal/filter_list.json',
     filter_list_approvals: '/api/approvals/filter_list.json',
-    filter_list_compliances: '/api/compliances/filter_list.json',
     filter_list_referrals: '/api/referrals/filter_list.json',
     filter_list_district_proposals: '/api/district_proposals/filter_list.json',
     filter_list_cs_referrals: '/api/cs_referrals/filter_list.json',
