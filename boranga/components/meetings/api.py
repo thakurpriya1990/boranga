@@ -511,11 +511,11 @@ class MeetingViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         comms = serializer.save()
 
         # Save the files
-        for f in request.FILES:
+        for f in request.FILES.getlist("files"):
             document = comms.documents.create()
-            document.check_file(request.FILES[f])
-            document.name = str(request.FILES[f])
-            document._file = request.FILES[f]
+            document.check_file(f)
+            document.name = str(f)
+            document._file = f
             document.save()
 
         return Response(serializer.data)
@@ -647,6 +647,7 @@ class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
+        logger.debug(request.data)
         serializer = SaveMinutesSerializer(data=json.loads(request.data.get("data")))
         serializer.is_valid(raise_exception=True)
         instance = serializer.save(no_revision=True)

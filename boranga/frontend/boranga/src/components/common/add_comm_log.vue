@@ -239,7 +239,9 @@ export default {
         return {
             isModalOpen: false,
             form: null,
-            comms: {},
+            comms: {
+                type: '',
+            },
             state: 'proposed_approval',
             addingComms: false,
             validation_form: null,
@@ -339,11 +341,13 @@ export default {
             let vm = this;
             vm.errors = false;
             let comms = new FormData(vm.form);
+            for (let i = 0; i < vm.files.length; i++) {
+                comms.append('files', vm.files[i].file);
+            }
             vm.addingComms = true;
             fetch(vm.url, {
                 method: 'POST',
                 body: comms,
-                'Content-Type': 'application/json',
             }).then(
                 () => {
                     vm.addingComms = false;
