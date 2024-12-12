@@ -486,32 +486,48 @@ export default {
             this.$refs.meetings_datatable.vmDataTable.clear().draw();
         },
         createMeeting: async function () {
-            let newMeetingId = null;
-            try {
-                const createUrl = api_endpoints.meeting + '/';
-                let payload = new Object();
-                payload.meeting_type = 'meeting';
-                let response = await fetch(createUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload),
-                });
-                let savedMeeting = await response.json();
-                if (savedMeeting) {
-                    newMeetingId = savedMeeting.id;
+            swal.fire({
+                title: `Add Meeting`,
+                text: 'Are you sure you want to add a new meeting?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Add Meeting',
+                reverseButtons: true,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary',
+                },
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    let newMeetingId = null;
+                    try {
+                        swal.fire;
+                        const createUrl = api_endpoints.meeting + '/';
+                        let payload = new Object();
+                        payload.meeting_type = 'meeting';
+                        let response = await fetch(createUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload),
+                        });
+                        let savedMeeting = await response.json();
+                        if (savedMeeting) {
+                            newMeetingId = savedMeeting.id;
+                        }
+                        this.$router.push({
+                            name: 'internal-meetings',
+                            params: { meeting_id: newMeetingId },
+                        });
+                    } catch (err) {
+                        console.log(err);
+                        if (this.is_internal) {
+                            return err;
+                        }
+                    }
                 }
-                this.$router.push({
-                    name: 'internal-meetings',
-                    params: { meeting_id: newMeetingId },
-                });
-            } catch (err) {
-                console.log(err);
-                if (this.is_internal) {
-                    return err;
-                }
-            }
+            });
         },
         discardMeeting: function (meeting_id) {
             let vm = this;
