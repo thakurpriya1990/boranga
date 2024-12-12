@@ -11,7 +11,7 @@
                         <button
                             type="button"
                             class="btn btn-primary mb-2"
-                            @click.prevent="newDocument"
+                            @click.prevent="addMinutes"
                         >
                             <i class="fa-solid fa-circle-plus"></i>
                             Add Minutes
@@ -260,7 +260,7 @@ export default {
         });
     },
     methods: {
-        newDocument: function () {
+        addMinutes: function () {
             let vm = this;
             this.$refs.document_detail.document_id = '';
             var new_document_another = {
