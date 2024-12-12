@@ -197,7 +197,7 @@ export default {
 
             threat_status_filter_list: [
                 { id: 'active', name: 'Active' },
-                { id: 'removed', name: 'Removed' },
+                { id: 'removed', name: 'Discarded' },
             ],
 
             threats_headers: [
@@ -391,7 +391,7 @@ export default {
                                 if (full.visible) {
                                     links += `<a href='#${full.id}' data-view-threat='${full.id}'>View</a><br/>`;
                                     links += `<a href='#${full.id}' data-edit-threat='${full.id}'>Edit</a><br/>`;
-                                    links += `<a href='#' data-discard-threat='${full.id}'>Remove</a><br>`;
+                                    links += `<a href='#' data-discard-threat='${full.id}'>Discard</a><br>`;
                                 } else {
                                     links += `<a href='#' data-reinstate-threat='${full.id}'>Reinstate</a><br>`;
                                 }
@@ -602,7 +602,7 @@ export default {
                             () => {
                                 swal.fire({
                                     title: 'Discarded',
-                                    text: 'Your threat has been removed',
+                                    text: 'Your threat has been discarded',
                                     icon: 'success',
                                     customClass: {
                                         confirmButton: 'btn btn-primary',
