@@ -117,7 +117,7 @@ export default {
                 render: function (row, type, full) {
                     let links = '';
                     if (!vm.isReadOnly) {
-                        links += `<a href='#' data-discard-species='${full.id}'>Remove</a><br>`;
+                        links += `<a href='#' data-remove-related-species='${full.id}'>Remove</a><br>`;
                     }
                     return links;
                 },
@@ -300,10 +300,10 @@ export default {
             let vm = this;
             vm.$refs.related_species_datatable.vmDataTable.on(
                 'click',
-                'a[data-discard-species]',
+                'a[data-remove-related-species]',
                 function (e) {
                     e.preventDefault();
-                    var id = $(this).attr('data-discard-species');
+                    var id = $(this).attr('data-remove-related-species');
                     vm.removeRelatedSpecies(id);
                 }
             );
