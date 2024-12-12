@@ -4705,16 +4705,14 @@ export default {
             }
         },
         validate_map_docs: function () {
-            var formData = new FormData();
             var vm = this;
-            formData.append('csrfmiddlewaretoken', vm.csrf_token);
-            vm.isValidating = true;
+            var formData = new FormData();
             vm.errorString = '';
             const options = {
                 method: 'POST',
                 body: formData,
-                'content-type': 'application/json',
             };
+            vm.isValidating = true;
             fetch(
                 helpers.add_endpoint_join(
                     api_endpoints.occurrence_report,
