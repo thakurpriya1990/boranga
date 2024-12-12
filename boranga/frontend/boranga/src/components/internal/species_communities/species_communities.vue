@@ -704,9 +704,9 @@ export default {
         },
         canSeeSubmission: function () {
             return (
-                this.proposal &&
-                this.proposal.submitter &&
-                this.proposal.processing_status != 'Draft'
+                this.species_community &&
+                this.species_community.submitter &&
+                this.species_community.lodgement_date
             );
         },
         hasUserEditMode: function () {
