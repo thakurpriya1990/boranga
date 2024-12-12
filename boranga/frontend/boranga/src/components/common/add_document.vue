@@ -498,10 +498,7 @@ export default {
                 formData.append('data', JSON.stringify(documentObj));
                 fetch(helpers.add_endpoint_json(vm.url, documentObj.id), {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                    body: JSON.stringify(formData),
+                    body: formData,
                 }).then(
                     () => {
                         vm.updatingDocument = false;
@@ -519,10 +516,7 @@ export default {
                 formData.append('data', JSON.stringify(documentObj));
                 fetch(vm.url, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        body: JSON.stringify(formData),
-                    },
+                    body: formData,
                 }).then(
                     () => {
                         vm.addingDocument = false;

@@ -308,23 +308,17 @@ export default {
             let threatObj = JSON.parse(JSON.stringify(newThreatObj));
             let formData = new FormData();
 
-            vm.addingThreat = true;
             formData.append('data', JSON.stringify(threatObj));
             fetch(vm.occ_threat_url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
                 body: formData,
             }).then(
                 () => {
-                    vm.addingThreat = false;
                     vm.refreshFromResponse();
                     vm.$parent.updatedThreats();
                 },
                 (error) => {
                     vm.errors = true;
-                    vm.addingThreat = false;
                     vm.errorString = helpers.apiVueResourceError(error);
                 }
             );

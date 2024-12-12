@@ -286,10 +286,7 @@ export default {
                 formData.append('data', JSON.stringify(contactObj));
                 fetch(helpers.add_endpoint_json(vm.url, contactObj.id), {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData),
+                    body: formData,
                 }).then(
                     () => {
                         vm.updatingContact = false;
@@ -307,10 +304,7 @@ export default {
                 formData.append('data', JSON.stringify(contactObj));
                 fetch(vm.url, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData),
+                    body: formData,
                 }).then(
                     () => {
                         vm.addingContact = false;

@@ -333,9 +333,6 @@ export default {
                 {
                     method: 'POST',
                     body: formData,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
                 }
             ).then(
                 async (response) => {

@@ -477,6 +477,11 @@
                                             v-model="threatObj.date_observed"
                                             :disabled="isReadOnly"
                                             type="date"
+                                            :max="
+                                                new Date()
+                                                    .toISOString()
+                                                    .split('T')[0]
+                                            "
                                             class="form-control"
                                             name="date_observed"
                                         />
@@ -674,10 +679,7 @@ export default {
                 formData.append('data', JSON.stringify(threatObj));
                 fetch(helpers.add_endpoint_json(vm.url, threatObj.id), {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData),
+                    body: formData,
                 }).then(
                     () => {
                         vm.updatingThreat = false;
@@ -695,10 +697,7 @@ export default {
                 formData.append('data', JSON.stringify(threatObj));
                 fetch(vm.url, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData),
+                    body: formData,
                 }).then(
                     () => {
                         vm.addingThreat = false;

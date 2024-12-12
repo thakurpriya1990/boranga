@@ -338,10 +338,7 @@ export default {
                 formData.append('data', JSON.stringify(observerObj));
                 fetch(helpers.add_endpoint_json(vm.url, observerObj.id), {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData),
+                    body: formData,
                 }).then(
                     () => {
                         vm.updatingObserver = false;
@@ -358,10 +355,7 @@ export default {
                 formData.append('data', JSON.stringify(observerObj));
                 fetch(vm.url, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData),
+                    body: formData,
                 }).then(
                     () => {
                         vm.addingObserver = false;
