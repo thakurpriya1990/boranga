@@ -97,6 +97,11 @@ td {
     word-wrap: break-word;
 }
 
+table.dataTable {
+    margin-top: 8px;
+    margin-bottom: 8px !important;
+}
+
 table.table-bordered.dataTable tbody th,
 table.table-bordered.dataTable tbody td {
     border-bottom-width: 0;
