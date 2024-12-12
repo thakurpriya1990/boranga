@@ -703,9 +703,11 @@ export default {
             }
         },
         canSeeSubmission: function () {
-            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)
-            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)')
-            return true;
+            return (
+                this.proposal &&
+                this.proposal.submitter &&
+                this.proposal.processing_status != 'Draft'
+            );
         },
         hasUserEditMode: function () {
             return this.species_community &&
