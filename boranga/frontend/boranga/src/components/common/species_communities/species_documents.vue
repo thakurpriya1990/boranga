@@ -50,6 +50,7 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
 import alert from '@vue-utils/alert.vue';
 import datatable from '@vue-utils/datatable.vue';
 import DocumentDetail from '../add_document.vue';
@@ -86,8 +87,8 @@ export default {
         return {
             uuid: 0,
             speciesDocumentHistoryId: null,
-            documentBody: 'documentBody' + vm._uid,
-            panelBody: 'species-documents-' + vm._uid,
+            documentBody: 'documentBody' + uuid(),
+            panelBody: 'species-documents-' + uuid(),
             values: null,
             species_document_url: api_endpoints.species_documents,
             documents_headers: [

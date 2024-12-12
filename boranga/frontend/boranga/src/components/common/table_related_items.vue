@@ -68,7 +68,7 @@ export default {
     },
     data() {
         return {
-            datatable_id: uuid(),
+            datatable_id: 'related-items-' + uuid(),
             related_type_filter_list: [],
             filterRelatedType: 'all',
         };

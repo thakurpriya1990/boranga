@@ -153,6 +153,8 @@
     </div>
 </template>
 <script>
+import { v4 as uuid } from 'uuid';
+
 import datatable from '@vue-utils/datatable.vue';
 import ThreatDetail from './add_threat.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
@@ -203,9 +205,9 @@ export default {
         return {
             uuid: 0,
             conservationThreatHistoryId: null,
-            threatBody: 'threatBody' + vm.uid,
-            occThreatBody: 'occThreatBody' + vm.uid,
-            panelBody: 'species-threats-' + vm.uid,
+            threatBody: 'threatBody' + uuid(),
+            occThreatBody: 'occThreatBody' + uuid(),
+            panelBody: 'species-threats-' + uuid(),
             values: null,
             threat_url: api_endpoints.threat,
 
