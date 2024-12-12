@@ -126,7 +126,7 @@
                                             class="float-end"
                                             role="button"
                                             @click.prevent="assignRequestUser()"
-                                            >Assign >Assign to me</a
+                                            >Assign to me</a
                                         >
                                     </template>
                                     <template
@@ -166,7 +166,7 @@
                                             class="float-end"
                                             role="button"
                                             @click.prevent="assignRequestUser()"
-                                            >Assign >Assign to me</a
+                                            >Assign to me</a
                                         >
                                     </template>
                                 </div>

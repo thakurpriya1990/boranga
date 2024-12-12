@@ -198,7 +198,7 @@
                                                     "
                                                     @click.prevent="save()"
                                                 >
-                                                    Save and Save and Continue
+                                                    Save and Continue
                                                 </button>
 
                                                 <button
@@ -228,7 +228,7 @@
                                                     "
                                                     @click.prevent="save_exit()"
                                                 >
-                                                    Save and Save and Exit
+                                                    Save and Exit
                                                 </button>
                                             </div>
                                             <div
