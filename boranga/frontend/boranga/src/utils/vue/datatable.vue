@@ -64,7 +64,7 @@ export default {
 </script>
 
 <style lang="css">
-div.dataTables_processing div {
+div.dt-processing div {
     display: none;
 }
 
