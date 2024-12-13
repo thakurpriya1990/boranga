@@ -1874,7 +1874,7 @@ export default {
             this.isShowComment = updatedShowComment;
         },
         saveConservationStatus: function (e) {
-            if (e.target.classList.contains('input.select2-search__field')) {
+            if (e.target.className.includes('select2-')) {
                 // We will emit this save from the select 2 event instead
                 // as it requires some time to populate the selected value
                 // and we don't want to save the conservation status before the
