@@ -181,7 +181,7 @@ export async function queryLayerAtPoint(map_component, layer, coordinate) {
  * @param {string} mode The mode to set the map to (layer, draw, measure)
  * @param {string=} subMode The submode to set the map to (e.g. draw: 'Polygon', 'Point')
  */
-export function set_mode(mode, subMode = null) {
+export function set_mode(map_component, mode, subMode = null) {
     if (!this.map.getTargetElement()) {
         console.warn(
             'Map not initialized in set_mode function. Returning false.'
@@ -206,7 +206,7 @@ export function set_mode(mode, subMode = null) {
     this.measuring = false;
     this.informing = false;
     this.transforming = false;
-    this.errorMessageProperty(null);
+    map_component.errorMessageProperty(null);
     this.overlay(undefined);
     this.map.getTargetElement().style.cursor = 'default';
     this.transformSetActive(false);

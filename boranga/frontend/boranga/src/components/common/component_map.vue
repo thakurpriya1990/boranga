@@ -775,7 +775,7 @@
                                     ? 'optional-layers-button-active'
                                     : 'optional-layers-button',
                             ]"
-                            @click="set_mode('measure')"
+                            @click="callSetMode('measure')"
                         >
                             <img
                                 class="svg-icon"
@@ -812,7 +812,7 @@
                                             ? ''
                                             : 'disabled',
                                     ]"
-                                    @click="set_mode('draw', 'Polygon')"
+                                    @click="callSetMode('draw', 'Polygon')"
                                 >
                                     <img
                                         class="svg-icon"
@@ -843,7 +843,7 @@
                                             ? ''
                                             : 'disabled',
                                     ]"
-                                    @click="set_mode('draw', 'Point')"
+                                    @click="callSetMode('draw', 'Point')"
                                 >
                                     <img
                                         class="svg-icon"
@@ -905,7 +905,7 @@
                                     ? ''
                                     : 'disabled',
                             ]"
-                            @click="set_mode('transform')"
+                            @click="callSetMode('transform')"
                         >
                             <img
                                 class="svg-icon"
@@ -1291,7 +1291,7 @@
                                     ? 'optional-layers-button-active'
                                     : 'optional-layers-button',
                             ]"
-                            @click="set_mode('info')"
+                            @click="callSetMode('info')"
                         >
                             <img
                                 class="svg-icon"
@@ -2051,7 +2051,6 @@ export default {
                 endpoint,
                 '/' + obj_id + '/process_shapefile_document/'
             );
-            console.log({ url });
             return url;
         },
         canUndoAction: function () {
@@ -2410,7 +2409,6 @@ export default {
         console.log('Map created');
     },
     mounted: function () {
-        console.log('mounted()');
         let vm = this;
         vm.setLoadingMap(true);
 
@@ -2436,6 +2434,9 @@ export default {
         });
     },
     methods: {
+        callSetMode: function (mode, subMode = null) {
+            this.set_mode(this, mode, subMode);
+        },
         setLoadingMap(loading = false) {
             console.log('set loading-map', loading);
             this.loadingMap = loading;
@@ -2472,7 +2473,6 @@ export default {
             const features = [];
             selectedFeatures.forEach((f) => {
                 const feature = f.clone();
-                console.log(feature.getProperties());
                 feature.unset('model');
                 features.push(feature);
             });
@@ -2485,7 +2485,6 @@ export default {
             );
         },
         displayAllFeatures: function (features) {
-            console.log('in displayAllFeatures()');
             let vm = this;
             if (vm.map) {
                 if (
@@ -2849,7 +2848,6 @@ export default {
                 formatConstructors: [GeoJSON],
             });
             vm.dragAndDrop.on('addfeatures', function (event) {
-                console.log('dragAndDrop addfeatures', event);
                 let features = event.features;
                 let source = vm.layerSources[vm.defaultQueryLayerName];
                 for (let i = 0, ii = features.length; i < ii; i++) {
@@ -2886,13 +2884,12 @@ export default {
                 evt.preventDefault();
             });
             vm.map.getViewport().addEventListener('drop', function (evt) {
-                console.log('drag: drop', evt);
                 // Prevent default behavior (Prevent file from being opened)
                 evt.preventDefault();
                 vm.processDatatransferEvent(evt);
             });
 
-            vm.set_mode('layer');
+            vm.callSetMode('layer');
             vm.setBaseLayer('street');
         },
         initialiseMeasurementLayer: function () {
@@ -3070,7 +3067,7 @@ export default {
                         if (vm.canUndoDrawnVertex) {
                             vm.undoredo_forSketch.undo();
                         } else {
-                            vm.set_mode('layer');
+                            vm.callSetMode('layer');
                         }
                     } else {
                         return false;
@@ -3133,7 +3130,6 @@ export default {
             return proposals;
         },
         initialiseBaseLayers: function (tileLayers) {
-            console.log('initialiseBaseLayers()');
             this.tileLayerMapbox = new TileLayer({
                 title: 'Mapbox Streets',
                 type: 'base',
@@ -3260,10 +3256,10 @@ export default {
                                 // A bit clunky but this makes it so when switching editing modes the feature selection styles get properly set
                                 const mode = this.mode;
                                 const subMode = this.submode;
-                                this.set_mode('layer');
-                                this.set_mode(mode, subMode);
+                                this.callSetMode('layer');
+                                this.callSetMode(mode, subMode);
                             } else {
-                                this.set_mode('layer');
+                                this.callSetMode('layer');
                             }
 
                             // Toggle on this layer's editing
@@ -4654,7 +4650,7 @@ export default {
             const feature = this.drawPolygonsForModel.finishDrawing();
             this.setLoadingMap(false);
             if (this.mode == 'draw' && this.selectedFeatureIds.length == 0) {
-                this.set_mode('layer');
+                this.callSetMode('layer');
             }
         },
         /**
@@ -4764,15 +4760,14 @@ export default {
 
             const mapLayers = this.map.getLayers();
             mapLayers.getArray().map((layer) => {
-                // Not all types of layer have a getSource method
-                try {
-                    layer.getSource().getFeatures();
-                    layers.push(layer);
-                } catch (error) {
-                    //
-                    console.log(error);
+                if (Object.prototype.hasOwnProperty.call(layer, 'getSource')) {
+                    const source = layer.getSource();
+                    if (source) {
+                        source.getFeatures(); // Trigger the loading of the features
+                        layers.push(layer);
+                    }
                 }
-            }, layers);
+            });
 
             return layers;
         },
@@ -4782,7 +4777,9 @@ export default {
         getMapFeatures: function () {
             const features = [];
             this.getLayersWithFeatures().map((layer) => {
-                features.push(...layer.getSource().getFeatures());
+                if (Object.prototype.hasOwnProperty.call(layer, 'getSource')) {
+                    features.push(...layer.getSource().getFeatures());
+                }
             });
 
             return features;
