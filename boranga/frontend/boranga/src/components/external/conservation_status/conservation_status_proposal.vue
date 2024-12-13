@@ -473,26 +473,26 @@ export default {
         save_before_submit: async function () {
             let vm = this;
             vm.saveError = false;
-
-            let payload = new Object();
-            Object.assign(payload, vm.conservation_status_obj);
-            const result = await fetch(vm.cs_proposal_form_url, payload).then(
+            await fetch(vm.cs_proposal_form_url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(vm.conservation_status_obj),
+            }).then(
                 async () => {},
                 (err) => {
-                    var errorText = helpers.apiVueResourceError(err);
+                    vm.saveError = true;
                     swal.fire({
-                        title: 'Submit Error',
-                        text: errorText,
+                        title: 'Save Error',
+                        text: helpers.apiVueResourceError(err),
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
                     });
-                    vm.paySubmitting = false;
-                    vm.saveError = true;
                 }
             );
-            return result;
         },
         setdata: function (readonly) {
             this.cs_proposal_readonly = readonly;
@@ -636,23 +636,31 @@ export default {
                     if (result.isConfirmed) {
                         await vm.save_before_submit();
                         if (!vm.saveError) {
-                            let payload = new Object();
-                            Object.assign(payload, vm.conservation_status_obj);
                             fetch(
                                 helpers.add_endpoint_json(
                                     api_endpoints.conservation_status,
                                     vm.conservation_status_obj.id + '/submit'
                                 ),
-                                payload
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify(
+                                        vm.conservation_status_obj
+                                    ),
+                                }
                             ).then(
                                 async (response) => {
                                     vm.conservation_status_obj =
                                         await response.json();
                                     vm.$router.push({
                                         name: 'submit_cs_proposal',
-                                        params: {
+                                        state: {
                                             conservation_status_obj:
-                                                vm.conservation_status_obj,
+                                                JSON.stringify(
+                                                    vm.conservation_status_obj
+                                                ),
                                         },
                                     });
                                 },
