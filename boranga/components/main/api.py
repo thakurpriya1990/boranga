@@ -32,9 +32,9 @@ class HelpTextEntryViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         if not self.request.user.is_authenticated:
-            qs = qs.filter(authenticated_users_only=False, internal_users_only=False)
+            return qs.exclude(authenticated_users_only=True, internal_users_only=True)
         if not helpers.is_internal(self.request):
-            qs = qs.filter(authenticated_users_only=False)
+            return qs.exclude(internal_users_only=True)
         return qs
 
 
