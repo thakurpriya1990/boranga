@@ -296,9 +296,7 @@ export default {
                 body: JSON.stringify(this.submitter_information),
             })
                 .then((response) => response.json())
-                .then((data) => {
-                    console.log(data);
-                })
+                .then(() => {})
                 .catch((error) => {
                     console.log(error);
                 });
