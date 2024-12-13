@@ -1412,7 +1412,13 @@
                                                     </h6>
                                                 </div>
                                             </div>
-                                            <template v-if="ref.box_view">
+                                            <template
+                                                v-if="
+                                                    referral_comments_boxes &&
+                                                    referral_comments_boxes.length >
+                                                        0
+                                                "
+                                            >
                                                 <div
                                                     v-for="ref in referral_comments_boxes"
                                                     class="row mb-3"
