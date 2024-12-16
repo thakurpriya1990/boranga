@@ -117,7 +117,10 @@ export default {
                         orderable: false,
                     },
                     {
-                        data: null,
+                        data: 'id',
+                        mRender: function (data, type, full, meta) {
+                            return meta.row + 1;
+                        },
                     },
                     {
                         data: 'group_type',
@@ -180,7 +183,7 @@ export default {
                     },
                     { responsivePriority: 2, targets: -2 },
                 ],
-                order: [[1, 'desc']],
+                order: [[1, 'asc']],
                 searching: true,
                 processing: true,
                 drawCallback: function () {
