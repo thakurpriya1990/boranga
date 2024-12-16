@@ -24,7 +24,9 @@
                     <input
                         v-else
                         id="taxon_name_id"
-                        v-model="species_community.scientific_name"
+                        v-model="
+                            species_community.taxonomy_details.scientific_name
+                        "
                         :disabled="true"
                         type="text"
                         class="form-control"
