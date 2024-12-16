@@ -1566,13 +1566,14 @@ export default {
                 const createUrl = api_endpoints.species + '/';
                 let payload = new Object();
                 payload.group_type_id = this.species_community.group_type_id;
-                let savedSpecies = await fetch(createUrl, {
+                let response = await fetch(createUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(payload),
                 });
+                const savedSpecies = await response.json();
                 if (savedSpecies) {
                     newSpeciesId = savedSpecies.id;
                     fetch(
