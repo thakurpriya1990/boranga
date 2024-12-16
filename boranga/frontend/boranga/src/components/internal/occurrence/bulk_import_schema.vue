@@ -1222,7 +1222,7 @@
                             :disabled="saving"
                             @click.prevent="saveAndExit()"
                         >
-                            Save Save and Exit
+                            Save and Exit
                             <template v-if="saving"
                                 ><span
                                     class="spinner-border spinner-border-sm ms-2"
