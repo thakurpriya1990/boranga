@@ -155,15 +155,15 @@ export default {
         related_items_filter_list_url: function () {
             return '/api/species/filter_list.json';
         },
-        mounted: function () {
-            let vm = this;
-            vm.form = document.forms.new_species;
-        },
-        methods: {
-            //----function to resolve datatable exceeding beyond the div
-            tabClicked: function () {
-                this.reloadcount = this.reloadcount + 1;
-            },
+    },
+    mounted: function () {
+        let vm = this;
+        vm.form = document.forms.new_species;
+    },
+    methods: {
+        //----function to resolve datatable exceeding beyond the div
+        tabClicked: function () {
+            this.reloadcount = this.reloadcount + 1;
         },
     },
 };

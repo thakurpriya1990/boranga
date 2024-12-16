@@ -1480,15 +1480,16 @@ export default {
                 const createUrl = api_endpoints.species + '/';
                 let payload = new Object();
                 payload.group_type_id = this.species_community.group_type_id;
-                let savedSpecies = await fetch(createUrl, {
+                let response = await fetch(createUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(payload),
                 });
+                const savedSpecies = await response.json();
                 if (savedSpecies) {
-                    newSpeciesId1 = savedSpecies.body.id;
+                    newSpeciesId1 = savedSpecies.id;
                     fetch(
                         `/api/species/${newSpeciesId1}/internal_species.json`
                     ).then(
@@ -1519,15 +1520,16 @@ export default {
                 const createUrl = api_endpoints.species + '/';
                 let payload = new Object();
                 payload.group_type_id = this.species_community.group_type_id;
-                let savedSpecies = await fetch(createUrl, {
+                let response = await fetch(createUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(payload),
                 });
+                const savedSpecies = await response.json();
                 if (savedSpecies) {
-                    newSpeciesId2 = savedSpecies.body.id;
+                    newSpeciesId2 = savedSpecies.id;
                     fetch(
                         `/api/species/${newSpeciesId2}/internal_species.json`
                     ).then(
@@ -1572,7 +1574,7 @@ export default {
                     body: JSON.stringify(payload),
                 });
                 if (savedSpecies) {
-                    newSpeciesId = savedSpecies.body.id;
+                    newSpeciesId = savedSpecies.id;
                     fetch(
                         `/api/species/${newSpeciesId}/internal_species.json`
                     ).then(
@@ -1601,11 +1603,12 @@ export default {
         },
         renameSpecies: async function () {
             let rename_species_obj = null;
-            let newRenameSpecies = await fetch(
+            let response = await fetch(
                 `/api/species/${this.species_community.id}/rename_deep_copy.json`
             );
+            const newRenameSpecies = await response.json();
             if (newRenameSpecies) {
-                rename_species_obj = newRenameSpecies.body.species_obj;
+                rename_species_obj = newRenameSpecies.species_obj;
                 this.$refs.species_rename.new_rename_species =
                     rename_species_obj;
                 this.$refs.species_rename.isModalOpen = true;
