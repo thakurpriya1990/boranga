@@ -267,7 +267,8 @@ export default {
                                     '/amendment_request'
                             )
                         ).then(
-                            async () => {
+                            async (response) => {
+                                const data = await response.json();
                                 vm.setAmendmentData(data);
                             },
                             (err) => {
