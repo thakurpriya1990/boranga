@@ -782,55 +782,53 @@ export default {
             payload.site_geometry =
                 vm.$refs.component_map.getJSONFeatures('site_layer');
 
-            vm.$http
-                .post(
-                    helpers.add_endpoint_json(
-                        api_endpoints.occurrence,
-                        vm.occurrence_obj.id + '/update_location_details'
-                    ),
-                    JSON.stringify(payload),
-                    {
-                        emulateJSON: true,
-                    }
-                )
-                .then(
-                    async (response) => {
-                        vm.updatingLocationDetails = false;
-                        vm.occurrence_obj.location = await response.json();
-                        swal.fire({
-                            title: 'Saved',
-                            text: 'Location details have been saved',
-                            icon: 'success',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
-                            },
-                        }).then(() => {
-                            if (
-                                vm.occurrence_obj.processing_status ==
-                                'Unlocked'
-                            ) {
-                                vm.$router.go();
-                            }
-                        });
-                        vm.incrementComponentMapKey();
-                        vm.refreshDatatables();
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.occurrence,
+                    vm.occurrence_obj.id + '/update_location_details'
+                ),
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                    (error) => {
-                        var text = helpers.apiVueResourceError(error);
-                        swal.fire({
-                            title: 'Error',
-                            text:
-                                'Location details cannot be saved because of the following error: ' +
-                                text,
-                            icon: 'error',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
-                            },
-                        });
-                        vm.updatingLocationDetails = false;
-                        vm.$refs.component_map.setLoadingMap(false);
-                    }
-                );
+                    body: JSON.stringify(payload),
+                }
+            ).then(
+                async (response) => {
+                    vm.updatingLocationDetails = false;
+                    vm.occurrence_obj.location = await response.json();
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Location details have been saved',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    }).then(() => {
+                        if (vm.occurrence_obj.processing_status == 'Unlocked') {
+                            vm.$router.go();
+                        }
+                    });
+                    vm.incrementComponentMapKey();
+                    vm.refreshDatatables();
+                },
+                (error) => {
+                    var text = helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error',
+                        text:
+                            'Location details cannot be saved because of the following error: ' +
+                            text,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.updatingLocationDetails = false;
+                    vm.$refs.component_map.setLoadingMap(false);
+                }
+            );
         },
         incrementComponentMapKey: function () {
             this.uuid_component_map = uuid();

@@ -687,55 +687,55 @@ export default {
                 vm.$refs.component_map.setLoadingMap(true);
             }
 
-            vm.$http
-                .post(
-                    helpers.add_endpoint_json(
-                        api_endpoints.occurrence_report,
-                        vm.occurrence_report_obj.id + '/update_location_details'
-                    ),
-                    JSON.stringify(payload),
-                    {
-                        emulateJSON: true,
-                    }
-                )
-                .then(
-                    async (response) => {
-                        vm.updatingLocationDetails = false;
-                        vm.occurrence_report_obj.location =
-                            await response.json();
-                        swal.fire({
-                            title: 'Saved',
-                            text: 'Location details have been saved',
-                            icon: 'success',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
-                            },
-                        }).then(() => {
-                            if (
-                                vm.occurrence_report_obj.processing_status ==
-                                'Unlocked'
-                            ) {
-                                vm.$router.go();
-                            }
-                        });
-                        vm.$refs.component_map.forceToRefreshMap();
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.occurrence_report,
+                    vm.occurrence_report_obj.id + '/update_location_details'
+                ),
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                    (error) => {
-                        var text = helpers.apiVueResourceError(error);
-                        swal.fire({
-                            title: 'Error',
-                            text:
-                                'Location details cannot be saved because of the following error: ' +
-                                text,
-                            icon: 'error',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
-                            },
-                        });
-                        vm.updatingLocationDetails = false;
-                        vm.$refs.component_map.setLoadingMap(false);
-                    }
-                );
+                    body: JSON.stringify(payload),
+                }
+            ).then(
+                async (response) => {
+                    vm.updatingLocationDetails = false;
+                    vm.occurrence_report_obj.location = await response.json();
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Location details have been saved',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    }).then(() => {
+                        if (
+                            vm.occurrence_report_obj.processing_status ==
+                            'Unlocked'
+                        ) {
+                            vm.$router.go();
+                        }
+                    });
+                    vm.$refs.component_map.forceToRefreshMap();
+                },
+                (error) => {
+                    var text = helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error',
+                        text:
+                            'Location details cannot be saved because of the following error: ' +
+                            text,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.updatingLocationDetails = false;
+                    vm.$refs.component_map.setLoadingMap(false);
+                }
+            );
         },
         incrementComponentMapKey: function () {
             this.uuid = uuid();
@@ -793,7 +793,7 @@ export default {
 </script>
 
 <style lang="css" scoped>
-/* @import 'vue-select/dist/vue-select.css'; */
+@import 'vue-select/dist/vue-select.css';
 
 /*ul, li {
         zoom:1;
