@@ -615,10 +615,6 @@ export default {
             return api_endpoints.occurrence + 'buffer_geometries/';
         },
         isReadOnly: function () {
-            //override for split reports
-            if (this.is_readonly) {
-                return this.is_readonly;
-            }
             return this.occurrence_obj.readonly;
         },
         csrf_token: function () {
