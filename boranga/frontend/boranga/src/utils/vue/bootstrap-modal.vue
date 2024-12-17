@@ -195,7 +195,7 @@ export default {
     background-color: #226fbb;
     color: #fff;
     background: #3580ca
-        url('../../../../../../staticfiles/img/parks-bg-banner.gif') repeat-x
+        url('/static/boranga_vue/src/assets/parks-bg-banner.gif') repeat-x
         center bottom;
 }
 
