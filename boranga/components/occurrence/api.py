@@ -3131,7 +3131,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             occ_ids = json.loads(request.POST.get("occurrence_ids"))
             documents = OccurrenceDocument.objects.filter(
                 occurrence__id__in=occ_ids
-            ).filter(visible=True)
+            ).filter(active=True)
 
             values_list = list(
                 documents.values(
