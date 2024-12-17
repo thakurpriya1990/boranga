@@ -10,7 +10,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="siteForm">
-                        <alert v-if="showError" type="danger"
+                        <alert v-if="errorString" type="danger"
                             ><strong>{{ errorString }}</strong></alert
                         >
                         <alert
@@ -334,7 +334,6 @@ export default {
             updatingSite: false,
             validation_form: null,
             type: '1',
-            errors: false,
             errorString: '',
             successString: '',
             success: false,
@@ -343,10 +342,6 @@ export default {
         };
     },
     computed: {
-        showError: function () {
-            var vm = this;
-            return vm.errors;
-        },
         title: function () {
             var action = this.site_action;
             if (typeof action === 'string' && action.length > 0) {
@@ -408,8 +403,7 @@ export default {
             this.siteObj = {
                 related_occurrence_reports: [],
             };
-            this.errors = false;
-            $('.has-error').removeClass('has-error');
+            this.errorString = '';
         },
         reinitialiseOCRLookup: function () {
             let vm = this;
@@ -440,7 +434,7 @@ export default {
         },
         sendData: function () {
             let vm = this;
-            vm.errors = false;
+            vm.errorString = '';
             let siteObj = JSON.parse(JSON.stringify(vm.siteObj));
             let formData = new FormData();
 
@@ -449,43 +443,39 @@ export default {
                 formData.append('data', JSON.stringify(siteObj));
                 fetch(helpers.add_endpoint_json(vm.url, siteObj.id), {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData),
-                }).then(
-                    () => {
-                        vm.updatingSite = false;
+                    body: formData,
+                })
+                    .then(async (response) => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            vm.errorString = data;
+                            return;
+                        }
                         vm.$parent.updatedSites();
                         vm.close();
-                    },
-                    (error) => {
-                        vm.errors = true;
-                        vm.errorString = helpers.apiVueResourceError(error);
+                    })
+                    .finally(() => {
                         vm.updatingSite = false;
-                    }
-                );
+                    });
             } else {
                 vm.addingSite = true;
                 formData.append('data', JSON.stringify(siteObj));
                 fetch(vm.url, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData),
-                }).then(
-                    () => {
-                        vm.addingSite = false;
+                    body: formData,
+                })
+                    .then(async (response) => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            vm.errorString = data;
+                            return;
+                        }
                         vm.close();
                         vm.$parent.updatedSites();
-                    },
-                    (error) => {
-                        vm.errors = true;
+                    })
+                    .finally(() => {
                         vm.addingSite = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                    }
-                );
+                    });
             }
         },
     },
