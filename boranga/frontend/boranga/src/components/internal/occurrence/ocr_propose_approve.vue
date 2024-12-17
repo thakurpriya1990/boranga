@@ -208,7 +208,7 @@ export default {
                 create_new_occurrence: false,
                 new_occurrence_name: '',
                 details: '',
-                cc_email: '',
+                cc_email: null,
             },
             errorString: '',
         };
@@ -324,7 +324,11 @@ export default {
                             body: JSON.stringify(vm.propose_approve),
                         }
                     ).then(
-                        () => {
+                        async (response) => {
+                            if (!response.ok) {
+                                vm.errorString = await response.json();
+                                return;
+                            }
                             swal.fire({
                                 title: 'Proposal to Approve Successful',
                                 text: `Your proposal to approve occurrence report ${vm.occurrence_report_number} has been successfully submitted.`,
