@@ -272,7 +272,7 @@ export default {
     methods: {
         adjust_table_width: function () {
             let vm = this;
-            if (vm.$refs.occurrence_site_datatable !== undefined) {
+            if (vm.$refs.occurrence_site_datatable) {
                 vm.$refs.occurrence_site_datatable.vmDataTable.columns
                     .adjust()
                     .responsive.recalc();

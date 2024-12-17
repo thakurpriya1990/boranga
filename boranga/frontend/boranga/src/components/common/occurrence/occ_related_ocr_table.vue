@@ -347,7 +347,7 @@ export default {
             );
         },
         adjust_table_width: function () {
-            if (this.$refs.related_ocr_datatable !== undefined) {
+            if (this.$refs.related_ocr_datatable) {
                 this.$refs.related_ocr_datatable.vmDataTable.columns
                     .adjust()
                     .responsive.recalc();
