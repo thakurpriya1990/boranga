@@ -660,31 +660,30 @@ export default {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-            }).then(
-                async () => {
-                    swal.fire({
-                        title: 'Activated',
-                        text: 'Occurrence has been Activated',
-                        icon: 'success',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    }).then(async () => {
-                        this.$router.go(this.$router.currentRoute);
-                    });
-                },
-                (err) => {
-                    var errorText = helpers.apiVueResourceError(err);
+            }).then(async (response) => {
+                const data = await response.json();
+                if (!response.ok) {
                     swal.fire({
                         title: 'Activate Error',
-                        text: errorText,
+                        text: data,
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
                     });
+                    return;
                 }
-            );
+                swal.fire({
+                    title: 'Activated',
+                    text: 'Occurrence has been Activated',
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                }).then(async () => {
+                    this.$router.go(this.$router.currentRoute);
+                });
+            });
         },
         lockOccurrence: async function () {
             await fetch(
