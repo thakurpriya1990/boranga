@@ -104,6 +104,7 @@ def intersect_geometry_with_layer(
         .groupdict()
         .get("request_path", None)
     )
+
     if request_path:
         try:
             proxy = Proxy.objects.get(active=True, request_path=request_path)
@@ -125,13 +126,27 @@ def intersect_geometry_with_layer(
         res = requests.post(geoserver_url.url, params=params)
 
     if res.reason != "OK":
+        basic_error_message = (
+            f"Failed to intersect geometry with layer {intersect_layer_name}."
+        )
+        root = ET.fromstring(res._content, ET.XMLParser(encoding="utf-8"))
+        namespace = root.tag.split("}")[0] + "}"
+        exception = root.find(f".//{namespace}Exception")
+        if exception is None:
+            raise serializers.ValidationError(
+                f"{basic_error_message}. {res.reason}: {res.text}"
+            )
+        exception_code = exception.attrib.get("exceptionCode")
+        exception_text = root.find(f".//{namespace}ExceptionText")
+
         raise serializers.ValidationError(
-            f"Failed to intersect geometry with layer {intersect_layer_name}. Reason: {res.reason}"
+            f"{basic_error_message}. {exception_code}: {exception_text.text}"
         )
 
     if result_type == "hits":
         # resultType hits returns text/xml
         return res.text
+
     return res.json()
 
 
