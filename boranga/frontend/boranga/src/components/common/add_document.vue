@@ -10,7 +10,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="documentForm">
-                        <alert v-if="showError" type="danger"
+                        <alert v-if="errorString" type="danger"
                             ><strong>{{ errorString }}</strong></alert
                         >
                         <div class="col-sm-12">
@@ -354,7 +354,6 @@ export default {
             updatingDocument: false,
             validation_form: null,
             type: '1',
-            errors: false,
             errorString: '',
             successString: '',
             success: false,
@@ -363,10 +362,6 @@ export default {
         };
     },
     computed: {
-        showError: function () {
-            var vm = this;
-            return vm.errors;
-        },
         showSubmitterCanAccess: function () {
             return (
                 this.is_internal &&
@@ -474,12 +469,11 @@ export default {
             this.documentObj = {};
             this.$refs.filefield.files = [{ file: null, name: '' }];
             this.$refs.filefield.reset_files();
-            this.errors = false;
             $('.has-error').removeClass('has-error');
         },
         sendData: function () {
             let vm = this;
-            vm.errors = false;
+            vm.errorString = '';
             let documentObj = JSON.parse(JSON.stringify(vm.documentObj));
             let formData = new FormData();
 
@@ -499,36 +493,40 @@ export default {
                 fetch(helpers.add_endpoint_json(vm.url, documentObj.id), {
                     method: 'PUT',
                     body: formData,
-                }).then(
-                    () => {
-                        vm.updatingDocument = false;
+                })
+                    .then(async (response) => {
+                        let data = await response.json();
+                        if (response.status !== 200) {
+                            vm.errorString = data;
+                            return;
+                        }
+
                         vm.$parent.updatedDocuments();
                         vm.close();
-                    },
-                    (error) => {
-                        vm.errors = true;
-                        vm.errorString = helpers.apiVueResourceError(error);
+                    })
+                    .finally(() => {
                         vm.updatingDocument = false;
-                    }
-                );
+                    });
             } else {
                 vm.addingDocument = true;
                 formData.append('data', JSON.stringify(documentObj));
                 fetch(vm.url, {
                     method: 'POST',
                     body: formData,
-                }).then(
-                    () => {
+                })
+                    .then(async (response) => {
+                        let data = await response.json();
+                        if (response.status !== 200) {
+                            vm.errorString = data;
+                            return;
+                        }
                         vm.addingDocument = false;
                         vm.close();
                         vm.$parent.updatedDocuments();
-                    },
-                    (error) => {
-                        vm.errors = true;
+                    })
+                    .finally(() => {
                         vm.addingDocument = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                    }
-                );
+                    });
             }
         },
     },

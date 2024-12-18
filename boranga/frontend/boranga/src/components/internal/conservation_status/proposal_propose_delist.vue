@@ -15,7 +15,7 @@
                         name="delistForm"
                         novalidate
                     >
-                        <alert v-if="showError" type="danger"
+                        <alert v-if="errorString" type="danger"
                             ><strong>{{ errorString }}</strong></alert
                         >
                         <div class="col-sm-12">
@@ -139,18 +139,10 @@ export default {
                 effective_to: new Date().toISOString().split('T')[0],
             },
             delistingProposal: false,
-            errors: false,
-            validation_form: null,
             errorString: '',
-            successString: '',
-            success: false,
         };
     },
     computed: {
-        showError: function () {
-            var vm = this;
-            return vm.errors;
-        },
         title: function () {
             return `Propose Delist Conservation Status CS${this.conservation_status_id}`;
         },
@@ -177,7 +169,7 @@ export default {
             this.delist = {
                 effective_to: new Date().toISOString().split('T')[0],
             };
-            this.errors = false;
+            this.errorString = '';
             $('.was-validated').removeClass('was-validated');
         },
         validateForm: function () {
@@ -192,7 +184,7 @@ export default {
         },
         sendData: function () {
             let vm = this;
-            vm.errors = false;
+            vm.errorString = '';
             let delist = JSON.parse(JSON.stringify(vm.delist));
             vm.delistingProposal = true;
             if (vm.processing_status == 'Approved') {
@@ -206,21 +198,22 @@ export default {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(delist),
                     }
-                ).then(
-                    (response) => {
-                        vm.delistingProposal = false;
+                )
+                    .then(async (response) => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            vm.errorString = data;
+                            return;
+                        }
                         vm.close();
                         vm.$emit('refreshFromResponse', response);
                         vm.$router.push({
                             path: '/internal/conservation-status/',
                         }); //Navigate to dashboard after propose delist.
-                    },
-                    (error) => {
-                        vm.errors = true;
+                    })
+                    .finally(() => {
                         vm.delistingProposal = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                    }
-                );
+                    });
             } else {
                 vm.close();
             }

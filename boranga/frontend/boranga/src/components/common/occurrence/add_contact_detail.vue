@@ -14,7 +14,7 @@
                         name="contactDetailForm"
                         novalidate
                     >
-                        <alert v-if="showError" type="danger"
+                        <alert v-if="errorString" type="danger"
                             ><strong>{{ errorString }}</strong></alert
                         >
                         <div class="col-sm-12">
@@ -220,7 +220,6 @@ export default {
             updatingContact: false,
             validation_form: null,
             type: '1',
-            errors: false,
             errorString: '',
             successString: '',
             success: false,
@@ -228,10 +227,6 @@ export default {
         };
     },
     computed: {
-        showError: function () {
-            var vm = this;
-            return vm.errors;
-        },
         title: function () {
             var action = this.contact_detail_action;
             if (typeof action === 'string' && action.length > 0) {
@@ -272,12 +267,12 @@ export default {
         close: function () {
             this.isModalOpen = false;
             this.contactObj = {};
-            this.errors = false;
+            this.errorString = '';
             $('.has-error').removeClass('has-error');
         },
         sendData: function () {
             let vm = this;
-            vm.errors = false;
+            vm.errorString = '';
             let contactObj = JSON.parse(JSON.stringify(vm.contactObj));
             let formData = new FormData();
 
@@ -287,36 +282,40 @@ export default {
                 fetch(helpers.add_endpoint_json(vm.url, contactObj.id), {
                     method: 'PUT',
                     body: formData,
-                }).then(
-                    () => {
+                })
+                    .then(async (response) => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            vm.errorString = data;
+                            return;
+                        }
                         vm.updatingContact = false;
                         vm.$parent.updatedContactDetails();
                         vm.close();
-                    },
-                    (error) => {
-                        vm.errors = true;
-                        vm.errorString = helpers.apiVueResourceError(error);
+                    })
+                    .finally(() => {
                         vm.updatingContact = false;
-                    }
-                );
+                    });
             } else {
                 vm.addingContact = true;
                 formData.append('data', JSON.stringify(contactObj));
                 fetch(vm.url, {
                     method: 'POST',
                     body: formData,
-                }).then(
-                    () => {
+                })
+                    .then(async (response) => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            vm.errorString = data;
+                            return;
+                        }
                         vm.addingContact = false;
                         vm.$parent.updatedContactDetails();
                         vm.close();
-                    },
-                    (error) => {
-                        vm.errors = true;
+                    })
+                    .finally(() => {
                         vm.addingContact = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                    }
-                );
+                    });
             }
         },
         clearForm: function () {
@@ -330,6 +329,9 @@ export default {
 </script>
 
 <style lang="css">
+.error {
+    color: red;
+}
 .modal-input-row {
     margin-bottom: 20px;
 }

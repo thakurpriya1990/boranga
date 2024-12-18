@@ -10,7 +10,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="declineForm">
-                        <alert v-if="showError" type="danger"
+                        <alert v-if="errorString" type="danger"
                             ><strong>{{ errorString }}</strong></alert
                         >
                         <div class="col-sm-12">
@@ -114,18 +114,10 @@ export default {
             form: null,
             decline: {},
             decliningProposal: false,
-            errors: false,
-            validation_form: null,
             errorString: '',
-            successString: '',
-            success: false,
         };
     },
     computed: {
-        showError: function () {
-            var vm = this;
-            return vm.errors;
-        },
         title: function () {
             return `Decline Conservation Status CS${this.conservation_status_id}`;
         },
@@ -156,12 +148,12 @@ export default {
         close: function () {
             this.isModalOpen = false;
             this.decline = {};
-            this.errors = false;
+            this.errorString = '';
             $('.has-error').removeClass('has-error');
         },
         sendData: function () {
             let vm = this;
-            vm.errors = false;
+            vm.errorString = '';
             let decline = JSON.parse(JSON.stringify(vm.decline));
             vm.decliningProposal = true;
             if (
@@ -180,21 +172,22 @@ export default {
                         },
                         body: JSON.stringify(decline),
                     }
-                ).then(
-                    (response) => {
-                        vm.decliningProposal = false;
+                )
+                    .then(async (response) => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            vm.errorString = data;
+                            return;
+                        }
                         vm.close();
                         vm.$emit('refreshFromResponse', response);
                         vm.$router.push({
                             path: '/internal/conservation-status/',
                         }); //Navigate to dashboard after propose decline.
-                    },
-                    (error) => {
-                        vm.errors = true;
+                    })
+                    .finally(() => {
                         vm.decliningProposal = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                    }
-                );
+                    });
             }
         },
     },

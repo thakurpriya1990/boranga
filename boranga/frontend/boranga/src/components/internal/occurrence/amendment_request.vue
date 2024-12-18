@@ -11,7 +11,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="amendForm">
-                        <alert v-if="showError" type="danger"
+                        <alert v-if="errorString" type="danger"
                             ><strong>{{ errorString }}</strong></alert
                         >
                         <div class="col-sm-12">
@@ -87,7 +87,6 @@ import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
 import FileField2 from '@/components/forms/filefield.vue';
 
-import { helpers } from '@/utils/hooks.js';
 export default {
     name: 'AmendmentRequest',
     components: {
@@ -116,16 +115,11 @@ export default {
                 amendment_request_documents: [],
             },
             reason_choices: {},
-            errors: false,
             errorString: '',
             validation_form: null,
         };
     },
     computed: {
-        showError: function () {
-            var vm = this;
-            return vm.errors;
-        },
         delete_url: function () {
             return this.amendment.id
                 ? '/api/ocr_amendment_request/' +
@@ -170,7 +164,7 @@ export default {
                 reason_id: null,
                 occurrence_report: this.occurrence_report_id,
             };
-            this.errors = false;
+            this.errorString = '';
             $(this.$refs.reason).val(null).trigger('change');
             $('.has-error').removeClass('has-error');
 
@@ -189,7 +183,7 @@ export default {
         },
         sendData: function () {
             let vm = this;
-            vm.errors = false;
+            vm.errorString = '';
             let amendment = JSON.parse(JSON.stringify(vm.amendment));
             let formData = new FormData();
             var files = vm.$refs.filefield.files;
@@ -211,8 +205,13 @@ export default {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
-            }).then(
-                () => {
+            })
+                .then(async (response) => {
+                    const data = await response.json();
+                    if (!response.ok) {
+                        vm.errorString = data;
+                        return;
+                    }
                     swal.fire({
                         title: 'Sent',
                         text: 'An email has been sent to proponent with the request to amend this Proposal',
@@ -226,23 +225,19 @@ export default {
 
                     fetch(
                         `/api/occurrence_report/${vm.occurrence_report_id}`
-                    ).then(
-                        (response) => {
-                            vm.$emit('refreshFromResponse', response);
-                        },
-                        (error) => {
-                            console.log(error);
+                    ).then(async (response) => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            vm.errorString = data;
+                            return;
                         }
-                    );
-                    vm.$router.push({ path: '/internal/occurrence' }); //Navigate to dashboard after creating Amendment request
-                },
-                (error) => {
-                    console.log(error);
-                    vm.errors = true;
-                    vm.errorString = helpers.apiVueResourceError(error);
-                    vm.amendingProposal = true;
-                }
-            );
+                        vm.$emit('refreshFromResponse', data);
+                        vm.$router.push({ path: '/internal/occurrence' }); //Navigate to dashboard after creating Amendment request
+                    });
+                })
+                .finally(() => {
+                    vm.amendingProposal = false;
+                });
         },
         addFormValidations: function () {
             let vm = this;

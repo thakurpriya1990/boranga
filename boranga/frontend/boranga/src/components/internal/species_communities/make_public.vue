@@ -11,9 +11,6 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="makePublicForm">
-                        <alert v-if="showError" type="danger"
-                            ><strong>{{ errorString }}</strong></alert
-                        >
                         <div class="row mb-3">
                             <label
                                 for="distribution_publishing"
@@ -165,7 +162,7 @@
                         style="margin-top: 5px"
                         disabled
                     >
-                        Submit
+                        Make Public
                         <span
                             class="spinner-border spinner-border-sm"
                             role="status"
@@ -216,17 +213,11 @@ export default {
             updatingPublishing: false,
             isModalOpen: false,
             form: null,
-            errors: false,
-            errorString: '',
         };
     },
     computed: {
         csrf_token: function () {
             return helpers.getCookie('csrftoken');
-        },
-        showError: function () {
-            var vm = this;
-            return vm.errors;
         },
         title: function () {
             return 'Make Public';
@@ -288,11 +279,23 @@ export default {
                     },
                     body: data,
                 }
-            ).then(
-                async (response) => {
-                    vm.updatingPublishing = false;
-                    vm.species_community.publishing_status =
-                        await response.json();
+            )
+                .then(async (response) => {
+                    const data = await response.json();
+                    if (!response.ok) {
+                        swal.fire({
+                            title: 'Error',
+                            text:
+                                'Publishing settings cannot be updated because of the following error: ' +
+                                data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
+                    vm.species_community.publishing_status = data;
                     vm.species_community_original.publishing_status =
                         helpers.copyObject(
                             vm.species_community.publishing_status
@@ -304,28 +307,12 @@ export default {
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
-                    }).then(() => {
-                        vm.close();
                     });
-                },
-                (error) => {
-                    var text = helpers.apiVueResourceError(error);
-                    swal.fire({
-                        title: 'Error',
-                        text:
-                            'Publishing settings cannot be updated because of the following error: ' +
-                            text,
-                        icon: 'error',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    });
-                    vm.species_community.publishing_status = helpers.copyObject(
-                        vm.species_community_original.publishing_status
-                    );
+                    vm.close();
+                })
+                .finally(() => {
                     vm.updatingPublishing = false;
-                }
-            );
+                });
         },
         ok: function () {
             let vm = this;
@@ -344,30 +331,22 @@ export default {
                         cancelButton: 'btn btn-secondary',
                     },
                     reverseButtons: true,
-                }).then(
-                    (swalresult) => {
-                        if (swalresult.isConfirmed) {
-                            //send with make public set to true
-                            if (
-                                this.species_community.group_type ===
-                                'community'
-                            ) {
-                                vm.species_community.publishing_status.community_public = true;
-                            } else {
-                                vm.species_community.publishing_status.species_public = true;
-                            }
-                            let data = JSON.stringify(
-                                vm.species_community.publishing_status
-                            );
-                            vm.updatePublishing(data);
+                }).then((swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        //send with make public set to true
+                        if (this.species_community.group_type === 'community') {
+                            vm.species_community.publishing_status.community_public = true;
                         } else {
-                            vm.updatingPublishing = false;
+                            vm.species_community.publishing_status.species_public = true;
                         }
-                    },
-                    (error) => {
-                        console.error('Error:', error);
+                        let data = JSON.stringify(
+                            vm.species_community.publishing_status
+                        );
+                        vm.updatePublishing(data);
+                    } else {
+                        vm.updatingPublishing = false;
                     }
-                );
+                });
             } else {
                 swal.fire({
                     title: 'Error',
@@ -385,7 +364,6 @@ export default {
         },
         close: function () {
             this.isModalOpen = false;
-            this.errors = false;
         },
     },
 };

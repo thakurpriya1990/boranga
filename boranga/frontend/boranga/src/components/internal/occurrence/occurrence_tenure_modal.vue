@@ -10,7 +10,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="modalForm">
-                        <alert v-if="showError" type="danger"
+                        <alert v-if="errorString" type="danger"
                             ><strong>{{ errorString }}</strong></alert
                         >
                         <alert
@@ -346,10 +346,6 @@ export default {
         };
     },
     computed: {
-        showError: function () {
-            const vm = this;
-            return vm.errors;
-        },
         modalTitle: function () {
             var action = this.modal_action;
             if (typeof action === 'string' && action.length > 0) {
@@ -436,26 +432,17 @@ export default {
                 };
                 fetch(url, payload)
                     .then(async (response) => {
+                        const data = await response.json();
                         if (!response.ok) {
-                            return await response.json().then((json) => {
-                                throw new Error(json);
-                            });
+                            vm.errorString = data;
+                            return;
                         }
-                        return response.json();
-                    })
-                    .then((data) => {
                         vm.$emit('refreshFromResponse', data);
                         vm.close();
-                    })
-                    .catch((error) => {
-                        vm.errors = true;
-                        vm.errorString = helpers.apiVueResourceError(error);
                     })
                     .finally(() => {
                         vm.updatingEntry = false;
                     });
-            } else {
-                //
             }
         },
         isAlwaysReadOnly(fieldName) {

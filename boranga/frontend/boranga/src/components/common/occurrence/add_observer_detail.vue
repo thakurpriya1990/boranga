@@ -339,34 +339,38 @@ export default {
                 fetch(helpers.add_endpoint_json(vm.url, observerObj.id), {
                     method: 'PUT',
                     body: formData,
-                }).then(
-                    () => {
-                        vm.updatingObserver = false;
+                })
+                    .then(async (response) => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            vm.errorString = data;
+                            return;
+                        }
                         vm.$parent.updatedObserverDetails();
                         vm.close();
-                    },
-                    (error) => {
-                        vm.errorString = helpers.apiVueResourceError(error);
+                    })
+                    .finally(() => {
                         vm.updatingObserver = false;
-                    }
-                );
+                    });
             } else {
                 vm.addingObserver = true;
                 formData.append('data', JSON.stringify(observerObj));
                 fetch(vm.url, {
                     method: 'POST',
                     body: formData,
-                }).then(
-                    () => {
-                        vm.addingObserver = false;
+                })
+                    .then(async (response) => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            vm.errorString = data;
+                            return;
+                        }
                         vm.$parent.updatedObserverDetails();
                         vm.close();
-                    },
-                    (error) => {
+                    })
+                    .finally(() => {
                         vm.addingObserver = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                    }
-                );
+                    });
             }
         },
         populateWithSubmitterInformation: function () {

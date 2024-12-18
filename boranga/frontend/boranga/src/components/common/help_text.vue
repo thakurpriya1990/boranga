@@ -75,26 +75,25 @@ export default {
         fetchHelpText: function () {
             let vm = this;
             if (!vm.helpTextEntry) {
-                fetch(`${api_endpoints.help_text_entries}/${vm.section_id}/`)
-                    .then(async (response) => {
-                        vm.helpTextEntry = await response.json();
+                fetch(
+                    `${api_endpoints.help_text_entries}/${vm.section_id}/`
+                ).then(async (response) => {
+                    const data = await response.json();
+                    if (!response.ok) {
+                        this.errorText = data;
+                        return;
+                    }
+                    vm.helpTextEntry = data;
+                    this.$nextTick(() => {
                         this.$nextTick(() => {
-                            this.$nextTick(() => {
-                                if (vm.helpTextEntry.icon_with_popover) {
-                                    var helpTextEntryElement =
-                                        document.getElementById(
-                                            this.section_id
-                                        );
-                                    new bootstrap.Popover(helpTextEntryElement);
-                                }
-                            });
+                            if (vm.helpTextEntry.icon_with_popover) {
+                                var helpTextEntryElement =
+                                    document.getElementById(this.section_id);
+                                new bootstrap.Popover(helpTextEntryElement);
+                            }
                         });
-                    })
-                    .catch(async (response) => {
-                        const data = await response.json();
-                        console.log(data.detail);
-                        this.errorText = data.detail;
                     });
+                });
             }
         },
     },

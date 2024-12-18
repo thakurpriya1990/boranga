@@ -10,7 +10,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="threatForm">
-                        <alert v-if="showError" type="danger"
+                        <alert v-if="errorString" type="danger"
                             ><strong>{{ errorString }}</strong></alert
                         >
                         <alert
@@ -593,20 +593,10 @@ export default {
             potential_threat_onset_list: [],
             addingThreat: false,
             updatingThreat: false,
-            validation_form: null,
-            type: '1',
-            errors: false,
             errorString: '',
-            successString: '',
-            success: false,
-            validDate: false,
         };
     },
     computed: {
-        showError: function () {
-            var vm = this;
-            return vm.errors;
-        },
         title: function () {
             var action = this.threat_action;
             if (typeof action === 'string' && action.length > 0) {
@@ -661,12 +651,12 @@ export default {
         close: function () {
             this.isModalOpen = false;
             this.threatObj = {};
-            this.errors = false;
+            this.errorString = '';
             $('.has-error').removeClass('has-error');
         },
         sendData: function () {
             let vm = this;
-            vm.errors = false;
+            vm.errorString = '';
             vm.threatObj.date_observed =
                 vm.threatObj.date_observed == ''
                     ? null
@@ -680,36 +670,38 @@ export default {
                 fetch(helpers.add_endpoint_json(vm.url, threatObj.id), {
                     method: 'PUT',
                     body: formData,
-                }).then(
-                    () => {
-                        vm.updatingThreat = false;
+                })
+                    .then(async (response) => {
+                        let data = await response.json();
+                        if (!response.ok) {
+                            vm.errorString = data;
+                            return;
+                        }
                         vm.$parent.updatedThreats();
                         vm.close();
-                    },
-                    (error) => {
-                        vm.errors = true;
-                        vm.errorString = helpers.apiVueResourceError(error);
+                    })
+                    .finally(() => {
                         vm.updatingThreat = false;
-                    }
-                );
+                    });
             } else {
                 vm.addingThreat = true;
                 formData.append('data', JSON.stringify(threatObj));
                 fetch(vm.url, {
                     method: 'POST',
                     body: formData,
-                }).then(
-                    () => {
-                        vm.addingThreat = false;
+                })
+                    .then(async (response) => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            vm.errorString = data;
+                            return;
+                        }
                         vm.close();
                         vm.$parent.updatedThreats();
-                    },
-                    (error) => {
-                        vm.errors = true;
+                    })
+                    .finally(() => {
                         vm.addingThreat = false;
-                        vm.errorString = helpers.apiVueResourceError(error);
-                    }
-                );
+                    });
             }
         },
     },

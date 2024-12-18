@@ -10,7 +10,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="commsForm">
-                        <alert v-if="showError" type="danger"
+                        <alert v-if="errorString" type="danger"
                             ><strong>{{ errorString }}</strong></alert
                         >
                         <div class="col-sm-12">
@@ -222,7 +222,6 @@
 <script>
 import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
-import { helpers } from '@/utils/hooks.js';
 export default {
     name: 'AddComms',
     components: {
@@ -245,7 +244,6 @@ export default {
             state: 'proposed_approval',
             addingComms: false,
             validation_form: null,
-            errors: false,
             errorString: '',
             successString: '',
             success: false,
@@ -263,12 +261,6 @@ export default {
                 },
             ],
         };
-    },
-    computed: {
-        showError: function () {
-            var vm = this;
-            return vm.errors;
-        },
     },
     watch: {
         isModalOpen: function (val) {
@@ -326,7 +318,7 @@ export default {
             let vm = this;
             this.isModalOpen = false;
             this.comms = {};
-            this.errors = false;
+            this.errorString = '';
             $('.has-error').removeClass('has-error');
             let file_length = vm.files.length;
             this.files = [];
@@ -339,7 +331,7 @@ export default {
         },
         sendData: function () {
             let vm = this;
-            vm.errors = false;
+            vm.errorString = '';
             let comms = new FormData(vm.form);
             for (let i = 0; i < vm.files.length; i++) {
                 comms.append('files', vm.files[i].file);
@@ -348,17 +340,16 @@ export default {
             fetch(vm.url, {
                 method: 'POST',
                 body: comms,
-            }).then(
-                () => {
+            }).then(async (response) => {
+                const data = await response.json();
+                if (!response.ok) {
                     vm.addingComms = false;
-                    vm.close();
-                },
-                (error) => {
-                    vm.errors = true;
-                    vm.addingComms = false;
-                    vm.errorString = helpers.apiVueResourceError(error);
+                    vm.errorString = data;
+                    return;
                 }
-            );
+                vm.addingComms = false;
+                vm.close();
+            });
         },
         addFormValidations: function () {
             let vm = this;

@@ -11,7 +11,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="addSpeciesToCombine">
-                        <alert v-if="showError" type="danger"
+                        <alert v-if="errorString" type="danger"
                             ><strong>{{ errorString }}</strong></alert
                         >
                         <div>
@@ -68,7 +68,6 @@ export default {
         return {
             isModalOpen: false,
             form: null,
-            errors: false,
             errorString: '',
             species_list: [],
             combineSpeciesId: null,
@@ -79,10 +78,6 @@ export default {
     computed: {
         csrf_token: function () {
             return helpers.getCookie('csrftoken');
-        },
-        showError: function () {
-            var vm = this;
-            return vm.errors;
         },
         title: function () {
             return 'Select Species To Combine';
@@ -109,53 +104,50 @@ export default {
         },
         close: function () {
             this.isModalOpen = false;
-            this.errors = false;
+            this.errorString = '';
         },
         addSpeciesToCombineList: function () {
             let vm = this;
-            try {
-                fetch(
-                    `/api/species/${vm.combineSpeciesId}/internal_species.json`
-                ).then(
-                    async (response) => {
-                        const data = await response.json();
-                        let species_obj = data.species_obj;
-                        // user should not able select the same ID if already exists in the array to combine
-                        let hasSpecies = false;
-                        for (const species of vm.$parent
-                            .original_species_combine_list) {
-                            if (species.id === species_obj.id) {
-                                hasSpecies = true;
-                            }
-                        }
-                        if (hasSpecies == true) {
-                            swal.fire({
-                                title: 'Please fix following errors',
-                                text: 'Species To combine already exists',
-                                icon: 'error',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
-                                },
-                            });
-                        } else {
-                            vm.$parent.original_species_combine_list.push(
-                                species_obj
-                            ); //--temp species_obj
-                            $(vm.$refs[vm.scientific_name_lookup])
-                                .val(null)
-                                .trigger('change');
-                        }
-                    },
-                    (err) => {
-                        console.log(err);
-                    }
-                );
-            } catch (err) {
-                console.log(err);
-                if (this.is_internal) {
-                    return err;
+            fetch(
+                `/api/species/${vm.combineSpeciesId}/internal_species.json`
+            ).then(async (response) => {
+                const data = await response.json();
+                if (!response.ok) {
+                    swal.fire({
+                        title: 'Please fix following errors',
+                        text: data,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    return;
                 }
-            }
+                let species_obj = data.species_obj;
+                // user should not able select the same ID if already exists in the array to combine
+                let hasSpecies = false;
+                for (const species of vm.$parent
+                    .original_species_combine_list) {
+                    if (species.id === species_obj.id) {
+                        hasSpecies = true;
+                    }
+                }
+                if (hasSpecies == true) {
+                    swal.fire({
+                        title: 'Please fix following errors',
+                        text: 'Species To combine already exists',
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                } else {
+                    vm.$parent.original_species_combine_list.push(species_obj); //--temp species_obj
+                    $(vm.$refs[vm.scientific_name_lookup])
+                        .val(null)
+                        .trigger('change');
+                }
+            });
             this.close();
         },
         initialiseScientificNameLookup: function () {

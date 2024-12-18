@@ -11,9 +11,6 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="agendaForm">
-                        <alert v-if="showError" type="danger"
-                            ><strong>{{ errorString }}</strong></alert
-                        >
                         <div>
                             <div class="col-md-12">
                                 <ul
@@ -278,17 +275,11 @@ export default {
                 api_endpoints.community_agenda_conservation_status_paginated_internal,
             for_agenda: true,
             form: null,
-            errors: false,
-            errorString: '',
         };
     },
     computed: {
         csrf_token: function () {
             return helpers.getCookie('csrftoken');
-        },
-        showError: function () {
-            var vm = this;
-            return vm.errors;
         },
         title: function () {
             return 'Agenda (Add Conservation Status)';

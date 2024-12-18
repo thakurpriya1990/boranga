@@ -11,7 +11,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="amendForm">
-                        <alert v-if="showError" type="danger"
+                        <alert v-if="errorString" type="danger"
                             ><strong>{{ errorString }}</strong></alert
                         >
                         <div class="col-sm-12">
@@ -122,16 +122,11 @@ export default {
                 cs_amendment_request_documents: [],
             },
             reason_choices: {},
-            errors: false,
             errorString: '',
             validation_form: null,
         };
     },
     computed: {
-        showError: function () {
-            var vm = this;
-            return vm.errors;
-        },
         delete_url: function () {
             return this.amendment.id
                 ? '/api/cs_amendment_request/' +
@@ -168,7 +163,7 @@ export default {
                 reason_id: null,
                 conservation_status: this.conservation_status_id,
             };
-            this.errors = false;
+            this.errorString = '';
             $(this.$refs.reason).val(null).trigger('change');
             $('.has-error').removeClass('has-error');
 
@@ -187,7 +182,7 @@ export default {
         },
         sendData: function () {
             let vm = this;
-            vm.errors = false;
+            vm.errorString = '';
             let amendment = JSON.parse(JSON.stringify(vm.amendment));
             let formData = new FormData();
             var files = vm.$refs.filefield.files;
@@ -210,38 +205,39 @@ export default {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
-            }).then(
-                () => {
-                    swal.fire({
-                        title: 'Sent',
-                        text: 'An email has been sent to proponent with the request to amend this Proposal',
-                        icon: 'success',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    });
-                    vm.amendingProposal = true;
-                    vm.close();
-                    //vm.$emit('refreshFromResponse',response);
-                    fetch(
-                        `/api/conservation_status/${vm.conservation_status_id}/internal_conservation_status.json`
-                    ).then(
-                        (response) => {
-                            vm.$emit('refreshFromResponse', response);
-                        },
-                        (error) => {
-                            console.log(error);
-                        }
-                    );
-                    vm.$router.push({ path: '/internal/conservation-status' }); //Navigate to dashboard after creating Amendment request
-                },
-                (error) => {
-                    console.log(error);
-                    vm.errors = true;
-                    vm.errorString = helpers.apiVueResourceError(error);
-                    vm.amendingProposal = true;
+            }).then(async (response) => {
+                const data = await response.json();
+                if (!response.ok) {
+                    vm.errorString = data;
+                    return;
                 }
-            );
+                swal.fire({
+                    title: 'Sent',
+                    text: 'An email has been sent to proponent with the request to amend this Proposal',
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+                vm.amendingProposal = true;
+                vm.close();
+                fetch(
+                    `/api/conservation_status/${vm.conservation_status_id}/internal_conservation_status.json`
+                ).then(
+                    async (response) => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            vm.errorString = data;
+                            return;
+                        }
+                        vm.$emit('refreshFromResponse', response);
+                    },
+                    (error) => {
+                        console.log(error);
+                    }
+                );
+                vm.$router.push({ path: '/internal/conservation-status' }); //Navigate to dashboard after creating Amendment request
+            });
         },
         addFormValidations: function () {
             let vm = this;
