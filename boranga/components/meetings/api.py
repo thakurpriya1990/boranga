@@ -647,7 +647,6 @@ class MinutesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        logger.debug(request.data)
         serializer = SaveMinutesSerializer(data=json.loads(request.data.get("data")))
         serializer.is_valid(raise_exception=True)
         instance = serializer.save(no_revision=True)
