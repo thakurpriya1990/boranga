@@ -11,7 +11,7 @@
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="renameSpeciesForm">
-                        <alert v-if="showError" type="danger"
+                        <alert v-if="errorString" type="danger"
                             ><strong>{{ errorString }}</strong></alert
                         >
                         <div>
@@ -106,17 +106,12 @@ export default {
             submitSpeciesRename: false,
             isModalOpen: false,
             form: null,
-            errors: false,
             errorString: '',
         };
     },
     computed: {
         csrf_token: function () {
             return helpers.getCookie('csrftoken');
-        },
-        showError: function () {
-            var vm = this;
-            return vm.errors;
         },
         title: function () {
             return this.new_rename_species != null
@@ -145,7 +140,7 @@ export default {
             let vm = this;
             vm.removeSpecies(vm.new_rename_species.id);
             this.isModalOpen = false;
-            this.errors = false;
+            this.errorString = '';
         },
         removeSpecies: function (species_id) {
             try {
@@ -177,25 +172,25 @@ export default {
                     },
                     body: JSON.stringify(payload),
                 }
-            ).then(
-                async () => {
+            )
+                .then(async (response) => {
+                    const data = await response.json();
+                    if (!response.ok) {
+                        swal.fire({
+                            title: 'Submit Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     return true;
-                },
-                (err) => {
-                    var errorText = helpers.apiVueResourceError(err);
-                    swal.fire({
-                        title: 'Submit Error',
-                        text: errorText,
-                        icon: 'error',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    });
+                })
+                .finally(() => {
                     vm.submitSpeciesRename = false;
-                    vm.saveError = true;
-                    return false;
-                }
-            );
+                });
             return result;
         },
         sendData: async function () {
@@ -238,8 +233,8 @@ export default {
                         cancelButton: 'btn btn-secondary',
                     },
                     reverseButtons: true,
-                }).then(
-                    async (swalresult) => {
+                })
+                    .then(async (swalresult) => {
                         if (swalresult.isConfirmed) {
                             //---save and submit the new rename species
                             let new_species = vm.new_rename_species;
@@ -286,12 +281,10 @@ export default {
                                 );
                             }
                         }
+                    })
+                    .finally(() => {
                         vm.submitSpeciesRename = false;
-                    },
-                    () => {
-                        vm.submitSpeciesRename = false;
-                    }
-                );
+                    });
             }
         },
     },
