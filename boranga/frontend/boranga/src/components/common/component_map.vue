@@ -4763,7 +4763,6 @@ export default {
                 if (Object.prototype.hasOwnProperty.call(layer, 'getSource')) {
                     const source = layer.getSource();
                     if (source) {
-                        source.getFeatures(); // Trigger the loading of the features
                         layers.push(layer);
                     }
                 }
