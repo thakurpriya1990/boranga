@@ -5,6 +5,7 @@ from datetime import datetime, time
 from io import BytesIO
 
 from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos.error import GEOSException
 from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import CharField, Q, Value
@@ -5737,9 +5738,18 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def create(self, request, *args, **kwargs):
 
         data = json.loads(request.data.get("data"))
-        point_data = "POINT({} {})".format(data["point_coord1"], data["point_coord2"])
+        try:
+            point_data = "POINT({} {})".format(
+                data["point_coord1"], data["point_coord2"]
+            )
+        except KeyError:
+            raise serializers.ValidationError("Please enter a point coordinate")
 
-        original_geom = GEOSGeometry(point_data, srid=data["datum"])
+        try:
+            original_geom = GEOSGeometry(point_data, srid=data["datum"])
+        except GEOSException:
+            raise serializers.ValidationError("Please enter a valid point coordinate")
+
         geom = GEOSGeometry(point_data, srid=data["datum"])
         geom.transform(4326)
 
