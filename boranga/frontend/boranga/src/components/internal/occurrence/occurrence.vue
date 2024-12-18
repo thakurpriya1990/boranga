@@ -444,31 +444,12 @@ export default {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-            }).then(
-                async (response) => {
-                    const data = await response.json();
-                    swal.fire({
-                        title: 'Saved',
-                        text: 'Your changes have been saved',
-                        icon: 'success',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    });
-                    vm.savingOccurrence = false;
-                    vm.isSaved = true;
-                    vm.refreshFromResponse(data);
-                    vm.$refs.occurrence.$refs.occ_location.$refs.component_map.setLoadingMap(
-                        false
-                    );
-                    vm.$refs.occurrence.$refs.occ_location.incrementComponentMapKey();
-                    vm.$refs.occurrence.$refs.occ_location.refreshDatatables();
-                },
-                (err) => {
-                    var errorText = helpers.apiVueResourceError(err);
+            }).then(async (response) => {
+                const data = await response.json();
+                if (!response.ok) {
                     swal.fire({
                         title: 'Save Error',
-                        text: errorText,
+                        text: data,
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
@@ -479,8 +460,25 @@ export default {
                     vm.$refs.occurrence.$refs.occ_location.$refs.component_map.setLoadingMap(
                         false
                     );
+                    return;
                 }
-            );
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Your changes have been saved',
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+                vm.savingOccurrence = false;
+                vm.isSaved = true;
+                vm.refreshFromResponse(data);
+                vm.$refs.occurrence.$refs.occ_location.$refs.component_map.setLoadingMap(
+                    false
+                );
+                vm.$refs.occurrence.$refs.occ_location.incrementComponentMapKey();
+                vm.$refs.occurrence.$refs.occ_location.refreshDatatables();
+            });
         },
         save_exit: async function () {
             let vm = this;
