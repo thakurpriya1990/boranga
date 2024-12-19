@@ -42,7 +42,6 @@
                 </div>
             </div>
         </div>
-
         <div
             :id="map_container_id"
             class="d-flex justify-content-center"
@@ -1596,6 +1595,9 @@
 </template>
 
 <script>
+// @Karsten: TODO - I could not get transform working in vue 3
+// When the transform interaction is activated, the selected feature seems
+// to become unselected
 import { v4 as uuid } from 'uuid';
 import { api_endpoints, helpers } from '@/utils/hooks';
 
@@ -2029,7 +2031,8 @@ export default {
             cursorInLeftHalfOfMap: true,
             cursorInBottomHalfOfMap: true,
             showToastCloseButton: false,
-
+            editableLayersArray: [],
+            activeEditLayer: null,
             mapMarker: '../../static/boranga_vue/src/assets/map-marker.svg',
         };
     },
@@ -2325,17 +2328,13 @@ export default {
             });
         },
         activeEditLayerName: function () {
-            const layer = this.editableLayers().find((layer) => {
-                return layer.get('editing') === true;
-            });
-            return layer?.getProperties().name;
+            if (!this.activeEditLayer) {
+                return null;
+            }
+            return this.activeEditLayer.getProperties().name;
         },
         isEditingALayer: function () {
-            const editableLayers = this.editableLayers().filter((layer) => {
-                return layer.get('editing') === true;
-            });
-
-            return editableLayers.length > 0;
+            return Boolean(this.activeEditLayer);
         },
         vectorLayersArray: function () {
             return Object.values(this.vectorLayers);
@@ -3255,7 +3254,7 @@ export default {
 
                                 // A bit clunky but this makes it so when switching editing modes the feature selection styles get properly set
                                 const mode = this.mode;
-                                const subMode = this.submode;
+                                const subMode = this.subMode;
                                 this.callSetMode('layer');
                                 this.callSetMode(mode, subMode);
                             } else {
@@ -3737,7 +3736,7 @@ export default {
             // select interaction working on "singleclick"
             const selectSingleClick = new Select({
                 style: vm.basicSelectStyle,
-                layers: vm.additionLayersArray,
+                layers: vm.additionLayersArray, // @Karsten TODO ??
                 wrapX: false,
                 condition: function () {
                     // Prevent the interaction's standard select event
@@ -3746,6 +3745,7 @@ export default {
             });
             selectSingleClick.on('select', (evt) => {
                 if (vm.transforming) {
+                    console.log('ignoring select event while transforming');
                     return;
                 }
                 $.each(evt.selected, function (idx, feature) {
@@ -5494,9 +5494,10 @@ export default {
         },
         editableLayers: function () {
             const layers = this.getLayersWithFeatures();
-            return layers.filter((layer) => {
+            this.editableLayersArray = layers.filter((layer) => {
                 return layer.get('can_edit');
             });
+            return this.editableLayersArray;
         },
         vectorLayerDefinitions: function () {
             return this.additionalLayersDefinitions.concat(
@@ -5550,12 +5551,14 @@ export default {
                 btn.addClass('btn-danger');
                 $(toggleButton).attr('title', 'Layer Editing: On');
                 layer.set('editing', true);
+                this.activeEditLayer = layer;
             } else {
                 btn.removeClass('btn-danger');
                 btn.removeClass('btn-success');
                 img.removeClass('svg-green');
                 $(toggleButton).attr('title', 'Layer Editing: Off');
                 layer.set('editing', false);
+                this.activeEditLayer = null;
             }
         },
         /**
@@ -5753,11 +5756,11 @@ export default {
     },
 };
 </script>
-
 <style>
 @import '../../../../../static/boranga/css/map.css';
 @import 'ol-ext/dist/ol-ext.css';
-
+</style>
+<style scoped>
 #featureToast {
     position: absolute;
 }
