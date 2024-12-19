@@ -7,7 +7,7 @@
             class="text-secondary mb-1"
             >{{ title }}</label
         >
-        <!-- <VueSelect
+        <v-select
             :id="`select-filter-${id}`"
             ref="vueSelectFilter"
             v-model="selectedFilterItem"
@@ -41,16 +41,13 @@
                 })
             "
         >
-        </VueSelect>
-        -->
+        </v-select>
     </div>
 </template>
 
 <script>
-// import { VueSelect } from 'vue-select';
 export default {
     name: 'SelectFilter',
-    // components: { VueSelect },
     props: {
         id: {
             type: String,
@@ -232,8 +229,8 @@ export default {
 };
 </script>
 
-<style scoped>
-/* @import 'vue-select/dist/vue-select.css'; */
+<style>
+@import 'vue-select/dist/vue-select.css';
 
 * {
     --vs-dropdown-z-index: 9001 !important;

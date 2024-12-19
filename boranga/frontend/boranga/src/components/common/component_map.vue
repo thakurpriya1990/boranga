@@ -5743,7 +5743,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 @import '../../../../../static/boranga/css/map.css';
 @import 'ol-ext/dist/ol-ext.css';
 

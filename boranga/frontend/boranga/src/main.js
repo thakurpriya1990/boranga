@@ -5,6 +5,7 @@ import App from './App.vue';
 import router from './router';
 import helpers from '@/utils/helpers';
 import { extendMoment } from 'moment-range';
+import VueSelect from 'vue-select';
 
 import _ from 'lodash';
 window._ = _;
@@ -63,5 +64,5 @@ window.fetch = ((originalFetch) => {
     };
 })(fetch);
 
-app.use(router);
+app.component('v-select', VueSelect).use(router);
 router.isReady().then(() => app.mount('#app'));
