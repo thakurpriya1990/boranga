@@ -4760,13 +4760,14 @@ export default {
 
             const mapLayers = this.map.getLayers();
             mapLayers.getArray().map((layer) => {
-                if (Object.prototype.hasOwnProperty.call(layer, 'getSource')) {
-                    const source = layer.getSource();
-                    if (source) {
-                        layers.push(layer);
-                    }
+                // Not all types of layer have a getSource method
+                try {
+                    layer.getSource().getFeatures();
+                    layers.push(layer);
+                } catch {
+                    //
                 }
-            });
+            }, layers);
 
             return layers;
         },
@@ -4777,7 +4778,17 @@ export default {
             const features = [];
             this.getLayersWithFeatures().map((layer) => {
                 if (Object.prototype.hasOwnProperty.call(layer, 'getSource')) {
-                    features.push(...layer.getSource().getFeatures());
+                    let source = layer.getSource();
+                    if (
+                        source &&
+                        Object.prototype.hasOwnProperty.call(
+                            source,
+                            'getFeatures'
+                        )
+                    ) {
+                        console.log('Getting features from layer', layer);
+                        features.push(...layer.getSource().getFeatures());
+                    }
                 }
             });
 
