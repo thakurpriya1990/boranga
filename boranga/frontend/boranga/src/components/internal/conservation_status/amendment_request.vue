@@ -93,7 +93,6 @@ import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
 import FileField2 from '@/components/forms/filefield.vue';
 
-import { helpers } from '@/utils/hooks.js';
 export default {
     name: 'AmendmentRequest',
     components: {
