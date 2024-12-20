@@ -965,7 +965,8 @@ export default {
         isModalOpen(newVal) {
             if (newVal) {
                 let vm = this;
-
+                vm.selectedOccurrences = [vm.main_occurrence_obj];
+                vm.selectedOccurrenceIds = [vm.main_occurrence_obj.id];
                 vm.getKeyContactIds();
                 vm.getDocumentIds();
                 vm.getThreatIds();
