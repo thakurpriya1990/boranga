@@ -1720,6 +1720,24 @@ export default {
                 .on('select2:select', function (e) {
                     let data = e.params.data.id;
                     vm.selected_referral = data;
+                    if (
+                        vm.selected_referral ==
+                        vm.occurrence_report.submitter.email
+                    ) {
+                        swal.fire({
+                            title: 'Referral Error',
+                            text: 'You cannot refer a proposal to the submitter.',
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        $(vm.$refs.department_users)
+                            .val(null)
+                            .trigger('change');
+                        vm.selected_referral = null;
+                        return;
+                    }
                     vm.$nextTick(() => {
                         vm.$refs.referral_text.focus();
                     });
