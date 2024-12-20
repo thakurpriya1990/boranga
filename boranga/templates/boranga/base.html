@@ -22,7 +22,7 @@
 
   <link rel="stylesheet" href="{% static 'boranga/css/base.css' %}?v={{ build_tag }}" />
   {% if not use_vite_dev_server %}
-  <link rel="stylesheet" href="{% static 'boranga_vue/css/index.css' %}?v={{ build_tag }}" />
+  <link rel="stylesheet" href="{% static 'boranga_vue/css/main.css' %}?v={{ build_tag }}" />
   {% endif %}
 {% endblock %}
 
@@ -42,7 +42,7 @@
     {% if use_vite_dev_server %}
         <script type="module" src="{% vite_asset_url vue3_entry_script %}?v={{ build_tag }}"></script>
     {% else %}
-        <script type="module" src="{% static 'boranga_vue/js/index.js' %}?v={{ build_tag }}"></script>
+        <script type="module" src="{% static 'boranga_vue/js/main.js' %}?v={{ build_tag }}"></script>
     {% endif %}
 {% endblock %}
 

@@ -29,7 +29,9 @@ export default defineConfig({
     plugins: [
         vue(),
         eslint(),
-        svgLoader(),
+        svgLoader({
+            defaultImport: 'url',
+        }),
         viteStaticCopy({
             // Had to do this to get the relative paths to work
             // Probably a better way but I couldn't figure it out
