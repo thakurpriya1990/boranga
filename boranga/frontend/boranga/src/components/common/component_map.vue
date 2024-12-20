@@ -4096,8 +4096,11 @@ export default {
             return processedGeometry;
         },
         removeModelFeatures: function () {
+            console.log('Removing model features');
             let vm = this;
             let cannot_delete_features = [];
+            console.log('selectedFeatureIds', vm.selectedFeatureIds);
+            console.log('Selected features:', vm.selectedFeatures());
             const features = vm.selectedFeatures().filter((feature) => {
                 if (
                     [undefined, false].includes(
@@ -4115,7 +4118,9 @@ export default {
                     cannot_delete_features.push(feature.getProperties().id);
                 }
             });
+            console.log('Features to delete:', features);
 
+            console.log('Cannot delete features:', cannot_delete_features);
             if (cannot_delete_features.length > 0) {
                 vm.errorMessageProperty(null);
                 vm.errorMessageProperty(
@@ -4124,6 +4129,8 @@ export default {
                     )} anymore.`
                 );
             }
+
+            console.log('Removing feature from layer');
 
             const layersWithFeatures = vm.getLayersWithFeatures();
             layersWithFeatures.map((layer) => {
@@ -4777,19 +4784,7 @@ export default {
         getMapFeatures: function () {
             const features = [];
             this.getLayersWithFeatures().map((layer) => {
-                if (Object.prototype.hasOwnProperty.call(layer, 'getSource')) {
-                    let source = layer.getSource();
-                    if (
-                        source &&
-                        Object.prototype.hasOwnProperty.call(
-                            source,
-                            'getFeatures'
-                        )
-                    ) {
-                        console.log('Getting features from layer', layer);
-                        features.push(...layer.getSource().getFeatures());
-                    }
-                }
+                features.push(...layer.getSource().getFeatures());
             });
 
             return features;
@@ -4816,7 +4811,7 @@ export default {
         selectedFeatures: function () {
             let vm = this;
             const features = vm.getMapFeatures();
-
+            console.log('features:', features);
             return features.filter((feature) => {
                 return vm.selectedFeatureIds.includes(
                     feature.getProperties().id
