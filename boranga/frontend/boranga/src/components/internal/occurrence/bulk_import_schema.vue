@@ -290,7 +290,6 @@
                                                 title="Mandatory Column"
                                                 >*</span
                                             >
-                                            >
                                             <small
                                                 class="d-block text-capitalize mb-0"
                                                 :class="
@@ -1830,7 +1829,10 @@ export default {
                 `${api_endpoints.occurrence_report_bulk_import_schemas}${this.schema.id}/validate/`
             )
                 .then(async (response) => {
-                    const data = await response.json();
+                    if (!response.ok) {
+                        throw response;
+                    }
+                    const data = await response.text();
                     swal.fire({
                         title: 'Schema Validated Successfully',
                         text: data,
@@ -1841,12 +1843,20 @@ export default {
                         },
                     });
                 })
-                .catch((error) => {
+                .catch(async (response) => {
+                    let error = null;
+                    try {
+                        error = await response.json();
+                    } catch {
+                        error = await response.text();
+                    }
                     let errors = null;
                     if (Object.hasOwn(error, 'data')) {
                         errors = error.data;
                     } else if (Object.hasOwn(error, 'body')) {
                         errors = error.body;
+                    } else {
+                        errors = error;
                     }
                     let error_message_string = 'Something went wrong :-(';
                     if (errors instanceof Object) {
