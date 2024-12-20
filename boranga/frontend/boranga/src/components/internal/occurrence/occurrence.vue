@@ -659,8 +659,8 @@ export default {
                     'Content-Type': 'application/json',
                 },
             }).then(async (response) => {
-                const data = await response.json();
                 if (!response.ok) {
+                    const data = await response.json();
                     swal.fire({
                         title: 'Activate Error',
                         text: data,
