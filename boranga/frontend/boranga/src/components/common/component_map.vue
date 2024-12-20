@@ -2033,6 +2033,7 @@ export default {
             showToastCloseButton: false,
             editableLayersArray: [],
             activeEditLayer: null,
+            optionalLayersActive: false,
             mapMarker: '../../static/boranga_vue/src/assets/map-marker.svg',
         };
     },
@@ -2083,15 +2084,6 @@ export default {
                 this.drawPolygonsForModel.getActive() &&
                 this.undoredo_forSketch.getStack('redo').length > 0
             );
-        },
-        optionalLayersActive: function () {
-            if (this.optionalLayers.length == 0) {
-                return false;
-            }
-            let visible_layers = this.optionalLayers.filter(
-                (layer) => layer.values_.visible === true
-            );
-            return visible_layers.length > 0;
         },
         featureCount: function () {
             this.defaultQueryLayerName;
@@ -2345,6 +2337,18 @@ export default {
             if (this.selectedFeatureIds.length == 0) {
                 this.errorMessageProperty(null);
             }
+        },
+        optionalLayers: {
+            handler: function (newVal) {
+                if (newVal.length == 0) {
+                    return false;
+                }
+                let visibleLayers = newVal.filter(
+                    (layer) => layer.values_.visible === true
+                );
+                this.optionalLayersActive = visibleLayers.length > 0;
+            },
+            deep: true,
         },
     },
     created: function () {
@@ -3288,7 +3292,7 @@ export default {
             });
 
             // Add a button to show/hide the layers
-            const button = $('<div class="toggleVisibility" title="show/hide">')
+            const button = $('<div title="show/hide" style="cursor: pointer;">')
                 .text('Show/hide all')
                 .click(() => {
                     const a = this.map
@@ -3736,7 +3740,7 @@ export default {
             // select interaction working on "singleclick"
             const selectSingleClick = new Select({
                 style: vm.basicSelectStyle,
-                layers: vm.additionLayersArray, // @Karsten TODO ??
+                layers: vm.vectorLayersArray,
                 wrapX: false,
                 condition: function () {
                     // Prevent the interaction's standard select event
