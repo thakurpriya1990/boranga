@@ -139,10 +139,7 @@
                                                 title="This is a Master Schema. When copied by an Occurrence Approver, any columns from the master will be locked."
                                             ></i
                                         ></label>
-                                        <div
-                                            v-if="schema.can_user_toggle_master"
-                                            class="col-sm-1"
-                                        >
+                                        <div class="col-sm-1">
                                             <div
                                                 class="form-check form-switch form-switch-lg"
                                                 style="transform: scale(1.3)"
@@ -152,6 +149,9 @@
                                                     v-model="schema.is_master"
                                                     class="form-check-input"
                                                     type="checkbox"
+                                                    :disabled="
+                                                        !schema.can_user_toggle_master
+                                                    "
                                                     @change="save()"
                                                 />
                                             </div>
