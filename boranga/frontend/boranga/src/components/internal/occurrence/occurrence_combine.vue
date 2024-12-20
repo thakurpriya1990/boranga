@@ -34,7 +34,6 @@
                     :main-occurrence-id="main_occurrence_obj.id"
                 />
             </div>
-
             <template v-if="occ_combine_data.combine_ids.length >= 2">
                 <alert
                     type="primary"
@@ -963,8 +962,8 @@ export default {
         };
     },
     watch: {
-        isModalOpen: function () {
-            if (this.isModalOpen) {
+        isModalOpen(newVal) {
+            if (newVal) {
                 let vm = this;
 
                 vm.getKeyContactIds();
@@ -994,15 +993,18 @@ export default {
                 });
             }
         },
-        selectedOccurrenceIds: function () {
-            let vm = this;
-            vm.occ_combine_data.combine_ids = vm.selectedOccurrenceIds;
-            vm.getKeyContactIds();
-            vm.getDocumentIds();
-            vm.getThreatIds();
-            vm.getSiteIds();
-            vm.getTenureIds();
-            vm.checkFormValues();
+        selectedOccurrenceIds: {
+            handler(newVal) {
+                let vm = this;
+                vm.occ_combine_data.combine_ids = newVal;
+                vm.getKeyContactIds();
+                vm.getDocumentIds();
+                vm.getThreatIds();
+                vm.getSiteIds();
+                vm.getTenureIds();
+                vm.checkFormValues();
+            },
+            deep: true,
         },
     },
     mounted: function () {
