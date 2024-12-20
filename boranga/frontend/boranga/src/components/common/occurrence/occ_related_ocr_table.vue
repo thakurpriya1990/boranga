@@ -1,12 +1,17 @@
 <template lang="html">
-    <div :id="'related_ocr'+section_type">
-        <FormSection :formCollapse="false" label="Related Occurrence Reports" :Index="'related_ocr'+section_type" @toggle-collapse="toggleCollapse">
+    <div :id="'related_ocr' + section_type">
+        <FormSection
+            :form-collapse="false"
+            label="Related Occurrence Reports"
+            :Index="'related_ocr' + section_type"
+            @toggle-collapse="toggleCollapse"
+        >
             <div>
                 <datatable
-                    ref="related_ocr_datatable"
                     :id="datatable_id"
-                    :dtOptions="datatable_options"
-                    :dtHeaders="datatable_headers"
+                    ref="related_ocr_datatable"
+                    :dt-options="datatable_options"
+                    :dt-headers="datatable_headers"
                 />
             </div>
         </FormSection>
@@ -15,27 +20,21 @@
             <SectionModal
                 ref="section_modal"
                 :key="sectionOCRId"
-                :sectionTypeDisplay="sectionTypeFormatted"
-                :sectionType="section_type"
-                :ocrNumber="sectionOCRId"
-                :sectionObj="sectionObj"
+                :section-type-display="sectionTypeFormatted"
+                :section-type="section_type"
+                :ocr-number="sectionOCRId"
+                :section-obj="sectionObj"
             />
         </div>
     </div>
 </template>
 
 <script>
-import Vue from 'vue'
-import { v4 as uuid } from 'uuid'
-import datatable from '@/utils/vue/datatable.vue'
+import { v4 as uuid } from 'uuid';
+import datatable from '@/utils/vue/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
-import SectionModal from '@/components/common/occurrence/ocr_section_modal.vue'
-import {
-    constants,
-    api_endpoints,
-    helpers,
-}
-from '@/utils/hooks'
+import SectionModal from '@/components/common/occurrence/ocr_section_modal.vue';
+import { constants, api_endpoints, helpers } from '@/utils/hooks';
 
 export default {
     name: 'TableRelatedItems',
@@ -45,18 +44,18 @@ export default {
         SectionModal,
     },
     props: {
-        occurrence_obj:{
+        occurrence_obj: {
             type: Object,
-            required:true
+            required: true,
         },
         section_type: {
             type: String,
             required: false,
-            default: "",
+            default: '',
         },
-        isReadOnly:{
+        isReadOnly: {
             type: Boolean,
-            default: false
+            default: false,
         },
         hrefContainerId: {
             type: String,
@@ -81,85 +80,84 @@ export default {
         'toggle-show-on-map',
     ],
     data() {
-        let vm = this;
         return {
             uuid: uuid(),
             datatable_id: 'datatable-related-ocr-' + uuid(),
             sectionOCRId: null,
             sectionTypeFormatted: null,
             sectionObj: null,
-        }
+        };
     },
     computed: {
-        column_number: function(){
+        column_number: function () {
             return {
                 data: 'occurrence_report_number',
                 orderable: true,
                 searchable: true,
                 visible: true,
-            }
+            };
         },
-        column_status: function(){
+        column_status: function () {
             return {
                 data: 'processing_status_display',
                 orderable: true,
                 searchable: true,
                 visible: true,
-            }
+            };
         },
-        column_observation_date: function(){
+        column_observation_date: function () {
             return {
                 data: 'observation_date',
                 orderable: true,
                 searchable: true,
                 visible: true,
-            }
+            };
         },
-        column_location_accuracy: function(){
+        column_location_accuracy: function () {
             return {
                 data: 'location_accuracy',
                 orderable: true,
                 searchable: true,
                 visible: true,
-            }
+            };
         },
-        column_identification_certainty: function(){
+        column_identification_certainty: function () {
             return {
                 data: 'identification_certainty',
                 orderable: true,
                 searchable: true,
                 visible: true,
-            }
+            };
         },
-        column_site: function(){
+        column_site: function () {
             return {
                 data: 'site',
                 orderable: true,
                 searchable: true,
                 visible: true,
-            }
+            };
         },
-        column_submitter: function(){
+        column_submitter: function () {
             return {
                 data: 'submitter',
                 orderable: false,
                 searchable: false,
                 visible: true,
-            }
+            };
         },
-        column_action: function(){
+        column_action: function () {
             return {
                 //name: 'action',
                 data: 'id',
                 orderable: false,
                 searchable: false,
                 visible: true,
-                'render': function(row, type, full){
+                render: function (row, type, full) {
                     let links = '';
                     links += `<a href='/internal/occurrence-report/${full.id}' target="_blank">View</a><br>`;
                     return links;
-                }
-            }
+                },
+            };
         },
         copied_to_occurrence: function () {
             return {
@@ -172,7 +170,7 @@ export default {
                 },
             };
         },
-        column_copy_action: function(){
+        column_copy_action: function () {
             const vm = this;
             return {
                 //name: 'action',
@@ -180,7 +178,7 @@ export default {
                 orderable: false,
                 searchable: false,
                 visible: true,
-                'render': function(row, type, full){
+                render: function (row, type, full) {
                     let links = '';
                     if (vm.section_type == 'location') {
                         if (full.geometry_show_on_map === false) {
@@ -196,16 +194,15 @@ export default {
                     links += `<a href='#' data-replace-section='${full.id}'>Copy Section Data</a><br>`;
 
                     return links;
-                }
-            }
+                },
+            };
         },
-        datatable_options: function(){
-            let vm = this
+        datatable_options: function () {
+            let vm = this;
 
-            let action = vm.column_action
-            if (vm.section_type !== "" && !vm.isReadOnly)
-            {
-                action = vm.column_copy_action
+            let action = vm.column_action;
+            if (vm.section_type !== '' && !vm.isReadOnly) {
+                action = vm.column_copy_action;
             }
 
             let columns = [
@@ -218,11 +215,11 @@ export default {
                 vm.column_site,
                 vm.copied_to_occurrence,
                 action,
-            ]
+            ];
             return {
                 autoWidth: true,
                 language: {
-                    processing: constants.DATATABLE_PROCESSING_HTML
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
                 responsive: true,
                 //serverSide: true,
@@ -230,22 +227,26 @@ export default {
                 ordering: true,
                 order: [[0, 'desc']],
                 columnDefs: [
-                        { responsivePriority: 1, targets: 0 },
-                        { responsivePriority: 2, targets: -1 },
-                    ],
+                    { responsivePriority: 1, targets: 0 },
+                    { responsivePriority: 2, targets: -1 },
+                ],
                 ajax: {
                     //"url": '/api/proposal/' + vm.proposal.id + '/get_related_items/',
-                    "url": "/api/occurrence/" + this.occurrence_obj.id + "/get_related_occurrence_reports/",
-                    "dataSrc": "",
+                    url:
+                        '/api/occurrence/' +
+                        this.occurrence_obj.id +
+                        '/get_related_occurrence_reports/',
+                    dataSrc: '',
                     // adding extra GET params for Custom filtering
-                    "data": function ( d ) {
-                        d.related_filter_type = vm.filterRelatedType
-                    }
+                    data: function (d) {
+                        d.related_filter_type = vm.filterRelatedType;
+                    },
                 },
-                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                dom:
+                    "<'d-flex align-items-center'<'me-auto'l>fB>" +
                     "<'row'<'col-sm-12'tr>>" +
                     "<'d-flex align-items-center'<'me-auto'i>p>",
-                buttons:[ ],
+                buttons: [],
                 columns: columns,
                 processing: true,
                 drawCallback: function () {
@@ -253,14 +254,14 @@ export default {
                         vm.adjust_table_width();
                     }, 100);
                 },
-                initComplete: function(settings, json) {
+                initComplete: function () {
                     setTimeout(function () {
                         vm.adjust_table_width();
                     }, 100);
                 },
-            }
+            };
         },
-        datatable_headers: function(){
+        datatable_headers: function () {
             return [
                 //'id',
                 'Number',
@@ -272,74 +273,115 @@ export default {
                 'Site',
                 'Copied to OCC',
                 'Action',
-            ]
+            ];
         },
     },
-    methods:{
+    mounted: function () {
+        let vm = this;
+        this.$nextTick(() => {
+            vm.addEventListeners();
+        });
+    },
+    methods: {
         toggleCollapse: function () {
             //console.log("toggle");
             this.adjust_table_width();
         },
-        viewSection:function (id) {
-            let vm=this;
+        viewSection: function (id) {
+            let vm = this;
             //get ocr object with id
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.occurrence_report,id)).then((response) => {
-                let ocrObj=response.body;
+            fetch(
+                helpers.add_endpoint_json(api_endpoints.occurrence_report, id)
+            ).then(
+                async (response) => {
+                    let ocrObj = await response.json();
 
-                vm.sectionObj = ocrObj[vm.section_type];
-                vm.sectionOCRId = id;
-                vm.sectionTypeFormatted = vm.section_type.split('_')
-                .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
-                .join(' ');
+                    vm.sectionObj = ocrObj[vm.section_type];
+                    vm.sectionOCRId = id;
+                    vm.sectionTypeFormatted = vm.section_type
+                        .split('_')
+                        .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
+                        .join(' ');
 
-                this.$nextTick(() => {
-                this.$refs.section_modal.isModalOpen = true;
-                });
-            },
-            err => {
-                console.log(err);
-            });
+                    this.$nextTick(() => {
+                        this.$refs.section_modal.isModalOpen = true;
+                    });
+                },
+                (err) => {
+                    console.log(err);
+                }
+            );
         },
-        copySection:function (id,merge) {
+        copySection: function (id, merge) {
             let vm = this;
             vm.errors = false;
 
-            let formData = new FormData()
+            let formData = new FormData();
 
-            let data = {'occurrence_report_id': id,'section': vm.section_type, 'merge': merge};
+            let data = {
+                occurrence_report_id: id,
+                section: vm.section_type,
+                merge: merge,
+            };
             formData.append('data', JSON.stringify(data));
 
-            vm.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence,vm.occurrence_obj.id+"/copy_ocr_section"), formData, {
-                    emulateJSON: true,
-                }).then((response) => {
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.occurrence,
+                    vm.occurrence_obj.id + '/copy_ocr_section'
+                ),
+                {
+                    method: 'POST',
+                    body: formData,
+                }
+            ).then(
+                async (response) => {
+                    const data = await response.json();
                     vm.$refs.related_ocr_datatable.vmDataTable.ajax.reload();
-                    vm.$emit('copyUpdate', response.body, vm.section_type);
+                    vm.$emit('copyUpdate', data, vm.section_type);
                 },
                 (error) => {
                     vm.errors = true;
                     vm.errorString = helpers.apiVueResourceError(error);
-                });
+                }
+            );
         },
         adjust_table_width: function () {
-            if (this.$refs.related_ocr_datatable !== undefined) { this.$refs.related_ocr_datatable.vmDataTable.columns.adjust().responsive.recalc() };
+            if (this.$refs.related_ocr_datatable) {
+                this.$refs.related_ocr_datatable.vmDataTable.columns
+                    .adjust()
+                    .responsive.recalc();
+            }
         },
-        addEventListeners:function (){
-            let vm=this;
-            vm.$refs.related_ocr_datatable.vmDataTable.on('click', 'a[data-view-section]', function(e) {
-                e.preventDefault();
-                var id = $(this).attr('data-view-section');
-                vm.viewSection(id);
-            });
-            vm.$refs.related_ocr_datatable.vmDataTable.on('click', 'a[data-merge-section]', function(e) {
-                e.preventDefault();
-                var id = $(this).attr('data-merge-section');
-                vm.copySection(id,true);
-            });
-            vm.$refs.related_ocr_datatable.vmDataTable.on('click', 'a[data-replace-section]', function(e) {
-                e.preventDefault();
-                var id = $(this).attr('data-replace-section');
-                vm.copySection(id,false);
-            });
+        addEventListeners: function () {
+            let vm = this;
+            vm.$refs.related_ocr_datatable.vmDataTable.on(
+                'click',
+                'a[data-view-section]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-view-section');
+                    vm.viewSection(id);
+                }
+            );
+            vm.$refs.related_ocr_datatable.vmDataTable.on(
+                'click',
+                'a[data-merge-section]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-merge-section');
+                    vm.copySection(id, true);
+                }
+            );
+            vm.$refs.related_ocr_datatable.vmDataTable.on(
+                'click',
+                'a[data-replace-section]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-replace-section');
+                    vm.copySection(id, false);
+                }
+            );
             vm.$refs.related_ocr_datatable.vmDataTable.on(
                 'click',
                 'a[data-highlight-on-map]',
@@ -391,11 +433,5 @@ export default {
             );
         },
     },
-    mounted: function(){
-        let vm = this;
-        this.$nextTick(() => {
-            vm.addEventListeners();
-        });
-    }
-}
+};
 </script>

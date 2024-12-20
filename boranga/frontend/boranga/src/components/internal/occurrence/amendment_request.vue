@@ -1,18 +1,38 @@
 <template lang="html">
     <div id="internal-ocr-amendment-request">
-        <modal id="amendment-request-modal" transition="modal fade" @ok="ok()" @cancel="cancel()" title="Amendment Request" large>
+        <modal
+            id="amendment-request-modal"
+            transition="modal fade"
+            title="Amendment Request"
+            large
+            @ok="ok()"
+            @cancel="cancel()"
+        >
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="amendForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="errorString" type="danger"
+                            ><strong>{{ errorString }}</strong></alert
+                        >
                         <div class="col-sm-12">
                             <div class="row mb-3">
                                 <div class="col-sm-6">
                                     <div class="form-group">
-                                        <label class="control-label" for="Name">Reason</label>
-                                        <select class="form-select" name="reason" ref="reason"
-                                            v-model="amendment.reason">
-                                            <option v-for="r in reason_choices" :value="r.key">{{ r.value }}</option>
+                                        <label class="control-label" for="Name"
+                                            >Reason</label
+                                        >
+                                        <select
+                                            ref="reason"
+                                            v-model="amendment.reason"
+                                            class="form-select"
+                                            name="reason"
+                                        >
+                                            <option
+                                                v-for="r in reason_choices"
+                                                :value="r.key"
+                                            >
+                                                {{ r.value }}
+                                            </option>
                                         </select>
                                     </div>
                                 </div>
@@ -20,19 +40,38 @@
                             <div class="row mb-3">
                                 <div class="col">
                                     <div class="form-group">
-                                        <label class="control-label" for="amendment_text">Details</label>
-                                        <textarea class="form-control" name="amendment_text" v-model="amendment.text"
-                                            id="amendment_text" ref="amendment_text"></textarea>
+                                        <label
+                                            class="control-label"
+                                            for="amendment_text"
+                                            >Details</label
+                                        >
+                                        <textarea
+                                            id="amendment_text"
+                                            ref="amendment_text"
+                                            v-model="amendment.text"
+                                            class="form-control"
+                                            name="amendment_text"
+                                        ></textarea>
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col">
-                                    <label class="control-label" for="amendment_request_file">Documents</label>
-                                    <FileField2 ref="filefield"
-                                        :uploaded_documents="amendment.amendment_request_documents"
-                                        :delete_url="delete_url" :proposal_id="occurrence_report_id"
-                                        :isRepeatable="true" name="amendment_request_file" />
+                                    <label
+                                        class="control-label"
+                                        for="amendment_request_file"
+                                        >Documents</label
+                                    >
+                                    <FileField2
+                                        ref="filefield"
+                                        :uploaded_documents="
+                                            amendment.amendment_request_documents
+                                        "
+                                        :delete_url="delete_url"
+                                        :proposal_id="occurrence_report_id"
+                                        :is-repeatable="true"
+                                        name="amendment_request_file"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -44,14 +83,12 @@
 </template>
 
 <script>
-import Vue from 'vue'
-import modal from '@vue-utils/bootstrap-modal.vue'
-import alert from '@vue-utils/alert.vue'
-import FileField2 from '@/components/forms/filefield.vue'
+import modal from '@vue-utils/bootstrap-modal.vue';
+import alert from '@vue-utils/alert.vue';
+import FileField2 from '@/components/forms/filefield.vue';
 
-import { helpers, api_endpoints } from "@/utils/hooks.js"
 export default {
-    name: 'amendment-request',
+    name: 'AmendmentRequest',
     components: {
         modal,
         alert,
@@ -78,19 +115,18 @@ export default {
                 amendment_request_documents: [],
             },
             reason_choices: {},
-            errors: false,
             errorString: '',
             validation_form: null,
-        }
+        };
     },
     computed: {
-        showError: function () {
-            var vm = this;
-            return vm.errors;
-        },
         delete_url: function () {
-            return (this.amendment.id) ? '/api/ocr_amendment_request/' + this.amendment.id + '/delete_document/' : '';
-        }
+            return this.amendment.id
+                ? '/api/ocr_amendment_request/' +
+                      this.amendment.id +
+                      '/delete_document/'
+                : '';
+        },
     },
     watch: {
         isModalOpen: function (val) {
@@ -100,6 +136,15 @@ export default {
                 });
             }
         },
+    },
+    mounted: function () {
+        let vm = this;
+        vm.form = document.forms.amendForm;
+        vm.fetchAmendmentChoices();
+        vm.addFormValidations();
+        this.$nextTick(() => {
+            vm.eventListerners();
+        });
     },
     methods: {
         ok: function () {
@@ -117,9 +162,9 @@ export default {
             this.amendment = {
                 reason: '',
                 reason_id: null,
-                occurrence_report: this.occurrence_report_id
+                occurrence_report: this.occurrence_report_id,
             };
-            this.errors = false;
+            this.errorString = '';
             $(this.$refs.reason).val(null).trigger('change');
             $('.has-error').removeClass('has-error');
 
@@ -127,17 +172,20 @@ export default {
         },
         fetchAmendmentChoices: function () {
             let vm = this;
-            vm.$http.get('/api/proposal_amendment_request_reason_choices.json').then((response) => {
-                vm.reason_choices = response.body;
-            }, (error) => {
-                console.log(error);
-            });
+            fetch('/api/proposal_amendment_request_reason_choices.json').then(
+                async (response) => {
+                    vm.reason_choices = await response.json();
+                },
+                (error) => {
+                    console.log(error);
+                }
+            );
         },
         sendData: function () {
             let vm = this;
-            vm.errors = false;
+            vm.errorString = '';
             let amendment = JSON.parse(JSON.stringify(vm.amendment));
-            let formData = new FormData()
+            let formData = new FormData();
             var files = vm.$refs.filefield.files;
             $.each(files, function (idx, v) {
                 var file = v['file'];
@@ -151,92 +199,101 @@ export default {
             amendment.update = true;
             formData.append('data', JSON.stringify(amendment));
 
-            vm.$http.post('/api/ocr_amendment_request.json', formData, {
-                emulateJSON: true,
-            }).then((response) => {
-                swal.fire({
-                    title: 'Sent',
-                    text: 'An email has been sent to proponent with the request to amend this Proposal',
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
+            fetch('/api/ocr_amendment_request.json', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            })
+                .then(async (response) => {
+                    const data = await response.json();
+                    if (!response.ok) {
+                        vm.errorString = data;
+                        return;
+                    }
+                    swal.fire({
+                        title: 'Sent',
+                        text: 'An email has been sent to proponent with the request to amend this Proposal',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.amendingProposal = true;
+                    vm.close();
+
+                    fetch(
+                        `/api/occurrence_report/${vm.occurrence_report_id}`
+                    ).then(async (response) => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            vm.errorString = data;
+                            return;
+                        }
+                        vm.$emit('refreshFromResponse', data);
+                        vm.$router.push({ path: '/internal/occurrence' }); //Navigate to dashboard after creating Amendment request
+                    });
+                })
+                .finally(() => {
+                    vm.amendingProposal = false;
                 });
-                vm.amendingProposal = true;
-                vm.close();
-
-                Vue.http.get(`/api/occurrence_report/${vm.occurrence_report_id}`).then((response) => {
-                    vm.$emit('refreshFromResponse', response);
-
-                }, (error) => {
-                    console.log(error);
-                });
-                vm.$router.push({ path: '/internal/occurrence' }); //Navigate to dashboard after creating Amendment request
-
-            }, (error) => {
-                console.log(error);
-                vm.errors = true;
-                vm.errorString = helpers.apiVueResourceError(error);
-                vm.amendingProposal = true;
-            });
         },
         addFormValidations: function () {
             let vm = this;
             vm.validation_form = $(vm.form).validate({
                 rules: {
-                    reason: "required"
+                    reason: 'required',
                 },
                 messages: {
-                    reason: "field is required",
+                    reason: 'field is required',
                 },
                 showErrors: function (errorMap, errorList) {
                     $.each(this.validElements(), function (index, element) {
                         var $element = $(element);
-                        $element.attr("data-original-title", "").parents('.form-group').removeClass('has-error');
+                        $element
+                            .attr('data-original-title', '')
+                            .parents('.form-group')
+                            .removeClass('has-error');
                     });
                     // add or update tooltips
                     for (var i = 0; i < errorList.length; i++) {
                         var error = errorList[i];
                         $(error.element)
                             .tooltip({
-                                trigger: "focus"
+                                trigger: 'focus',
                             })
-                            .attr("data-original-title", error.message)
-                            .parents('.form-group').addClass('has-error');
+                            .attr('data-original-title', error.message)
+                            .parents('.form-group')
+                            .addClass('has-error');
                     }
-                }
+                },
             });
         },
         eventListerners: function () {
             let vm = this;
 
             // Intialise select2
-            $(vm.$refs.reason).select2({
-                "theme": "bootstrap-5",
-                allowClear: true,
-                placeholder: "Select Reason",
-                dropdownParent: $('div#internal-ocr-amendment-request .modal-body'),
-            }).
-                on("select2:select", function (e) {
+            $(vm.$refs.reason)
+                .select2({
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: 'Select Reason',
+                    dropdownParent: $(
+                        'div#internal-ocr-amendment-request .modal-body'
+                    ),
+                })
+                .on('select2:select', function (e) {
                     var selected = $(e.currentTarget);
                     vm.amendment.reason = selected.val();
                     vm.amendment.reason_id = selected.val();
-                }).
-                on("select2:unselect", function (e) {
+                })
+                .on('select2:unselect', function (e) {
                     var selected = $(e.currentTarget);
                     vm.amendment.reason = selected.val();
                     vm.amendment.reason_id = selected.val();
                 });
-        }
+        },
     },
-    mounted: function () {
-        let vm = this;
-        vm.form = document.forms.amendForm;
-        vm.fetchAmendmentChoices();
-        vm.addFormValidations();
-        this.$nextTick(() => {
-            vm.eventListerners();
-        });
-    }
-}
+};
 </script>

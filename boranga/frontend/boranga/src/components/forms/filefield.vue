@@ -3,15 +3,29 @@
         <div v-if="has_uploaded_docs">
             <div class="row">
                 <div class="col-sm-6">
-                    <label class="control-label pull-left" for="Name">Uploaded Documents</label>
+                    <label class="control-label pull-left" for="Name"
+                        >Uploaded Documents</label
+                    >
                 </div>
                 <div class="col-sm-6">
-                    <div class="input-group date" ref="due_date" style="width: 70%;">
+                    <div
+                        ref="due_date"
+                        class="input-group date"
+                        style="width: 70%"
+                    >
                         <div v-for="v in uploaded_documents" class="row">
                             <span>
-                                <a :href="v._file" target="_blank">{{ v.name }}</a> &nbsp;
-                                <a @click="delete_document(v)" class="fa fa-trash-o" title="Remove file"
-                                    :filename="v.name" style="cursor: pointer; color:red;"></a>
+                                <a :href="v._file" target="_blank">{{
+                                    v.name
+                                }}</a>
+                                &nbsp;
+                                <a
+                                    class="fa fa-trash-o"
+                                    title="Remove file"
+                                    :filename="v.name"
+                                    style="cursor: pointer; color: red"
+                                    @click="delete_document(v)"
+                                ></a>
                             </span>
                         </div>
                     </div>
@@ -22,14 +36,32 @@
             <div class="row">
                 <div class="col-sm-12">
                     <div v-for="n in repeat">
-                        <div v-if="isRepeatable || (!isRepeatable && num_documents() == 0)">
+                        <div
+                            v-if="
+                                isRepeatable ||
+                                (!isRepeatable && num_documents() == 0)
+                            "
+                        >
                             <span class="btn btn-primary btn-file">
                                 <i class="bi bi-file-earmark-arrow-up me-1"></i>
-                                <input :name="name" type="file" :data-que="n" :accept="fileTypes"
-                                    @change="handleChange($event)" :required="isRequired" />
+                                <input
+                                    :name="name"
+                                    type="file"
+                                    :data-que="n"
+                                    :accept="fileTypes"
+                                    :required="isRequired"
+                                    @change="handleChange($event)"
+                                />
                                 <template v-if="isRepeatable">
-                                    Attach <template v-if="isRepeatable && files && files.length > 0">Another
-                                    </template>Document
+                                    Attach
+                                    <template
+                                        v-if="
+                                            isRepeatable &&
+                                            files &&
+                                            files.length > 0
+                                        "
+                                        >Another </template
+                                    >Document
                                 </template>
                                 <template v-else>
                                     <template v-if="files && files.length > 0">
@@ -47,28 +79,42 @@
         </div>
         <div v-if="files && files.length > 0" class="mt-3 pt-3 border-top">
             <div class="mt-3">
-                <ul class="list-group" :class="isRepeatable ? 'list-group-numbered' : ''">
+                <ul
+                    class="list-group"
+                    :class="isRepeatable ? 'list-group-numbered' : ''"
+                >
                     <li v-for="v in files" class="list-group-item">
-                        <i class="bi bi-file-earmark-text-fill text-secondary"></i> {{ v.name }} &nbsp;
-                        <a @click="pop_file(v)" class="bi bi-trash" title="Remove file" :filename="v.name"
-                            style="cursor: pointer; color:red;"></a>
+                        <i
+                            class="bi bi-file-earmark-text-fill text-secondary"
+                        ></i>
+                        {{ v.name }} &nbsp;
+                        <a
+                            class="bi bi-trash"
+                            title="Remove file"
+                            :filename="v.name"
+                            style="cursor: pointer; color: red"
+                            @click="pop_file(v)"
+                        ></a>
                     </li>
                 </ul>
             </div>
         </div>
-        <span v-if="show_spinner"><span class="spinner-border spinner-border-sm" role="status"
-                aria-hidden="true"></span>
-            <span class="visually-hidden">Loading...</span></span>
+        <span v-if="show_spinner"
+            ><span
+                class="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+            ></span>
+            <span class="visually-hidden">Loading...</span></span
+        >
     </div>
 </template>
 
 <script>
-import {
-    helpers
-}
-    from '@/utils/hooks'
+import { helpers } from '@/utils/hooks';
 
 export default {
+    components: {},
     props: {
         proposal_id: null,
         required_doc_id: null,
@@ -79,49 +125,49 @@ export default {
         value: {
             default: function () {
                 return null;
-            }
+            },
         },
         fileTypesOrig: {
             default: function () {
                 var file_types =
-                    "image/*," +
-                    "video/*," +
-                    "audio/*," +
-                    "application/pdf,text/csv,application/msword,application/vnd.ms-excel,application/x-msaccess," +
-                    "application/x-7z-compressed,application/x-bzip,application/x-bzip2,application/zip," +
-                    ".dbf,.gdb,.gpx,.prj,.shp,.shx," +
-                    ".json,.kml,.gpx";
+                    'image/*,' +
+                    'video/*,' +
+                    'audio/*,' +
+                    'application/pdf,text/csv,application/msword,application/vnd.ms-excel,application/x-msaccess,' +
+                    'application/x-7z-compressed,application/x-bzip,application/x-bzip2,application/zip,' +
+                    '.dbf,.gdb,.gpx,.prj,.shp,.shx,' +
+                    '.json,.kml,.gpx';
                 return file_types;
-            }
+            },
         },
         fileTypes: {
             default: function () {
                 return [
-                    "image/*",
-                    "video/*",
-                    "audio/*",
-                    "application/pdf",
-                    "text/csv",
-                    "application/msword",
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    "application/vnd.ms-excel",
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    "application/x-msaccess",
-                    "application/x-7z-compressed",
-                    "application/x-bzip",
-                    "application/x-bzip2",
-                    "application/zip",
-                    ".dbf",
-                    ".gdb",
-                    ".gpx",
-                    ".prj",
-                    ".shp",
-                    ".shx",
-                    ".json",
-                    ".kml",
-                    ".gpx"
+                    'image/*',
+                    'video/*',
+                    'audio/*',
+                    'application/pdf',
+                    'text/csv',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'application/vnd.ms-excel',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'application/x-msaccess',
+                    'application/x-7z-compressed',
+                    'application/x-bzip',
+                    'application/x-bzip2',
+                    'application/zip',
+                    '.dbf',
+                    '.gdb',
+                    '.gpx',
+                    '.prj',
+                    '.shp',
+                    '.shx',
+                    '.json',
+                    '.kml',
+                    '.gpx',
                 ].join(',');
-            }
+            },
         },
 
         isRepeatable: Boolean,
@@ -129,31 +175,33 @@ export default {
         delete_url: String,
         uploaded_documents: Array,
     },
-    components: {},
     data: function () {
         return {
             repeat: 1,
             files: [],
             _files: [
                 {
-                    'file': null,
-                    'name': ''
-                }
+                    file: null,
+                    name: '',
+                },
             ],
             showingComment: false,
             show_spinner: false,
             documents: [],
             filename: null,
-        }
+        };
     },
     computed: {
         csrf_token: function () {
-            return helpers.getCookie('csrftoken')
+            return helpers.getCookie('csrftoken');
         },
         has_uploaded_docs: function () {
-            return this.uploaded_documents && this.uploaded_documents.length > 0;
-        }
+            return (
+                this.uploaded_documents && this.uploaded_documents.length > 0
+            );
+        },
     },
+    mounted: function () {},
     methods: {
         reset_files() {
             this.files = [];
@@ -167,9 +215,11 @@ export default {
                 let el = $(e.target).attr('data-que');
                 let avail = $('input[name=' + e.target.name + ']');
 
-                avail = [...avail.map(id => {
-                    return $(avail[id]).attr('data-que');
-                })];
+                avail = [
+                    ...avail.map((id) => {
+                        return $(avail[id]).attr('data-que');
+                    }),
+                ];
                 avail.pop();
                 if (vm.repeat == 1) {
                     vm.repeat += 1;
@@ -178,12 +228,12 @@ export default {
                         vm.repeat += 1;
                     }
                 }
-                $(e.target).css({ 'display': 'none' });
-                $(e.target.parentElement).css({ 'display': 'none' });//to hide <span> element btn-link
+                $(e.target).css({ display: 'none' });
+                $(e.target.parentElement).css({ display: 'none' }); //to hide <span> element btn-link
             } else {
                 vm.files = [];
             }
-            vm.add_file(e)
+            vm.add_file(e);
         },
         add_file(e) {
             let vm = this;
@@ -200,7 +250,10 @@ export default {
             }
 
             if (!file_updated) {
-                vm.files.push({ name: e.target.files[0].name, file: e.target.files[0] });
+                vm.files.push({
+                    name: e.target.files[0].name,
+                    file: e.target.files[0],
+                });
             }
         },
         pop_file(v) {
@@ -216,21 +269,17 @@ export default {
                     }
                 }
             }
-
-            if (!file_updated) {
-                vm.files.push({ name: e.target.files[0].name, file: e.target.files[0] });
-            }
         },
         delete_document: function (file) {
             /* deletes, previously saved file, from the server */
             let vm = this;
             vm.show_spinner = true;
-            var data = { id: file.id, name: file.name }
+            var data = { id: file.id, name: file.name };
 
             swal({
-                title: "Delete Document",
-                text: "Are you sure you want to delete this document?",
-                type: "question",
+                title: 'Delete Document',
+                text: 'Are you sure you want to delete this document?',
+                type: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Delete Document',
                 customClass: {
@@ -238,18 +287,28 @@ export default {
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then(() => {
-                vm.$http.post(vm.delete_url, data, {
-                    emulateJSON: true,
-                }).then((response) => {
-                    vm.uploaded_documents = response.body;
-                    vm.$emit('refreshFromResponse', response.body);
-                    vm.show_spinner = false;
-                }, err => {
-                    console.log(err);
-                });
-            }, (error) => {
-            });
+            }).then(
+                () => {
+                    fetch(vm.delete_url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    }).then(
+                        async (response) => {
+                            const data = await response.json();
+                            vm.uploaded_documents = data;
+                            vm.$emit('refreshFromResponse', data);
+                            vm.show_spinner = false;
+                        },
+                        (err) => {
+                            console.log(err);
+                        }
+                    );
+                },
+                () => {}
+            );
         },
         num_documents: function () {
             let vm = this;
@@ -259,10 +318,7 @@ export default {
             return 0;
         },
     },
-    mounted: function () {
-    }
-}
-
+};
 </script>
 
 <style scoped lang="css">
@@ -275,7 +331,7 @@ input {
     overflow: hidden;
 }
 
-.btn-file input[type=file] {
+.btn-file input[type='file'] {
     position: absolute;
     top: 0;
     right: 0;

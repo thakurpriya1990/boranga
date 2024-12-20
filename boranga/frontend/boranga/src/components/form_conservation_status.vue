@@ -1,57 +1,147 @@
 <template lang="html">
     <div>
         <div class="col-md-12">
-            <ul v-if="!is_external" class="nav nav-pills" id="pills-tab" role="tablist">
+            <ul
+                v-if="!is_external"
+                id="pills-tab"
+                class="nav nav-pills"
+                role="tablist"
+            >
                 <li class="nav-item">
-                    <a class="nav-link active" id="pills-status-tab" data-bs-toggle="pill" :href="'#' + statusBody"
-                        role="tab" :aria-controls="statusBody" aria-selected="true" @click="tabClicked()">
+                    <a
+                        id="pills-status-tab"
+                        class="nav-link active"
+                        data-bs-toggle="pill"
+                        :href="'#' + statusBody"
+                        role="tab"
+                        :aria-controls="statusBody"
+                        aria-selected="true"
+                        @click="tabClicked()"
+                    >
                         Status
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" id="pills-documents-tab" data-bs-toggle="pill" :href="'#' + documentBody"
-                        role="tab" :aria-selected="documentBody" aria-selected="false" @click="tabClicked()">
+                    <a
+                        id="pills-documents-tab"
+                        class="nav-link"
+                        data-bs-toggle="pill"
+                        :href="'#' + documentBody"
+                        role="tab"
+                        :aria-selected="documentBody"
+                        aria-selected="false"
+                        @click="tabClicked()"
+                    >
                         Documents
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" id="pills-related-items-tab" data-bs-toggle="pill" :href="'#' + relatedItemBody"
-                        role="tab" :aria-controls="relatedItemBody" aria-selected="false" @click="tabClicked()">
+                    <a
+                        id="pills-related-items-tab"
+                        class="nav-link"
+                        data-bs-toggle="pill"
+                        :href="'#' + relatedItemBody"
+                        role="tab"
+                        :aria-controls="relatedItemBody"
+                        aria-selected="false"
+                        @click="tabClicked()"
+                    >
                         Related Items
                     </a>
                 </li>
             </ul>
-            <div class="tab-content" id="pills-tabContent">
-                <div class="tab-pane fade show active" :id="statusBody" role="tabpanel"
-                    aria-labelledby="pills-status-tab">
-                    <CommunityStatus v-if="isCommunity" :key="reloadcount" ref="community_conservation_status"
-                        id="communityStatus" :is_external="is_external" :canEditStatus="canEditStatus"
-                        :conservation_status_obj="conservation_status_obj" :referral="referral"
-                        @saveConservationStatus="$emit('saveConservationStatus');">
+            <div id="pills-tabContent" class="tab-content">
+                <div
+                    :id="statusBody"
+                    class="tab-pane fade show active"
+                    role="tabpanel"
+                    aria-labelledby="pills-status-tab"
+                >
+                    <CommunityStatus
+                        v-if="isCommunity"
+                        id="communityStatus"
+                        :key="reloadcount"
+                        ref="community_conservation_status"
+                        :is_external="is_external"
+                        :can-edit-status="canEditStatus"
+                        :conservation_status_obj="conservation_status_obj"
+                        :referral="referral"
+                        @save-conservation-status="
+                            $emit('saveConservationStatus')
+                        "
+                    >
                     </CommunityStatus>
-                    <SpeciesStatus v-else :key="reloadcount + 'else'" ref="species_conservation_status"
-                        id="speciesStatus" :is_external="is_external" :canEditStatus="canEditStatus"
-                        :conservation_status_obj="conservation_status_obj" :referral="referral"
-                        @saveConservationStatus="$emit('saveConservationStatus');">
+                    <SpeciesStatus
+                        v-else
+                        id="speciesStatus"
+                        :key="reloadcount + 'else'"
+                        ref="species_conservation_status"
+                        :is_external="is_external"
+                        :can-edit-status="canEditStatus"
+                        :conservation_status_obj="conservation_status_obj"
+                        :referral="referral"
+                        @save-conservation-status="
+                            $emit('saveConservationStatus')
+                        "
+                    >
                     </SpeciesStatus>
-                    <CSDocuments v-if="!is_internal && !referral" :key="reloadcount + 'cs_documents'" ref="cs_documents"
-                        id="csDocuments" :is_internal="is_internal" :conservation_status_obj="conservation_status_obj">
+                    <CSDocuments
+                        v-if="!is_internal && !referral"
+                        id="csDocuments"
+                        :key="reloadcount + 'cs_documents'"
+                        ref="cs_documents"
+                        :is_internal="is_internal"
+                        :conservation_status_obj="conservation_status_obj"
+                    >
                     </CSDocuments>
-                    <SubmitterInformation v-if="conservation_status_obj.submitter_information"
-                        :key="reloadcount + 'submitter_information'" ref="submitter_information"
-                        id="submitter_information" :show_submitter_contact_details="show_submitter_contact_details"
-                        :submitter_information="conservation_status_obj.submitter_information"
-                        :disabled="!(conservation_status_obj.can_user_edit && conservation_status_obj.is_submitter) || referral" />
+                    <SubmitterInformation
+                        v-if="conservation_status_obj.submitter_information"
+                        id="submitter_information"
+                        :key="reloadcount + 'submitter_information'"
+                        ref="submitter_information"
+                        :show_submitter_contact_details="
+                            show_submitter_contact_details
+                        "
+                        :submitter_information="
+                            conservation_status_obj.submitter_information
+                        "
+                        :disabled="
+                            !(
+                                conservation_status_obj.can_user_edit &&
+                                conservation_status_obj.is_submitter
+                            ) || referral
+                        "
+                    />
                 </div>
-                <div class="tab-pane fade" :id="documentBody" role="tabpanel" aria-labelledby="pills-documents-tab">
-                    <CSDocuments :key="reloadcount" ref="cs_documents" id="csDocuments" :is_internal="is_internal"
-                        :conservation_status_obj="conservation_status_obj">
+                <div
+                    :id="documentBody"
+                    class="tab-pane fade"
+                    role="tabpanel"
+                    aria-labelledby="pills-documents-tab"
+                >
+                    <CSDocuments
+                        id="csDocuments"
+                        :key="reloadcount"
+                        ref="cs_documents"
+                        :is_internal="is_internal"
+                        :conservation_status_obj="conservation_status_obj"
+                    >
                     </CSDocuments>
                 </div>
-                <div v-if="!is_external" class="tab-pane fade" :id="relatedItemBody" role="tabpanel"
-                    aria-labelledby="pills-related-items-tab">
-                    <RelatedItems :key="reloadcount" ref="cs_related_items" id="csRelatedItems"
-                        :ajax_url="related_items_ajax_url" :filter_list_url="related_items_filter_list_url">
+                <div
+                    v-if="!is_external"
+                    :id="relatedItemBody"
+                    class="tab-pane fade"
+                    role="tabpanel"
+                    aria-labelledby="pills-related-items-tab"
+                >
+                    <RelatedItems
+                        id="csRelatedItems"
+                        :key="reloadcount"
+                        ref="cs_related_items"
+                        :ajax_url="related_items_ajax_url"
+                        :filter_list_url="related_items_filter_list_url"
+                    >
                     </RelatedItems>
                 </div>
             </div>
@@ -60,46 +150,14 @@
 </template>
 
 <script>
-import SubmitterInformation from '@/components/common/submitter_information.vue'
-import SpeciesStatus from '@/components/common/conservation_status/species_status.vue'
-import CommunityStatus from '@/components/common/conservation_status/community_status.vue'
-import CSDocuments from '@/components/common/conservation_status/cs_documents.vue'
-import RelatedItems from '@/components/common/table_related_items.vue'
+import { v4 as uuid } from 'uuid';
+import SubmitterInformation from '@/components/common/submitter_information.vue';
+import SpeciesStatus from '@/components/common/conservation_status/species_status.vue';
+import CommunityStatus from '@/components/common/conservation_status/community_status.vue';
+import CSDocuments from '@/components/common/conservation_status/cs_documents.vue';
+import RelatedItems from '@/components/common/table_related_items.vue';
 
 export default {
-    props: {
-        conservation_status_obj: {
-            type: Object,
-            required: true
-        },
-        referral: {
-            type: Object,
-            required: false
-        },
-        is_external: {
-            type: Boolean,
-            default: false
-        },
-        is_internal: {
-            type: Boolean,
-            default: false
-        },
-        canEditStatus: {
-            type: Boolean,
-            default: true
-        },
-    },
-    emits: ['saveConservationStatus'],
-    data: function () {
-        let vm = this;
-        return {
-            values: null,
-            reloadcount: 0,
-            statusBody: 'statusBody' + vm._uid,
-            documentBody: 'documentBody' + vm._uid,
-            relatedItemBody: 'relatedItemBody' + vm._uid,
-        }
-    },
     components: {
         SubmitterInformation,
         SpeciesStatus,
@@ -107,35 +165,67 @@ export default {
         CSDocuments,
         RelatedItems,
     },
-    computed: {
-        show_submitter_contact_details: function () {
-            return 'ConservationStatusReferral' != this.$parent.$options.name
+    props: {
+        conservation_status_obj: {
+            type: Object,
+            required: true,
         },
-        isCommunity: function () {
-            return this.conservation_status_obj.group_type == "community"
+        referral: {
+            type: Object,
+            required: false,
         },
-        related_items_ajax_url: function () {
-            return '/api/conservation_status/' + this.conservation_status_obj.id + '/get_related_items/'
+        is_external: {
+            type: Boolean,
+            default: false,
         },
-        related_items_filter_list_url: function () {
-            return '/api/conservation_status/filter_list.json'
+        is_internal: {
+            type: Boolean,
+            default: false,
+        },
+        canEditStatus: {
+            type: Boolean,
+            default: true,
         },
     },
-    methods: {
-        //----function to resolve datatable exceeding beyond the div
-        tabClicked: function (param) {
-            this.reloadcount = this.reloadcount + 1;
+    emits: ['saveConservationStatus'],
+    data: function () {
+        return {
+            values: null,
+            reloadcount: 0,
+            statusBody: 'statusBody' + uuid(),
+            documentBody: 'documentBody' + uuid(),
+            relatedItemBody: 'relatedItemBody' + uuid(),
+        };
+    },
+    computed: {
+        show_submitter_contact_details: function () {
+            return 'ConservationStatusReferral' != this.$parent.$options.name;
         },
-        eventListener: function () {
-            let vm = this;
+        isCommunity: function () {
+            return this.conservation_status_obj.group_type == 'community';
+        },
+        related_items_ajax_url: function () {
+            return (
+                '/api/conservation_status/' +
+                this.conservation_status_obj.id +
+                '/get_related_items/'
+            );
+        },
+        related_items_filter_list_url: function () {
+            return '/api/conservation_status/filter_list.json';
         },
     },
     mounted: function () {
         let vm = this;
         vm.form = document.forms.new_conservation_status;
-        vm.eventListener();
-    }
-}
+    },
+    methods: {
+        //----function to resolve datatable exceeding beyond the div
+        tabClicked: function () {
+            this.reloadcount = this.reloadcount + 1;
+        },
+    },
+};
 </script>
 
 <style lang="css" scoped>
@@ -156,20 +246,20 @@ export default {
     margin-bottom: 2px;
 }
 
-.nav-item>li>a {
+.nav-item > li > a {
     background-color: yellow !important;
     color: #fff;
 }
 
-.nav-item>li.active>a,
-.nav-item>li.active>a:hover,
-.nav-item>li.active>a:focus {
+.nav-item > li.active > a,
+.nav-item > li.active > a:hover,
+.nav-item > li.active > a:focus {
     color: white;
     background-color: blue;
     border: 1px solid #888888;
 }
 
-.admin>div {
+.admin > div {
     display: inline-block;
     vertical-align: top;
     margin-right: 1em;

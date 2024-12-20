@@ -76,3 +76,4 @@ django-colorfield~=0.11.0
 py7zr~=0.21.1
 git+https://github.com/dbca-wa/django5-utils-six.git#egg=django5_six
 django-ordered-model~=3.7
+django-vite~=3.0.5

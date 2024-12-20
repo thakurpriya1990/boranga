@@ -7,15 +7,24 @@
                         &nbsp;
                     </span>
                     <span v-else class="fa fa-file"> &nbsp; </span>
-                    <a :href="Object.hasOwn(v, 'secure_url')
-                            ? v.secure_url
-                            : v.file
-                        " target="_blank">
+                    <a
+                        :href="
+                            Object.hasOwn(v, 'secure_url')
+                                ? v.secure_url
+                                : v.file
+                        "
+                        target="_blank"
+                    >
                         {{ v.name }}
                     </a>
                     <span v-if="!readonly">
-                        &nbsp;<a class="bi bi-trash3" title="Remove file" :filename="v.name"
-                            style="cursor: pointer; color: red" @click="delete_document(v)"></a>
+                        &nbsp;<a
+                            class="bi bi-trash3"
+                            title="Remove file"
+                            :filename="v.name"
+                            style="cursor: pointer; color: red"
+                            @click="delete_document(v)"
+                        ></a>
                     </span>
                 </div>
             </li>
@@ -25,17 +34,33 @@
                 <span class="visually-hidden">Loading...</span>
             </div>
         </div>
-        <div v-if="
-            (isRepeatable || (!isRepeatable && numDocuments === 0)) &&
-            !show_spinner &&
-            !readonly
-        ">
-            <input :id="name" :key="name" :name="name" :multiple="multiple" type="file" :accept="fileTypes" class=""
-                :class="ffu_input_element_classname" @change="handleChangeWrapper" />
+        <div
+            v-if="
+                (isRepeatable || (!isRepeatable && numDocuments === 0)) &&
+                !show_spinner &&
+                !readonly
+            "
+        >
+            <input
+                :id="name"
+                :key="name"
+                :name="name"
+                :multiple="multiple"
+                type="file"
+                :accept="fileTypes"
+                class=""
+                :class="ffu_input_element_classname"
+                @change="handleChangeWrapper"
+            />
             <div v-if="replace_button_by_text">
-                <span :id="'button-' + name" class="btn btn-primary ffu-input-text" @click="button_clicked(name)">
+                <span
+                    :id="'button-' + name"
+                    class="btn btn-primary ffu-input-text"
+                    @click="button_clicked(name)"
+                >
                     <i class="fa fa-upload" aria-hidden="true"></i>&nbsp;
-                    {{ text_string }}</span>
+                    {{ text_string }}</span
+                >
             </div>
         </div>
     </div>
@@ -222,12 +247,12 @@ export default {
                     method: 'POST',
                 })
                     .then(async (response) => {
-                        const resData = await response.json();
+                        const data = await response.json();
                         if (!response.ok) {
-                            throw new Error(resData);
+                            throw new Error(data);
                         }
-                        this.documents = resData.filedata;
-                        this.commsLogId = resData.comms_instance_id;
+                        this.documents = data.filedata;
+                        this.commsLogId = data.comms_instance_id;
                     })
                     .catch((error) => {
                         swal.fire({
@@ -259,13 +284,13 @@ export default {
             formData.append('document_id', file.id);
             formData.append('csrfmiddlewaretoken', this.csrf_token);
             if (this.document_action_url) {
-                const res = await fetch(this.document_action_url, {
+                const response = await fetch(this.document_action_url, {
                     body: formData,
                     method: 'POST',
                 });
-                const resData = await res.json();
-                this.documents = resData.filedata;
-                this.commsLogId = resData.comms_instance_id;
+                const data = await response.json();
+                this.documents = data.filedata;
+                this.commsLogId = data.comms_instance_id;
             }
             this.show_spinner = false;
         },
@@ -308,11 +333,11 @@ export default {
                 !this.temporary_document_collection_id
             ) {
                 // If temporary_document, create TemporaryDocumentCollection object and allow document_action_url to update
-                const res = await fetch(this.document_action_url, {
+                const response = await fetch(this.document_action_url, {
                     method: 'POST',
                 });
-                const resData = await res.json();
-                this.temporary_document_collection_id = resData.id;
+                const data = await response.json();
+                this.temporary_document_collection_id = data.id;
                 await this.handleChange(e);
                 await this.$emit(
                     'update-temp-doc-coll-id',

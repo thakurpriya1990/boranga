@@ -1949,7 +1949,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
             action_url=str(
-                f"<a href=/internal/conservation_status/{self.id} "
+                f"<a href=/internal/conservation-status/{self.id} "
                 f'target="_blank">View <i class="bi bi-box-arrow-up-right"></i></a>'
             ),
         )

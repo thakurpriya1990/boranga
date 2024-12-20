@@ -8,5 +8,6 @@ def config(request):
         "build_tag": settings.BUILD_TAG,
         "GIT_COMMIT_HASH": settings.GIT_COMMIT_HASH,
         "GIS_SERVER_URL": settings.GIS_SERVER_URL,
-        "app_build_url": settings.DEV_APP_BUILD_URL,
+        "vue3_entry_script": settings.VUE3_ENTRY_SCRIPT,
+        "use_vite_dev_server": settings.USE_VITE_DEV_SERVER,
     }

@@ -3,8 +3,12 @@
         <form class="form-horizontal" action="index.html" method="post">
             <div class="col-sm-12">
                 <div class="text-end">
-                    <button :disabled="isReadOnly" type="button" class="btn btn-primary mb-2 "
-                        @click.prevent="newSite">
+                    <button
+                        :disabled="isReadOnly"
+                        type="button"
+                        class="btn btn-primary mb-2"
+                        @click.prevent="newSite"
+                    >
                         <i class="fa-solid fa-circle-plus"></i>
                         Add New Site
                     </button>
@@ -17,24 +21,27 @@
             :dt-options="options"
             :dt-headers="headers"
         />
-        <SiteDetail 
-            ref="site_detail" 
-            @refreshFromResponse="updatedSites" 
+        <SiteDetail
+            ref="site_detail"
             :url="occ_site_url"
             :occurrence_obj="occurrence_obj"
-            >
+            @refresh-from-response="updatedSites"
+        >
         </SiteDetail>
         <div v-if="occSiteHistoryId">
-            <OCCSiteHistory ref="occ_site_history" :key="occSiteHistoryId"
-                :site-id="occSiteHistoryId" />
+            <OCCSiteHistory
+                ref="occ_site_history"
+                :key="occSiteHistoryId"
+                :site-id="occSiteHistoryId"
+            />
         </div>
     </div>
 </template>
 
 <script>
-import Vue from 'vue'
+import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue';
-import SiteDetail from '@/components/internal/occurrence/add_site.vue'
+import SiteDetail from '@/components/internal/occurrence/add_site.vue';
 import OCCSiteHistory from '../../internal/occurrence/occ_site_history.vue';
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
 
@@ -52,12 +59,11 @@ export default {
         },
     },
     data: function () {
-        let vm = this;
         return {
             uuid: 0,
             occSiteHistoryId: null,
             occ_site_url: api_endpoints.occ_site,
-            datatable_id: 'occurrence-site-datatable-' + vm._uid,
+            datatable_id: 'occurrence-site-datatable-' + uuid(),
             headers: [
                 'Site Number',
                 'Site Name',
@@ -71,54 +77,64 @@ export default {
     },
     computed: {
         isReadOnly: function () {
-            return !(this.occurrence_obj.can_user_edit);
+            return !this.occurrence_obj.can_user_edit;
         },
         column_site_number: function () {
             let vm = this;
             return {
-                data: "site_number",
+                data: 'site_number',
                 orderable: true,
                 searchable: true,
                 mRender: function (data, type, full) {
                     if (full.visible) {
-                        return vm.occurrence_obj.occurrence_number + " - " + full.site_number
+                        return (
+                            vm.occurrence_obj.occurrence_number +
+                            ' - ' +
+                            full.site_number
+                        );
                     } else {
-                        return '<s>' + vm.occurrence_obj.occurrence_number + " - " + full.site_number + '</s>'
+                        return (
+                            '<s>' +
+                            vm.occurrence_obj.occurrence_number +
+                            ' - ' +
+                            full.site_number +
+                            '</s>'
+                        );
                     }
                 },
-            }
+            };
         },
         column_site_name: function () {
             return {
-                data: "site_name",
+                data: 'site_name',
                 orderable: true,
                 searchable: true,
                 mRender: function (data, type, full) {
                     if (full.visible) {
-                        return full.site_name
+                        return full.site_name;
                     } else {
-                        return '<s>' + full.site_name + '</s>'
+                        return '<s>' + full.site_name + '</s>';
                     }
-                }
-            }
+                },
+            };
         },
         column_point_coordinates: function () {
             return {
-                data: "id",
+                data: 'id',
                 searchable: true,
                 mRender: function (data, type, full) {
                     if (full.point_coord1 && full.point_coord2) {
-                        let coord1 = full.point_coord1.toString()
-                        let coord2 = full.point_coord2.toString()
+                        let coord1 = full.point_coord1.toString();
+                        let coord2 = full.point_coord2.toString();
 
-                        if (Number.isInteger((full.point_coord1))) {
-                            coord1 += ".0";
+                        if (Number.isInteger(full.point_coord1)) {
+                            coord1 += '.0';
                         }
-                        if (Number.isInteger((full.point_coord2))) {
-                            coord2 += ".0"; 
+                        if (Number.isInteger(full.point_coord2)) {
+                            coord2 += '.0';
                         }
 
-                        let value = coord2 + ", " + coord1;
+                        let value = coord2 + ', ' + coord1;
                         let result = helpers.dtPopover(value, 30, 'hover');
                         if (full.visible) {
                             return result;
@@ -126,14 +142,14 @@ export default {
                             return '<s>' + result + '</s>';
                         }
                     } else {
-                        return ""
+                        return '';
                     }
                 },
-            }
+            };
         },
         column_datum: function () {
             return {
-                data: "id",
+                data: 'id',
                 searchable: true,
                 mRender: function (data, type, full) {
                     if (full.visible) {
@@ -142,11 +158,11 @@ export default {
                         return '<s>' + full.datum_name + '</s>';
                     }
                 },
-            }
+            };
         },
         column_comments: function () {
             return {
-                data: "comments",
+                data: 'comments',
                 searchable: true,
                 mRender: function (data, type, full) {
                     let value = full.comments;
@@ -156,12 +172,12 @@ export default {
                     } else {
                         return '<s>' + result + '</s>';
                     }
-                }
-            }
+                },
+            };
         },
         column_related_reports: function () {
             return {
-                data: "related_occurrence_report_numbers",
+                data: 'related_occurrence_report_numbers',
                 mRender: function (data, type, full) {
                     let value = full.related_occurrence_report_numbers;
                     let result = helpers.dtPopover(value, 30, 'hover');
@@ -170,13 +186,13 @@ export default {
                     } else {
                         return '<s>' + result + '</s>';
                     }
-                }
-            }
+                },
+            };
         },
         column_action: function () {
             let vm = this;
             return {
-                data: "id",
+                data: 'id',
                 mRender: function (data, type, full) {
                     let links = '';
                     if (full.visible) {
@@ -190,8 +206,8 @@ export default {
                     }
                     links += `<a href='#' data-history-site='${full.id}'>History</a><br>`;
                     return links;
-                }
-            }
+                },
+            };
         },
         options: function () {
             let vm = this;
@@ -222,10 +238,14 @@ export default {
                     { responsivePriority: 2, targets: -1 },
                 ],
                 ajax: {
-                    "url": helpers.add_endpoint_json(api_endpoints.occurrence, vm.occurrence_obj.id + '/sites'),
-                    "dataSrc": ''
+                    url: helpers.add_endpoint_json(
+                        api_endpoints.occurrence,
+                        vm.occurrence_obj.id + '/sites'
+                    ),
+                    dataSrc: '',
                 },
-                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                dom:
+                    "<'d-flex align-items-center'<'me-auto'l>fB>" +
                     "<'row'<'col-sm-12'tr>>" +
                     "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons: [],
@@ -234,7 +254,7 @@ export default {
                 drawCallback: function () {
                     helpers.enablePopovers();
                 },
-                initComplete: function (settings, json) {
+                initComplete: function () {
                     helpers.enablePopovers();
                     // another option to fix the responsive table overflow css on tab switch
                     setTimeout(function () {
@@ -252,7 +272,11 @@ export default {
     methods: {
         adjust_table_width: function () {
             let vm = this;
-            if (vm.$refs.occurrence_site_datatable !== undefined) { vm.$refs.occurrence_site_datatable.vmDataTable.columns.adjust().responsive.recalc(); }
+            if (vm.$refs.occurrence_site_datatable) {
+                vm.$refs.occurrence_site_datatable.vmDataTable.columns
+                    .adjust()
+                    .responsive.recalc();
+            }
         },
         newSite: function () {
             let vm = this;
@@ -261,45 +285,47 @@ export default {
             var new_occ_site = {
                 occurrence: vm.occurrence_obj.id,
                 related_occurrence_reports: [],
-            }
+            };
             this.$refs.site_detail.siteObj = new_occ_site;
             this.$refs.site_detail.site_action = 'add';
             this.$refs.site_detail.isModalOpen = true;
         },
         editSite: function (id) {
-            let vm = this;
             this.$refs.site_detail.site_id = id;
             this.$refs.site_detail.site_action = 'edit';
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.occ_site, id)).then((response) => {
-                this.$refs.site_detail.siteObj = response.body;
-            },
-            err => {
-                console.log(err);
-            });
+            fetch(helpers.add_endpoint_json(api_endpoints.occ_site, id)).then(
+                async (response) => {
+                    this.$refs.site_detail.siteObj = await response.json();
+                },
+                (err) => {
+                    console.log(err);
+                }
+            );
             this.$refs.site_detail.isModalOpen = true;
         },
         viewSite: function (id) {
-            let vm = this;
             this.$refs.site_detail.site_id = id;
             this.$refs.site_detail.site_action = 'view';
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.occ_site, id)).then((response) => {
-                this.$refs.site_detail.siteObj = response.body;
-            },
-            err => {
-                console.log(err);
-            });
+            fetch(helpers.add_endpoint_json(api_endpoints.occ_site, id)).then(
+                async (response) => {
+                    this.$refs.site_detail.siteObj = await response.json();
+                },
+                (err) => {
+                    console.log(err);
+                }
+            );
             this.$refs.site_detail.isModalOpen = true;
         },
-        updatedSites: function() {
+        updatedSites: function () {
             this.$refs.occurrence_site_datatable.vmDataTable.ajax.reload();
             this.$emit('updatedSites');
         },
         discardSite: function (id) {
             let vm = this;
             swal.fire({
-                title: "Discard Site",
-                text: "Are you sure you want to discard this Site?",
-                icon: "question",
+                title: 'Discard Site',
+                text: 'Are you sure you want to discard this Site?',
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Discard Site',
                 customClass: {
@@ -307,53 +333,80 @@ export default {
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    vm.$http.patch(helpers.add_endpoint_json(api_endpoints.occ_site, id + '/discard'))
-                        .then((response) => {
-                            swal.fire({
-                                title: 'Discarded',
-                                text: 'The Site has been discarded',
-                                icon: 'success',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
+            }).then(
+                (result) => {
+                    if (result.isConfirmed) {
+                        fetch(
+                            helpers.add_endpoint_json(
+                                api_endpoints.occ_site,
+                                id + '/discard'
+                            ),
+                            {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
                                 },
-                            }).then((result) => {
-                                vm.updatedSites();
-                            });
-                        }, (error) => {
-                            console.log(error);
-                        });
-                }
-            }, (error) => {
-
-            });
+                            }
+                        ).then(
+                            () => {
+                                swal.fire({
+                                    title: 'Discarded',
+                                    text: 'The Site has been discarded',
+                                    icon: 'success',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                }).then(() => {
+                                    vm.updatedSites();
+                                });
+                            },
+                            (error) => {
+                                console.log(error);
+                            }
+                        );
+                    }
+                },
+                () => {}
+            );
         },
         reinstateSite: function (id) {
             let vm = this;
-            vm.$http.patch(helpers.add_endpoint_json(api_endpoints.occ_site, id + '/reinstate'))
-            .then((response) => {
-                swal.fire({
-                    title: 'Reinstated',
-                    text: 'The Site has been reinstated',
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.occ_site,
+                    id + '/reinstate'
+                ),
+                {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                }).then((result) => {
-                    vm.updatedSites();
-                });
-            }, (error) => {
-                var errorText = helpers.apiVueResourceError(error);
-                swal.fire({
-                    title: 'Error',
-                    text: errorText,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-            });            
+                }
+            ).then(
+                () => {
+                    swal.fire({
+                        title: 'Reinstated',
+                        text: 'The Site has been reinstated',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    }).then(() => {
+                        vm.updatedSites();
+                    });
+                },
+                (error) => {
+                    var errorText = helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error',
+                        text: errorText,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                }
+            );
         },
         historySite: function (id) {
             this.occSiteHistoryId = parseInt(id);
@@ -382,24 +435,39 @@ export default {
                     vm.editSite(id);
                 }
             );
-            vm.$refs.occurrence_site_datatable.vmDataTable.on('click', 'a[data-delete-site]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-delete-site');
-                vm.discardSite(id);
-            });
-            vm.$refs.occurrence_site_datatable.vmDataTable.on('click', 'a[data-reinstate-site]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-reinstate-site');
-                vm.reinstateSite(id);
-            });
-            vm.$refs.occurrence_site_datatable.vmDataTable.on('click', 'a[data-history-site]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-history-site');
-                vm.historySite(id);
-            });
-            vm.$refs.occurrence_site_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
-                helpers.enablePopovers();
-            });
+            vm.$refs.occurrence_site_datatable.vmDataTable.on(
+                'click',
+                'a[data-delete-site]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-delete-site');
+                    vm.discardSite(id);
+                }
+            );
+            vm.$refs.occurrence_site_datatable.vmDataTable.on(
+                'click',
+                'a[data-reinstate-site]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-reinstate-site');
+                    vm.reinstateSite(id);
+                }
+            );
+            vm.$refs.occurrence_site_datatable.vmDataTable.on(
+                'click',
+                'a[data-history-site]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-history-site');
+                    vm.historySite(id);
+                }
+            );
+            vm.$refs.occurrence_site_datatable.vmDataTable.on(
+                'childRow.dt',
+                function () {
+                    helpers.enablePopovers();
+                }
+            );
         },
     },
 };

@@ -1,103 +1,202 @@
 <template lang="html">
-    <div v-if="species_community" class="container" id="internalSpeciesCommunity">
-        <div class="row" style="padding-bottom: 50px;">
-            <h3>{{ display_group_type }} {{ display_number }} - {{ display_name }}</h3>
+    <div
+        v-if="species_community"
+        id="internalSpeciesCommunity"
+        class="container"
+    >
+        <div class="row" style="padding-bottom: 50px">
+            <h3>
+                {{ display_group_type }} {{ display_number }} -
+                {{ display_name }}
+            </h3>
             <div v-if="!comparing" class="col-md-3">
-                <template>
-                    <div class="">
-                        <div class="card card-default mb-3">
-                            <div class="card-header">
-                                Image
+                <div class="">
+                    <div class="card card-default mb-3">
+                        <div class="card-header">Image</div>
+                        <div class="card-body">
+                            <div class="row mb-2 pb-2">
+                                <div
+                                    v-if="
+                                        !uploadingImage &&
+                                        speciesCommunitiesImage
+                                    "
+                                    class="col"
+                                >
+                                    <div
+                                        class="rounded"
+                                        :class="
+                                            downloadingImage
+                                                ? 'animated-background bg-secondary'
+                                                : ''
+                                        "
+                                        style="width: 258px"
+                                        :style="
+                                            downloadingImage
+                                                ? 'height:258px;'
+                                                : ''
+                                        "
+                                    >
+                                        <img
+                                            v-show="!downloadingImage"
+                                            :src="speciesCommunitiesImage"
+                                            width="258"
+                                            class="img-thumbnail img-fluid rounded"
+                                            @load="onImageLoad"
+                                        />
+                                    </div>
+                                </div>
+                                <div
+                                    v-else
+                                    class="col d-flex bg-light bg-gradient justify-content-center align-content-middle mx-2"
+                                    style="height: 258px"
+                                >
+                                    <div class="align-self-center text-muted">
+                                        No Image Uploaded
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <template>
-                                    <div class="row mb-2 pb-2">
-                                        <div v-if="!uploadingImage && speciesCommunitiesImage" class="col">
-                                            <div class="rounded"
-                                                :class="downloadingImage ? 'animated-background bg-secondary' : ''"
-                                                style="width:258px;" :style="downloadingImage ? 'height:258px;' : ''">
-                                                <img v-show="!downloadingImage" @load="onImageLoad"
-                                                    :src="speciesCommunitiesImage" width="258"
-                                                    class="img-thumbnail img-fluid rounded" />
-                                            </div>
-                                        </div>
-                                        <div v-else
-                                            class="col d-flex bg-light bg-gradient justify-content-center align-content-middle mx-2"
-                                            style="height:258px;">
-                                            <div class="align-self-center text-muted">No Image Uploaded</div>
+                            <div
+                                v-if="
+                                    hasUserEditMode &&
+                                    species_community.processing_status !=
+                                        'Discarded'
+                                "
+                                class="row border-top pt-3 mb-2"
+                            >
+                                <div class="col">
+                                    <div class="d-flex justify-content-center">
+                                        <div class="text-muted">
+                                            Image Actions
                                         </div>
                                     </div>
-                                    <div v-if="hasUserEditMode && species_community.processing_status != 'Discarded'"
-                                        class="row border-top pt-3 mb-2">
-                                        <div class="col">
-                                            <div class="d-flex justify-content-center">
-                                                <div class="text-muted">Image Actions</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div v-if="hasUserEditMode && species_community.processing_status != 'Discarded'"
-                                        class="row">
-                                        <div class="col">
-                                            <div class="d-flex align-items-center flex-column">
-                                                <label v-if="!speciesCommunitiesImage" for="image-upload" role="button"
-                                                    class="btn btn-primary btn-sm w-50 mb-2 text-start"><i
-                                                        class="bi bi-upload me-3"></i>
-                                                    Upload</label>
-                                                <input id="image-upload" class="d-none" type="file" accept="image/*"
-                                                    ref="speciesCommunitiesImage" @change="uploadImage">
-                                                <button class="btn btn-secondary btn-sm w-50 mb-2 text-start"
-                                                    @click="showReinstateImageModal"><i
-                                                        class="bi bi-clock-history me-3"></i> Reinstate</button>
-                                                <template v-if="!uploadingImage && speciesCommunitiesImage">
-                                                    <label for="image-upload" role="button"
-                                                        class="btn btn-primary btn-sm w-50 mb-2 text-start"><i
-                                                            class="bi bi-pencil-fill me-3"></i>
-                                                        Replace</label>
-                                                    <input id="image-upload" class="d-none" type="file" accept="image/*"
-                                                        ref="speciesCommunitiesImage" @change="uploadImage">
+                                </div>
+                            </div>
+                            <div
+                                v-if="
+                                    hasUserEditMode &&
+                                    species_community.processing_status !=
+                                        'Discarded'
+                                "
+                                class="row"
+                            >
+                                <div class="col">
+                                    <div
+                                        class="d-flex align-items-center flex-column"
+                                    >
+                                        <label
+                                            v-if="!speciesCommunitiesImage"
+                                            for="image-upload"
+                                            role="button"
+                                            class="btn btn-primary btn-sm w-50 mb-2 text-start"
+                                            ><i class="bi bi-upload me-3"></i>
+                                            Upload</label
+                                        >
+                                        <input
+                                            id="image-upload"
+                                            ref="speciesCommunitiesImage"
+                                            class="d-none"
+                                            type="file"
+                                            accept="image/*"
+                                            @change="uploadImage"
+                                        />
+                                        <button
+                                            class="btn btn-secondary btn-sm w-50 mb-2 text-start"
+                                            @click="showReinstateImageModal"
+                                        >
+                                            <i
+                                                class="bi bi-clock-history me-3"
+                                            ></i>
+                                            Reinstate
+                                        </button>
+                                        <template
+                                            v-if="
+                                                !uploadingImage &&
+                                                speciesCommunitiesImage
+                                            "
+                                        >
+                                            <label
+                                                for="image-upload"
+                                                role="button"
+                                                class="btn btn-primary btn-sm w-50 mb-2 text-start"
+                                                ><i
+                                                    class="bi bi-pencil-fill me-3"
+                                                ></i>
+                                                Replace</label
+                                            >
+                                            <input
+                                                id="image-upload"
+                                                ref="speciesCommunitiesImage"
+                                                class="d-none"
+                                                type="file"
+                                                accept="image/*"
+                                                @change="uploadImage"
+                                            />
 
-                                                    <button @click="confirmDiscardImage"
-                                                        class="btn btn-danger btn-sm w-50 mb-2 text-start"><i
-                                                            class="bi bi-trash3-fill me-3"></i>
-                                                        Discard</button>
-                                                </template>
-                                                <button v-if="uploadingImage"
-                                                    class="btn btn-primary btn-sm w-50 mb-2 text-start">
-                                                    <span class="spinner-border spinner-border-sm me-3" role="status"
-                                                        aria-hidden="true"></span>
-                                                    Uploading
-                                                    <span class="visually-hidden">Loading...</span>
-                                                </button>
-                                            </div>
-                                        </div>
+                                            <button
+                                                class="btn btn-danger btn-sm w-50 mb-2 text-start"
+                                                @click="confirmDiscardImage"
+                                            >
+                                                <i
+                                                    class="bi bi-trash3-fill me-3"
+                                                ></i>
+                                                Discard
+                                            </button>
+                                        </template>
+                                        <button
+                                            v-if="uploadingImage"
+                                            class="btn btn-primary btn-sm w-50 mb-2 text-start"
+                                        >
+                                            <span
+                                                class="spinner-border spinner-border-sm me-3"
+                                                role="status"
+                                                aria-hidden="true"
+                                            ></span>
+                                            Uploading
+                                            <span class="visually-hidden"
+                                                >Loading...</span
+                                            >
+                                        </button>
                                     </div>
-                                </template>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </template>
+                </div>
 
-                <CommsLogs :comms_url="comms_url" :logs_url="logs_url" :comms_add_url="comms_add_url"
-                    :disable_add_entry="!species_community.can_add_log" class="mb-3" />
+                <CommsLogs
+                    :comms_url="comms_url"
+                    :logs_url="logs_url"
+                    :comms_add_url="comms_add_url"
+                    :disable_add_entry="!species_community.can_add_log"
+                    class="mb-3"
+                />
 
-                <Submission v-if="canSeeSubmission" :submitter_first_name="submitter_first_name"
-                    :submitter_last_name="submitter_last_name" :lodgement_date="species_community.lodgement_date"
-                    class="mb-3" />
+                <Submission
+                    v-if="canSeeSubmission"
+                    :submitter_first_name="submitter_first_name"
+                    :submitter_last_name="submitter_last_name"
+                    :lodgement_date="species_community.lodgement_date"
+                    class="mb-3"
+                />
 
                 <div class="card card-default sticky-top">
-                    <div class="card-header">
-                        Workflow
-                    </div>
+                    <div class="card-header">Workflow</div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-sm-12">
                                 <strong>Status</strong><br />
-                                {{ species_community.processing_status }} <span v-if="isActive"> -
-                                    {{ species_community.publishing_status.public_status }}</span>
+                                {{ species_community.processing_status }}
+                                <span v-if="isActive">
+                                    -
+                                    {{
+                                        species_community.publishing_status
+                                            .public_status
+                                    }}</span
+                                >
                             </div>
                         </div>
                     </div>
-                    <div v-if='hasUserEditMode' class="card-body border-top">
+                    <div v-if="hasUserEditMode" class="card-body border-top">
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="row mb-2">
@@ -105,47 +204,79 @@
                                         <strong>Action</strong><br />
                                     </div>
                                 </div>
-                                <div class="row" v-if="isActive">
+                                <div v-if="isActive" class="row">
                                     <template v-if="!isCommunity">
                                         <div class="row mb-2">
                                             <div class="col-sm-12">
-                                                <button class="btn btn-primary w-100"
-                                                    @click.prevent="splitSpecies()">Split</button><br />
+                                                <button
+                                                    class="btn btn-primary w-100"
+                                                    @click.prevent="
+                                                        splitSpecies()
+                                                    "
+                                                >
+                                                    Split</button
+                                                ><br />
                                             </div>
                                         </div>
                                         <div class="row mb-2">
                                             <div class="col-sm-12">
-                                                <button class="btn btn-primary w-100"
-                                                    @click.prevent="combineSpecies()">Combine</button><br />
+                                                <button
+                                                    class="btn btn-primary w-100"
+                                                    @click.prevent="
+                                                        combineSpecies()
+                                                    "
+                                                >
+                                                    Combine</button
+                                                ><br />
                                             </div>
                                         </div>
                                         <div class="row mb-2">
                                             <div class="col-sm-12">
-                                                <button class="btn btn-primary w-100"
-                                                    @click.prevent="renameSpecies()">Rename</button><br />
+                                                <button
+                                                    class="btn btn-primary w-100"
+                                                    @click.prevent="
+                                                        renameSpecies()
+                                                    "
+                                                >
+                                                    Rename</button
+                                                ><br />
                                             </div>
                                         </div>
                                     </template>
                                     <template v-else>
                                         <div class="row mb-2">
                                             <div class="col-sm-12">
-                                                <button class="btn btn-primary"
-                                                    @click.prevent="renameCommunity()">Rename</button><br />
+                                                <button
+                                                    class="btn btn-primary"
+                                                    @click.prevent="
+                                                        renameCommunity()
+                                                    "
+                                                >
+                                                    Rename</button
+                                                ><br />
                                             </div>
                                         </div>
                                     </template>
                                 </div>
-                                <div class="row" v-if="isActive">
+                                <div v-if="isActive" class="row">
                                     <div v-if="!isPublic" class="row mb-2">
                                         <div class="col-sm-12">
-                                            <button class="btn btn-primary w-100" @click.prevent="makePublic()">Make
-                                                Public</button><br />
+                                            <button
+                                                class="btn btn-primary w-100"
+                                                @click.prevent="makePublic()"
+                                            >
+                                                Make Public</button
+                                            ><br />
                                         </div>
                                     </div>
                                     <div v-else class="row mb-2">
                                         <div class="col-sm-12">
-                                            <button class="btn btn-primary w-100" @click.prevent="makePrivate()">Make
-                                                Private</button><br />
+                                            <button
+                                                class="btn btn-primary w-100"
+                                                @click.prevent="makePrivate()"
+                                            >
+                                                Make Private</button
+                                            ><br />
                                         </div>
                                     </div>
                                 </div>
@@ -157,15 +288,21 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-sm-12">
-                                            <button class="btn btn-primary w-100"
-                                                @click.prevent="discardSpeciesProposal()">Discard</button><br />
+                                            <button
+                                                class="btn btn-primary w-100"
+                                                @click.prevent="
+                                                    discardSpeciesProposal()
+                                                "
+                                            >
+                                                Discard</button
+                                            ><br />
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div v-else-if='canReopen' class="card-body border-top">
+                    <div v-else-if="canReopen" class="card-body border-top">
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="col-sm-12">
@@ -176,8 +313,12 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-sm-12">
-                                            <button class="btn btn-primary"
-                                                @click.prevent="reopen()">Reopen</button><br />
+                                            <button
+                                                class="btn btn-primary"
+                                                @click.prevent="reopen()"
+                                            >
+                                                Reopen</button
+                                            ><br />
                                         </div>
                                     </div>
                                 </div>
@@ -188,139 +329,265 @@
             </div>
             <div class="col-md-9">
                 <div class="row">
-                    <template>
-                        <div class="">
-                            <div class="row">
-                                <form :action="species_community_form_url" method="post" name="new_species"
-                                    enctype="multipart/form-data">
-                                    <ProposalSpeciesCommunities ref="species_communities"
-                                        :species_community="species_community"
-                                        :species_community_original="species_community_original"
-                                        id="speciesCommunityStart" :is_internal="true"
-                                        :is_readonly="species_community.readonly || species_community.processing_status == 'Discarded'">
-                                    </ProposalSpeciesCommunities>
-                                    <input type="hidden" name="csrfmiddlewaretoken" :value="csrf_token" />
-                                    <input type='hidden' name="species_community_id" :value="1" />
-                                    <div class="row" style="margin-bottom: 50px">
-                                        <div class="navbar fixed-bottom" style="background-color: #f5f5f5;">
-                                            <div class="container">
-                                                <div class="col-md-6">
-                                                    <button class="btn btn-primary me-2 pull-left"
-                                                        style="margin-top:5px;" @click.prevent="returnToDashboard">
-                                                        Return to Dashboard</button>
-                                                </div>
-                                                <div v-if="species_community.can_user_edit && species_community.processing_status != 'Discarded'"
-                                                    class="col-md-6 text-end">
-                                                    <button v-if="savingSpeciesCommunity"
-                                                        class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
-                                                        disabled>Save and Continue <span
-                                                            class="spinner-border spinner-border-sm" role="status"
-                                                            aria-hidden="true"></span>
-                                                        <span class="visually-hidden">Loading...</span></button>
-                                                    <button v-else class="btn btn-primary me-2 ull-right"
-                                                        style="margin-top:5px;" @click.prevent="save()"
-                                                        :disabled="saveExitSpeciesCommunity || submitSpeciesCommunity">Save
-                                                        and Continue</button>
+                    <div class="">
+                        <div class="row">
+                            <form
+                                :action="species_community_form_url"
+                                method="post"
+                                name="new_species"
+                                enctype="multipart/form-data"
+                            >
+                                <ProposalSpeciesCommunities
+                                    id="speciesCommunityStart"
+                                    ref="species_communities"
+                                    :species_community="species_community"
+                                    :species_community_original="
+                                        species_community_original
+                                    "
+                                    :is_internal="true"
+                                    :is_readonly="
+                                        species_community.readonly ||
+                                        species_community.processing_status ==
+                                            'Discarded'
+                                    "
+                                >
+                                </ProposalSpeciesCommunities>
+                                <input
+                                    type="hidden"
+                                    name="csrfmiddlewaretoken"
+                                    :value="csrf_token"
+                                />
+                                <input
+                                    type="hidden"
+                                    name="species_community_id"
+                                    :value="1"
+                                />
+                                <div class="row" style="margin-bottom: 50px">
+                                    <div
+                                        class="navbar fixed-bottom"
+                                        style="background-color: #f5f5f5"
+                                    >
+                                        <div class="container">
+                                            <div class="col-md-6">
+                                                <button
+                                                    class="btn btn-primary me-2 pull-left"
+                                                    style="margin-top: 5px"
+                                                    @click.prevent="
+                                                        returnToDashboard
+                                                    "
+                                                >
+                                                    Return to Dashboard
+                                                </button>
+                                            </div>
+                                            <div
+                                                v-if="
+                                                    species_community.can_user_edit &&
+                                                    species_community.processing_status !=
+                                                        'Discarded'
+                                                "
+                                                class="col-md-6 text-end"
+                                            >
+                                                <button
+                                                    v-if="
+                                                        savingSpeciesCommunity
+                                                    "
+                                                    class="btn btn-primary me-2 pull-right"
+                                                    style="margin-top: 5px"
+                                                    disabled
+                                                >
+                                                    Save and Continue
+                                                    <span
+                                                        class="spinner-border spinner-border-sm"
+                                                        role="status"
+                                                        aria-hidden="true"
+                                                    ></span>
+                                                    <span
+                                                        class="visually-hidden"
+                                                        >Loading...</span
+                                                    >
+                                                </button>
+                                                <button
+                                                    v-else
+                                                    class="btn btn-primary me-2 ull-right"
+                                                    style="margin-top: 5px"
+                                                    :disabled="
+                                                        saveExitSpeciesCommunity ||
+                                                        submitSpeciesCommunity
+                                                    "
+                                                    @click.prevent="save()"
+                                                >
+                                                    Save and Continue
+                                                </button>
 
-                                                    <button v-if="saveExitSpeciesCommunity"
-                                                        class="btn btn-primary me-2 pull-right" style="margin-top:5px;"
-                                                        disabled>Save and Exit <span
-                                                            class="spinner-border spinner-border-sm" role="status"
-                                                            aria-hidden="true"></span>
-                                                        <span class="visually-hidden">Loading...</span></button>
-                                                    <button v-else class="btn btn-primary me-2 pull-right"
-                                                        style="margin-top:5px;" @click.prevent="save_exit()"
-                                                        :disabled="savingSpeciesCommunity || submitSpeciesCommunity">Save
-                                                        and Exit</button>
+                                                <button
+                                                    v-if="
+                                                        saveExitSpeciesCommunity
+                                                    "
+                                                    class="btn btn-primary me-2 pull-right"
+                                                    style="margin-top: 5px"
+                                                    disabled
+                                                >
+                                                    Save and Exit
+                                                    <span
+                                                        class="spinner-border spinner-border-sm"
+                                                        role="status"
+                                                        aria-hidden="true"
+                                                    ></span>
+                                                    <span
+                                                        class="visually-hidden"
+                                                        >Loading...</span
+                                                    >
+                                                </button>
+                                                <button
+                                                    v-else
+                                                    class="btn btn-primary me-2 pull-right"
+                                                    style="margin-top: 5px"
+                                                    :disabled="
+                                                        savingSpeciesCommunity ||
+                                                        submitSpeciesCommunity
+                                                    "
+                                                    @click.prevent="save_exit()"
+                                                >
+                                                    Save and Exit
+                                                </button>
 
-                                                    <button v-if="submitSpeciesCommunity"
-                                                        class="btn btn-primary pull-right" style="margin-top:5px;"
-                                                        disabled>Submit <span class="spinner-border spinner-border-sm"
-                                                            role="status" aria-hidden="true"></span>
-                                                        <span class="visually-hidden">Loading...</span></button>
-                                                    <button v-else class="btn btn-primary pull-right"
-                                                        style="margin-top:5px;" @click.prevent="submit()"
-                                                        :disabled="saveExitSpeciesCommunity || savingSpeciesCommunity">Submit</button>
-                                                </div>
-                                                <div v-else-if="hasUserEditMode && species_community.processing_status != 'Discarded'"
-                                                    class="col-md-6 text-end">
-                                                    <button v-if="savingSpeciesCommunity"
-                                                        class="btn btn-primary pull-right" style="margin-top:5px;"
-                                                        disabled>Save Changes <span
-                                                            class="spinner-border spinner-border-sm" role="status"
-                                                            aria-hidden="true"></span>
-                                                        <span class="visually-hidden">Loading...</span></button>
-                                                    <button v-else class="btn btn-primary pull-right"
-                                                        style="margin-top:5px;" @click.prevent="save()">Save
-                                                        Changes</button>
-                                                </div>
+                                                <button
+                                                    v-if="
+                                                        submitSpeciesCommunity
+                                                    "
+                                                    class="btn btn-primary pull-right"
+                                                    style="margin-top: 5px"
+                                                    disabled
+                                                >
+                                                    Activate
+                                                    <span
+                                                        class="spinner-border spinner-border-sm"
+                                                        role="status"
+                                                        aria-hidden="true"
+                                                    ></span>
+                                                    <span
+                                                        class="visually-hidden"
+                                                        >Loading...</span
+                                                    >
+                                                </button>
+                                                <button
+                                                    v-else
+                                                    class="btn btn-primary pull-right"
+                                                    style="margin-top: 5px"
+                                                    :disabled="
+                                                        saveExitSpeciesCommunity ||
+                                                        savingSpeciesCommunity
+                                                    "
+                                                    @click.prevent="submit()"
+                                                >
+                                                    Activate
+                                                </button>
+                                            </div>
+                                            <div
+                                                v-else-if="
+                                                    hasUserEditMode &&
+                                                    species_community.processing_status !=
+                                                        'Discarded'
+                                                "
+                                                class="col-md-6 text-end"
+                                            >
+                                                <button
+                                                    v-if="
+                                                        savingSpeciesCommunity
+                                                    "
+                                                    class="btn btn-primary pull-right"
+                                                    style="margin-top: 5px"
+                                                    disabled
+                                                >
+                                                    Save Changes
+                                                    <span
+                                                        class="spinner-border spinner-border-sm"
+                                                        role="status"
+                                                        aria-hidden="true"
+                                                    ></span>
+                                                    <span
+                                                        class="visually-hidden"
+                                                        >Loading...</span
+                                                    >
+                                                </button>
+                                                <button
+                                                    v-else
+                                                    class="btn btn-primary pull-right"
+                                                    style="margin-top: 5px"
+                                                    @click.prevent="save()"
+                                                >
+                                                    Save Changes
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
-                                </form>
-                            </div>
+                                </div>
+                            </form>
                         </div>
-                    </template>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <SpeciesSplit v-if="species_community && !isCommunity" ref="species_split"
-            :species_community="species_community" :is_internal="true" @refreshFromResponse="refreshFromResponse" />
-        <SpeciesCombine v-if="species_community && !isCommunity" ref="species_combine"
-            :species_community="species_community" :is_internal="true" @refreshFromResponse="refreshFromResponse" />
-        <SpeciesRename v-if="species_community && !isCommunity" ref="species_rename"
-            :species_community_original="species_community" :is_internal="true"
-            @refreshFromResponse="refreshFromResponse" />
-        <CommunityRename v-if="species_community && isCommunity" ref="community_rename"
-            :species_community_original="species_community" :is_internal="true"
-            @refreshFromResponse="refreshFromResponse" />
+        <SpeciesSplit
+            v-if="species_community && !isCommunity"
+            ref="species_split"
+            :species_community="species_community"
+            :is_internal="true"
+            @refresh-from-response="refreshFromResponse"
+        />
+        <SpeciesCombine
+            v-if="species_community && !isCommunity"
+            ref="species_combine"
+            :species_community="species_community"
+            :is_internal="true"
+            @refresh-from-response="refreshFromResponse"
+        />
+        <SpeciesRename
+            v-if="species_community && !isCommunity"
+            ref="species_rename"
+            :species_community_original="species_community"
+            :is_internal="true"
+            @refresh-from-response="refreshFromResponse"
+        />
+        <CommunityRename
+            v-if="species_community && isCommunity"
+            ref="community_rename"
+            :species_community_original="species_community"
+            :is_internal="true"
+            @refresh-from-response="refreshFromResponse"
+        />
 
-        <MakePublic ref="make_public" :species_community="species_community"
-            :species_community_original="species_community_original" :is_internal="true"
-            @refreshFromResponse="refreshFromResponse" />
-        <ReinstateImage ref="reinstateImage" :title="reinstate_image_title" :imageHistoryUrl="image_history_url"
-            @reinstateImage="reinstateImage" />
+        <MakePublic
+            ref="make_public"
+            :species_community="species_community"
+            :species_community_original="species_community_original"
+            :is_internal="true"
+            @refresh-from-response="refreshFromResponse"
+        />
+        <ReinstateImage
+            ref="reinstateImage"
+            :title="reinstate_image_title"
+            :image-history-url="image_history_url"
+            @reinstate-image="reinstateImage"
+        />
     </div>
 </template>
 <script>
-import Vue from 'vue'
-import datatable from '@vue-utils/datatable.vue'
-import CommsLogs from '@common-utils/comms_logs.vue'
-import Submission from '@common-utils/submission.vue'
-import ProposalSpeciesCommunities from '@/components/form_species_communities.vue'
-import SpeciesSplit from './species_split.vue'
-import SpeciesCombine from './species_combine.vue'
-import CommunityRename from './community_rename.vue'
-import SpeciesRename from './species_rename.vue'
-import MakePublic from './make_public.vue'
-import ReinstateImage from '@common-utils/reinstate_image.vue'
+import CommsLogs from '@common-utils/comms_logs.vue';
+import Submission from '@common-utils/submission.vue';
+import ProposalSpeciesCommunities from '@/components/form_species_communities.vue';
+import SpeciesSplit from './species_split.vue';
+import SpeciesCombine from './species_combine.vue';
+import CommunityRename from './community_rename.vue';
+import SpeciesRename from './species_rename.vue';
+import MakePublic from './make_public.vue';
+import ReinstateImage from '@common-utils/reinstate_image.vue';
 
-import {
-    api_endpoints,
-    helpers
-}
-    from '@/utils/hooks'
+import { api_endpoints, helpers } from '@/utils/hooks';
 export default {
     name: 'InternalSpeciesCommunity',
-    data: function () {
-        return {
-            "species_community": null,
-            "species_community_original": null,
-            form: null,
-            savingSpeciesCommunity: false,
-            saveExitSpeciesCommunity: false,
-            submitSpeciesCommunity: false,
-            speciesCommunitiesImage: null,
-            uploadingImage: false,
-            isSaved: false,
-            DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-            comparing: false,
-            downloadingImage: true,
-        }
-    },
     components: {
-        datatable,
         CommsLogs,
         Submission,
         ProposalSpeciesCommunities,
@@ -334,101 +601,219 @@ export default {
     filters: {
         formatDate: function (data) {
             return data ? moment(data).format('DD/MM/YYYY HH:mm:ss') : '';
+        },
+    },
+    beforeRouteEnter: function (to, from, next) {
+        let end_point_type = 'species';
+        if (to.query.group_type_name === 'community') {
+            end_point_type = 'community';
         }
+        fetch(
+            `/api/${end_point_type}/${to.params.species_community_id}/internal_${end_point_type}.json`
+        ).then(
+            async (response) => {
+                next(async (vm) => {
+                    const data = await response.json();
+                    vm.species_community = data[`${end_point_type}_obj`]; //--temp community_obj
+                    vm.species_community_original = helpers.copyObject(
+                        vm.species_community
+                    );
+                    vm.speciesCommunitiesImage = vm.species_community.image_doc;
+                });
+            },
+            (err) => {
+                console.log(err);
+            }
+        );
+    },
+    data: function () {
+        return {
+            species_community: null,
+            species_community_original: null,
+            form: null,
+            savingSpeciesCommunity: false,
+            saveExitSpeciesCommunity: false,
+            submitSpeciesCommunity: false,
+            speciesCommunitiesImage: null,
+            uploadingImage: false,
+            isSaved: false,
+            DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
+            comparing: false,
+            downloadingImage: true,
+        };
     },
     computed: {
         csrf_token: function () {
-            return helpers.getCookie('csrftoken')
+            return helpers.getCookie('csrftoken');
         },
         isCommunity: function () {
-            return this.species_community.group_type === "community"
+            return this.species_community.group_type === 'community';
         },
         species_community_form_url: function () {
-            return (this.species_community.group_type === "community") ?
-                `/api/community/${this.species_community.id}/community_save.json` :
-                `/api/species/${this.species_community.id}/species_save.json`;
+            return this.species_community.group_type === 'community'
+                ? `/api/community/${this.species_community.id}/community_save.json`
+                : `/api/species/${this.species_community.id}/species_save.json`;
         },
         species_community_submit_url: function () {
-            return (this.species_community.group_type === "community") ?
-                `community` :
-                `species`;
+            return this.species_community.group_type === 'community'
+                ? `community`
+                : `species`;
         },
         display_group_type: function () {
-            let group_type_string = this.species_community.group_type
+            let group_type_string = this.species_community.group_type;
             // to Capitalize only first character
-            return group_type_string.charAt(0).toUpperCase() + group_type_string.slice(1);
+            return (
+                group_type_string.charAt(0).toUpperCase() +
+                group_type_string.slice(1)
+            );
         },
         display_number: function () {
-            return (this.species_community.group_type === "community") ?
-                this.species_community.community_number :
-                this.species_community.species_number;
+            return this.species_community.group_type === 'community'
+                ? this.species_community.community_number
+                : this.species_community.species_number;
         },
         display_name: function () {
-            return (this.species_community.group_type === "community") ?
-                (this.species_community.taxonomy_details != null) ? this.species_community.taxonomy_details.community_migrated_id : '' :
-                (this.species_community.taxonomy_details != null) ? this.species_community.taxonomy_details.scientific_name + " (" + this.species_community.taxonomy_details.taxon_name_id + ")" : '';
+            return this.species_community.group_type === 'community'
+                ? this.species_community.taxonomy_details != null
+                    ? this.species_community.taxonomy_details
+                          .community_migrated_id
+                    : ''
+                : this.species_community.taxonomy_details != null
+                  ? this.species_community.taxonomy_details.scientific_name +
+                    ' (' +
+                    this.species_community.taxonomy_details.taxon_name_id +
+                    ')'
+                  : '';
         },
         class_ncols: function () {
             return this.comparing ? 'col-md-12' : 'col-md-8';
         },
         submitter_first_name: function () {
             if (this.species_community && this.species_community.submitter) {
-                return this.species_community.submitter.first_name
+                return this.species_community.submitter.first_name;
             } else {
-                return ''
+                return '';
             }
         },
         submitter_last_name: function () {
             if (this.species_community && this.species_community.submitter) {
-                return this.species_community.submitter.last_name
+                return this.species_community.submitter.last_name;
             } else {
-                return ''
+                return '';
             }
         },
         canSeeSubmission: function () {
-            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)' && this.proposal.processing_status != 'With Approver' && !this.isFinalised)
-            //return this.proposal && (this.proposal.processing_status != 'With Assessor (Requirements)')
-            return true
+            return (
+                this.species_community &&
+                this.species_community.submitter &&
+                this.species_community.lodgement_date
+            );
         },
         hasUserEditMode: function () {
-            return this.species_community && this.species_community.user_edit_mode ? true : false;
+            return this.species_community &&
+                this.species_community.user_edit_mode
+                ? true
+                : false;
         },
         canReopen: function () {
-            return (this.species_community && this.species_community.can_user_reopen) ? true : false;
+            return this.species_community &&
+                this.species_community.can_user_reopen
+                ? true
+                : false;
         },
         isPublic: function () {
-            return (this.species_community.group_type === "community") ?
-                this.species_community.publishing_status.community_public ? true : false :
-                this.species_community.publishing_status.species_public ? true : false;
+            return this.species_community.group_type === 'community'
+                ? this.species_community.publishing_status.community_public
+                    ? true
+                    : false
+                : this.species_community.publishing_status.species_public
+                  ? true
+                  : false;
         },
         isActive: function () {
-            return this.species_community.processing_status === "Active" ? true : false;
+            return this.species_community.processing_status === 'Active'
+                ? true
+                : false;
         },
         canDiscard: function () {
-            return this.species_community && this.species_community.processing_status === "Draft" ? true : false;
+            return this.species_community &&
+                this.species_community.processing_status === 'Draft'
+                ? true
+                : false;
         },
         comms_url: function () {
-            return (this.species_community.group_type === "community") ?
-                helpers.add_endpoint_json(api_endpoints.community, this.$route.params.species_community_id + '/comms_log') :
-                helpers.add_endpoint_json(api_endpoints.species, this.$route.params.species_community_id + '/comms_log');
+            return this.species_community.group_type === 'community'
+                ? helpers.add_endpoint_json(
+                      api_endpoints.community,
+                      this.$route.params.species_community_id + '/comms_log'
+                  )
+                : helpers.add_endpoint_json(
+                      api_endpoints.species,
+                      this.$route.params.species_community_id + '/comms_log'
+                  );
         },
         comms_add_url: function () {
-            return (this.species_community.group_type === "community") ?
-                helpers.add_endpoint_json(api_endpoints.community, this.$route.params.species_community_id + '/add_comms_log') :
-                helpers.add_endpoint_json(api_endpoints.species, this.$route.params.species_community_id + '/add_comms_log');
+            return this.species_community.group_type === 'community'
+                ? helpers.add_endpoint_json(
+                      api_endpoints.community,
+                      this.$route.params.species_community_id + '/add_comms_log'
+                  )
+                : helpers.add_endpoint_json(
+                      api_endpoints.species,
+                      this.$route.params.species_community_id + '/add_comms_log'
+                  );
         },
         logs_url: function () {
-            return (this.species_community.group_type === "community") ?
-                helpers.add_endpoint_json(api_endpoints.community, this.$route.params.species_community_id + '/action_log') :
-                helpers.add_endpoint_json(api_endpoints.species, this.$route.params.species_community_id + '/action_log');
+            return this.species_community.group_type === 'community'
+                ? helpers.add_endpoint_json(
+                      api_endpoints.community,
+                      this.$route.params.species_community_id + '/action_log'
+                  )
+                : helpers.add_endpoint_json(
+                      api_endpoints.species,
+                      this.$route.params.species_community_id + '/action_log'
+                  );
         },
         image_history_url: function () {
-            return (this.species_community.group_type == 'community') ? `/api/community/${this.species_community.id}/image_history/` :
-                `/api/species/${this.species_community.id}/image_history/`;
+            return this.species_community.group_type == 'community'
+                ? `/api/community/${this.species_community.id}/image_history/`
+                : `/api/species/${this.species_community.id}/image_history/`;
         },
         reinstate_image_title: function () {
-            return this.species_community ? `Reinstate Image for ${this.display_name}` : '';
+            return this.species_community
+                ? `Reinstate Image for ${this.display_name}`
+                : '';
+        },
+    },
+    created: function () {
+        if (!this.species_community) {
+            let end_point_type = 'species';
+            if (this.$route.query.group_type_name === 'community') {
+                end_point_type = 'community';
+            }
+            fetch(
+                `/api/${end_point_type}/${this.$route.params.species_community_id}/internal_${end_point_type}.json`
+            ).then(
+                async (response) => {
+                    const data = await response.json();
+                    this.species_community = data[`${end_point_type}_obj`]; //--temp community_obj
+                    this.species_community_original = helpers.copyObject(
+                        this.species_community
+                    );
+                    this.speciesCommunitiesImage =
+                        this.species_community.image_doc;
+                },
+                (err) => {
+                    console.log(err);
+                }
+            );
         }
+    },
+    updated: function () {
+        let vm = this;
+        this.$nextTick(() => {
+            vm.form = document.forms.new_species;
+        });
     },
     methods: {
         commaToNewline(s) {
@@ -437,7 +822,7 @@ export default {
         returnToDashboard: function () {
             let vm = this;
             vm.$router.push({
-                name: 'internal-species-communities-dash'
+                name: 'internal-species-communities-dash',
             });
         },
         uploadImage: function (event) {
@@ -458,112 +843,147 @@ export default {
                 vm.uploadingImage = true;
                 let data = new FormData();
                 data.append('speciesCommunitiesImage', imageFile);
-
+                var api_url = api_endpoints.species;
                 if (this.species_community.group_type == 'community') {
-                    var api_url = api_endpoints.community;
+                    api_url = api_endpoints.community;
                 }
-                else {
-                    var api_url = api_endpoints.species;
-                }
-                vm.$http.post(helpers.add_endpoint_json(api_url, (this.$route.params.species_community_id + '/upload_image')), data, {
-                    emulateJSON: true
-                }).then((response) => {
-                    vm.uploadingImage = false;
-                    vm.speciesCommunitiesImage = null;
-                    vm.speciesCommunitiesImage = response.body.image_doc;
-                    vm.species_community.image_doc = response.body.image_doc;
-                }, (error) => {
-                    console.log(error);
-                    vm.uploadingImage = false;
-                    vm.speciesCommunitiesImage = null;
-                    let error_msg = '<br/>';
-                    for (var key in error.body) {
-                        error_msg += key + ': ' + error.body[key] + '<br/>';
-                    }
-                    swal.fire({
-                        title: 'Upload ID',
-                        html: 'There was an error uploading your ID.<br/>' + error_msg,
-                        icon: 'error',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
+                fetch(
+                    helpers.add_endpoint_json(
+                        api_url,
+                        this.$route.params.species_community_id +
+                            '/upload_image'
+                    ),
+                    {
+                        method: 'POST',
+                        body: data,
+                        headers: {
+                            'Content-Type': 'application/json',
                         },
-                    });
-                });
+                    }
+                ).then(
+                    async (response) => {
+                        const data = await response.json();
+                        vm.uploadingImage = false;
+                        vm.speciesCommunitiesImage = null;
+                        vm.speciesCommunitiesImage = data.image_doc;
+                        vm.species_community.image_doc = data.image_doc;
+                    },
+                    (error) => {
+                        console.log(error);
+                        vm.uploadingImage = false;
+                        vm.speciesCommunitiesImage = null;
+                        let error_msg = '<br/>';
+                        for (var key in error.body) {
+                            error_msg += key + ': ' + error.body[key] + '<br/>';
+                        }
+                        swal.fire({
+                            title: 'Upload ID',
+                            html:
+                                'There was an error uploading your ID.<br/>' +
+                                error_msg,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                    }
+                );
             }
         },
         showReinstateImageModal: function () {
             this.$refs.reinstateImage.isModalOpen = true;
         },
         reopen: async function () {
-            let vm = this;
             swal.fire({
-                title: "Reopen",
-                text: "Are you sure you want to reopen this record?",
-                icon: "question",
+                title: 'Reopen',
+                text: 'Are you sure you want to reopen this record?',
+                icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: "Reopen",
+                confirmButtonText: 'Reopen',
                 customClass: {
                     confirmButton: 'btn btn-primary',
                     cancelButton: 'btn btn-secondary',
                 },
                 reverseButtons: true,
             }).then(async (swalresult) => {
-
                 let endpoint = api_endpoints.species;
-                if (this.species_community.group_type === "community") {
+                if (this.species_community.group_type === 'community') {
                     endpoint = api_endpoints.community;
                 }
 
                 if (swalresult.isConfirmed) {
-                    await vm.$http.post(`${endpoint}/${this.species_community.id}/reopen_species_community.json`).then(res => {
-                        swal.fire({
-                            title: "Reopened",
-                            text: "Record has been reopened",
-                            icon: "success",
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
+                    await fetch(
+                        `${endpoint}/${this.species_community.id}/reopen_species_community.json`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
                             },
-                        }).then(async (swalresult) => {
-                            this.$router.go(this.$router.currentRoute);
-                        });
-                    }, err => {
-                        var errorText = helpers.apiVueResourceError(err);
-                        swal.fire({
-                            title: 'Reopen Error',
-                            text: errorText,
-                            icon: 'error',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
-                            },
-                        });
-                    });
+                        }
+                    ).then(
+                        async () => {
+                            swal.fire({
+                                title: 'Reopened',
+                                text: 'Record has been reopened',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            }).then(async () => {
+                                this.$router.go(this.$router.currentRoute);
+                            });
+                        },
+                        (err) => {
+                            var errorText = helpers.apiVueResourceError(err);
+                            swal.fire({
+                                title: 'Reopen Error',
+                                text: errorText,
+                                icon: 'error',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                        }
+                    );
                 }
             });
         },
         reinstateImage: function (image) {
-            let vm = this;
+            var api_url = api_endpoints.species;
             if (this.species_community.group_type == 'community') {
-                var api_url = api_endpoints.community;
+                api_url = api_endpoints.community;
             }
-            else {
-                var api_url = api_endpoints.species;
-            }
-            vm.$http.patch(helpers.add_endpoint_json(api_url, (this.$route.params.species_community_id + '/reinstate_image')), {
-                pk: image.id
-            }).then(() => {
-                this.speciesCommunitiesImage = image.url;
-                this.species_community.image_doc = image.url;
-            }).catch((error) => {
-                swal.fire({
-                    title: 'Reinstate Image',
-                    text: 'There was an error reinstating the image',
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
+            fetch(
+                helpers.add_endpoint_json(
+                    api_url,
+                    this.$route.params.species_community_id +
+                        '/reinstate_image',
+                    {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                ),
+                {
+                    pk: image.id,
+                }
+            )
+                .then(() => {
+                    this.speciesCommunitiesImage = image.url;
+                    this.species_community.image_doc = image.url;
+                })
+                .catch((error) => {
+                    swal.fire({
+                        title: 'Reinstate Image',
+                        text: 'There was an error reinstating the image',
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    console.log(error);
                 });
-                console.log(error)
-            })
         },
         confirmDiscardImage: function () {
             swal.fire({
@@ -574,9 +994,9 @@ export default {
                 confirmButtonText: 'Discard',
                 customClass: {
                     confirmButton: 'btn btn-primary',
-                    cancelButton: 'btn btn-secondary'
+                    cancelButton: 'btn btn-secondary',
                 },
-                reverseButtons: true
+                reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
                     this.discardImage();
@@ -585,11 +1005,9 @@ export default {
         },
         discardImage: async function () {
             let vm = this;
+            var api_url = api_endpoints.species;
             if (this.species_community.group_type == 'community') {
-                var api_url = api_endpoints.community;
-            }
-            else {
-                var api_url = api_endpoints.species;
+                api_url = api_endpoints.community;
             }
 
             if (vm.speciesCommunitiesImage == null) {
@@ -603,133 +1021,176 @@ export default {
                 });
             } else {
                 if (vm.species_community.image_doc) {
-                    vm.$http.post(helpers.add_endpoint_json(api_url, (this.$route.params.species_community_id + '/delete_image')), {
-                        emulateJSON: true
-                    }).then((response) => {
-                        vm.uploadingImage = false;
-                        vm.speciesCommunitiesImage = null;
-                        vm.speciesCommunitiesImage = response.body.image_doc;
-                        vm.species_community.image_doc = response.body.image_doc;
-                    }, (error) => {
-                        console.log(error);
-                        vm.uploadingImage = false;
-                        vm.speciesCommunitiesImage = null;
-                        let error_msg = '<br/>';
-                        for (var key in error.body) {
-                            error_msg += key + ': ' + error.body[key] + '<br/>';
-                        }
-                        swal.fire({
-                            title: 'Delete Image',
-                            html: 'There was an error deleting your image.<br/>' + error_msg,
-                            icon: 'error',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
+                    fetch(
+                        helpers.add_endpoint_json(
+                            api_url,
+                            this.$route.params.species_community_id +
+                                '/delete_image'
+                        ),
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
                             },
-                        });
-                    });
+                        }
+                    ).then(
+                        async (response) => {
+                            const data = await response.json();
+                            vm.uploadingImage = false;
+                            vm.speciesCommunitiesImage = null;
+                            vm.speciesCommunitiesImage = data.image_doc;
+                            vm.species_community.image_doc = data.image_doc;
+                        },
+                        (error) => {
+                            console.log(error);
+                            vm.uploadingImage = false;
+                            vm.speciesCommunitiesImage = null;
+                            let error_msg = '<br/>';
+                            for (var key in error.body) {
+                                error_msg +=
+                                    key + ': ' + error.body[key] + '<br/>';
+                            }
+                            swal.fire({
+                                title: 'Delete Image',
+                                html:
+                                    'There was an error deleting your image.<br/>' +
+                                    error_msg,
+                                icon: 'error',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                        }
+                    );
                 }
-
             }
         },
         discardSpeciesProposal: function () {
             let vm = this;
             swal.fire({
-                title: "Discard Proposal",
-                text: "Are you sure you want to discard this proposal?",
-                icon: "question",
+                title: 'Discard Proposal',
+                text: 'Are you sure you want to discard this proposal?',
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Discard Proposal',
                 customClass: {
                     confirmButton: 'btn btn-primary',
-                    cancelButton: 'btn btn-secondary'
+                    cancelButton: 'btn btn-secondary',
                 },
-                reverseButtons: true
-            }).then((swalresult) => {
-                if (swalresult.isConfirmed) {
-                    vm.$http.patch(api_endpoints.discard_species_proposal(vm.species_community.id))
-                        .then((response) => {
-                            swal.fire({
-                                title: 'Discarded',
-                                text: 'The proposal has been discarded',
-                                icon: 'success',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
+                reverseButtons: true,
+            }).then(
+                (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        fetch(
+                            api_endpoints.discard_species_proposal(
+                                vm.species_community.id
+                            ),
+                            {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
                                 },
-                            });
-                            vm.$router.push({
-                                name: 'internal-species-communities-dash'
-                            });
-                        }, (error) => {
-                            console.log(error);
-                        });
-                }
-            }, (error) => {
-
-            });
+                            }
+                        ).then(
+                            () => {
+                                swal.fire({
+                                    title: 'Discarded',
+                                    text: 'The proposal has been discarded',
+                                    icon: 'success',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                vm.$router.push({
+                                    name: 'internal-species-communities-dash',
+                                });
+                            },
+                            (error) => {
+                                console.log(error);
+                            }
+                        );
+                    }
+                },
+                () => {}
+            );
         },
         save: async function () {
             let vm = this;
-            var missing_data = vm.can_submit("");
+            var missing_data = vm.can_submit('');
             vm.isSaved = false;
             if (missing_data != true) {
                 swal.fire({
-                    title: "Please fix following errors before saving",
+                    title: 'Please fix following errors before saving',
                     text: missing_data,
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
                     },
-                })
+                });
                 return false;
             }
             vm.savingSpeciesCommunity = true;
             let payload = new Object();
             Object.assign(payload, vm.species_community);
 
-            let was_public = "";
-            if (vm.species_community.publishing_status.public_status === "Public") {
-                was_public = " - record is now private"
+            let was_public = '';
+            if (
+                vm.species_community.publishing_status.public_status ===
+                'Public'
+            ) {
+                was_public = ' - record is now private';
             }
 
-            await vm.$http.post(vm.species_community_form_url, payload).then(res => {
-                vm.species_community = res.body;
-                vm.species_community_original = helpers.copyObject(vm.species_community); //update original after save
-                swal.fire({
-                    title: "Saved",
-                    text: "Your changes have been saved" + was_public,
-                    icon: "success",
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-                vm.savingSpeciesCommunity = false;
-                vm.isSaved = true;
-            }, err => {
-                var errorText = helpers.apiVueResourceError(err);
-                swal.fire({
-                    title: 'Save Error',
-                    text: errorText,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-                vm.savingSpeciesCommunity = false;
-                vm.isSaved = false;
-            });
+            await fetch(vm.species_community_form_url, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(
+                async (response) => {
+                    vm.species_community = await response.json();
+                    vm.species_community_original = helpers.copyObject(
+                        vm.species_community
+                    ); //update original after save
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Your changes have been saved' + was_public,
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.savingSpeciesCommunity = false;
+                    vm.isSaved = true;
+                },
+                (err) => {
+                    var errorText = helpers.apiVueResourceError(err);
+                    swal.fire({
+                        title: 'Save Error',
+                        text: errorText,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.savingSpeciesCommunity = false;
+                    vm.isSaved = false;
+                }
+            );
         },
-        save_exit: async function (e) {
+        save_exit: async function () {
             let vm = this;
-            var missing_data = vm.can_submit("");
+            var missing_data = vm.can_submit('');
             if (missing_data != true) {
                 swal.fire({
-                    title: "Please fix following errors before saving",
+                    title: 'Please fix following errors before saving',
                     text: missing_data,
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
                     },
-                })
+                });
                 //vm.paySubmitting=false;
                 return false;
             }
@@ -737,43 +1198,51 @@ export default {
             await vm.save().then(() => {
                 if (vm.isSaved === true) {
                     vm.$router.push({
-                        name: 'internal-species-communities-dash'
+                        name: 'internal-species-communities-dash',
                     });
-                }
-                else {
+                } else {
                     vm.saveExitSpeciesCommunity = false;
                 }
             });
         },
-        save_before_submit: async function (e) {
+        save_before_submit: async function () {
             //console.log('save before submit');
             let vm = this;
             vm.saveError = false;
 
             //only save if something has changed
-            if (vm.can_submit("") != true) {
+            if (vm.can_submit('') != true) {
                 return false;
             }
 
             let payload = new Object();
             Object.assign(payload, vm.species_community);
-            const result = await vm.$http.post(vm.species_community_form_url, payload).then(res => {
-                //return true;
-            }, err => {
-                var errorText = helpers.apiVueResourceError(err);
-                swal.fire({
-                    title: 'Submit Error',
-                    //helpers.apiVueResourceError(err),
-                    text: errorText,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                })
-                vm.submitSpeciesCommunity = false;
-                vm.saveError = true;
-                //return false;
-            });
+            const result = await fetch(vm.species_community_form_url, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(
+                async () => {
+                    //return true;
+                },
+                (err) => {
+                    var errorText = helpers.apiVueResourceError(err);
+                    swal.fire({
+                        title: 'Submit Error',
+                        //helpers.apiVueResourceError(err),
+                        text: errorText,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.submitSpeciesCommunity = false;
+                    vm.saveError = true;
+                    //return false;
+                }
+            );
             return result;
         },
         can_submit: function (check_action) {
@@ -782,197 +1251,305 @@ export default {
             if (check_action != 'submit') {
                 //remove publishing status for check as it is handled separately
                 let sc_no_ps = helpers.copyObject(vm.species_community);
-                let sco_no_ps = helpers.copyObject(vm.species_community_original);
+                let sco_no_ps = helpers.copyObject(
+                    vm.species_community_original
+                );
 
                 sc_no_ps.publishing_status = undefined;
                 sco_no_ps.publishing_status = undefined;
 
                 if (helpers.checkForChange(sco_no_ps, sc_no_ps)) {
-                    return ["No changes made"]
+                    return ['No changes made'];
                 }
             }
 
-            let blank_fields = []
-            if (vm.species_community.group_type == 'flora' || vm.species_community.group_type == 'fauna') {
-                if (vm.species_community.taxonomy_id == null || vm.species_community.taxonomy_id == '') {
-                    blank_fields.push(' Scientific Name is required')
+            let blank_fields = [];
+            if (
+                vm.species_community.group_type == 'flora' ||
+                vm.species_community.group_type == 'fauna'
+            ) {
+                if (
+                    vm.species_community.taxonomy_id == null ||
+                    vm.species_community.taxonomy_id == ''
+                ) {
+                    blank_fields.push(' Scientific Name is required');
                 }
-            }
-            else {
-                if (vm.species_community.taxonomy_details.community_name == null || vm.species_community.taxonomy_details.community_name == '') {
-                    blank_fields.push(' Community Name is required')
+            } else {
+                if (
+                    vm.species_community.taxonomy_details.community_name ==
+                        null ||
+                    vm.species_community.taxonomy_details.community_name == ''
+                ) {
+                    blank_fields.push(' Community Name is required');
                 }
-                if (vm.species_community.taxonomy_details.community_migrated_id == null || vm.species_community.taxonomy_details.community_migrated_id == '') {
-                    blank_fields.push(' Community ID is required')
+                if (
+                    vm.species_community.taxonomy_details
+                        .community_migrated_id == null ||
+                    vm.species_community.taxonomy_details
+                        .community_migrated_id == ''
+                ) {
+                    blank_fields.push(' Community ID is required');
                 }
             }
             if (check_action == 'submit') {
-                if (vm.species_community.distribution.distribution == null || vm.species_community.distribution.distribution == '') {
-                    blank_fields.push(' Distribution is required')
+                if (
+                    vm.species_community.distribution.distribution == null ||
+                    vm.species_community.distribution.distribution == ''
+                ) {
+                    blank_fields.push(' Distribution is required');
                 }
-                if (vm.species_community.regions == null || vm.species_community.regions.length == 0 || vm.species_community.regions == '') {
-                    blank_fields.push(' Region is required')
+                if (
+                    vm.species_community.regions == null ||
+                    vm.species_community.regions.length == 0 ||
+                    vm.species_community.regions == ''
+                ) {
+                    blank_fields.push(' Region is required');
                 }
-                if (vm.species_community.districts == null || vm.species_community.districts == '' || vm.species_community.districts.length == 0) {
-                    blank_fields.push(' District is required')
+                if (
+                    vm.species_community.districts == null ||
+                    vm.species_community.districts == '' ||
+                    vm.species_community.districts.length == 0
+                ) {
+                    blank_fields.push(' District is required');
                 }
             }
             if (blank_fields.length == 0) {
                 return true;
-            }
-            else {
+            } else {
                 return blank_fields;
             }
         },
         submit: async function () {
             let vm = this;
 
-            var missing_data = vm.can_submit("submit");
+            var missing_data = vm.can_submit('submit');
             if (missing_data != true) {
                 swal.fire({
-                    title: "Please fix following errors before submitting",
+                    title: 'Please fix following errors before submitting',
                     text: missing_data,
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
                     },
-                })
+                });
                 //vm.paySubmitting=false;
                 return false;
             }
 
             vm.submitSpeciesCommunity = true;
             swal.fire({
-                title: "Submit",
-                text: "Are you sure you want to submit this application?",
-                icon: "question",
+                title: 'Activate Record',
+                text: 'Are you sure you want to activate this record?',
+                icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: "submit",
+                confirmButtonText: 'Activate',
                 customClass: {
                     confirmButton: 'btn btn-primary',
                     cancelButton: 'btn btn-secondary',
                 },
-                reverseButtons: true
-            }).then(async (swalresult) => {
-                if (swalresult.isConfirmed) {
-                    let result = await vm.save_before_submit()
-                    if (!vm.saveError) {
-                        let payload = new Object();
-                        Object.assign(payload, vm.species_community);
-                        let submit_url = this.species_community.group_type === "community" ?
-                            helpers.add_endpoint_json(api_endpoints.community, vm.species_community.id + '/submit') :
-                            helpers.add_endpoint_json(api_endpoints.species, vm.species_community.id + '/submit')
-                        vm.$http.post(submit_url, payload).then(res => {
-                            vm.species_community = res.body;
-                            vm.species_community_original = helpers.copyObject(vm.species_community);
-                            vm.$router.push({
-                                name: 'internal-species-communities-dash'
-                            });
-                        }, err => {
-                            swal.fire({
-                                title: 'Submit Error',
-                                text: helpers.apiVueResourceError(err),
-                                icon: 'error',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
-                                },
-                            });
-                        });
+                reverseButtons: true,
+            })
+                .then(
+                    async (swalresult) => {
+                        if (swalresult.isConfirmed) {
+                            await vm.save_before_submit();
+                            if (!vm.saveError) {
+                                let payload = new Object();
+                                Object.assign(payload, vm.species_community);
+                                let submit_url =
+                                    this.species_community.group_type ===
+                                    'community'
+                                        ? helpers.add_endpoint_json(
+                                              api_endpoints.community,
+                                              vm.species_community.id +
+                                                  '/submit'
+                                          )
+                                        : helpers.add_endpoint_json(
+                                              api_endpoints.species,
+                                              vm.species_community.id +
+                                                  '/submit'
+                                          );
+                                fetch(submit_url, {
+                                    method: 'POST',
+                                    body: JSON.stringify(payload),
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                }).then(
+                                    async (response) => {
+                                        vm.species_community =
+                                            await response.json();
+                                        vm.species_community_original =
+                                            helpers.copyObject(
+                                                vm.species_community
+                                            );
+                                        vm.$router.push({
+                                            name: 'internal-species-communities-dash',
+                                        });
+                                    },
+                                    (err) => {
+                                        swal.fire({
+                                            title: 'Submit Error',
+                                            text: helpers.apiVueResourceError(
+                                                err
+                                            ),
+                                            icon: 'error',
+                                            customClass: {
+                                                confirmButton:
+                                                    'btn btn-primary',
+                                            },
+                                        });
+                                    }
+                                );
+                            }
+                        }
+                    },
+                    (error) => {
+                        console.log(error);
                     }
-                }
-            }, (error) => {
-                console.log(error);
-            }).finally(() => {
-                vm.submitSpeciesCommunity = false;
-            });
+                )
+                .finally(() => {
+                    vm.submitSpeciesCommunity = false;
+                });
         },
         save_wo: function () {
             let vm = this;
             let formData = new FormData(vm.form);
-            vm.$http.post(vm.proposal_form_url, formData).then(res => {
-            }, err => {
+            fetch(vm.proposal_form_url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             });
         },
-        refreshFromResponse: function (response) {
+        refreshFromResponse: async function (response) {
             let vm = this;
-            vm.species_community = helpers.copyObject(response.body);
-            vm.species_community_original = copyObject(vm.species_community);
+            const data = await response.json();
+            vm.species_community = helpers.copyObject(data);
+            vm.species_community_original = helpers.copyObject(
+                vm.species_community
+            );
         },
         refreshSpeciesCommunity: function () {
             let vm = this;
-            if (vm.species_community.group_type === 'flora' || vm.species_community.group_type === "fauna") {
-                Vue.http.get(`/api/species/${vm.species_community.id}/internal_species.json`)
-                    .then(res => {
-                        vm.species_community = res.body.species_obj;
-                        vm.species_community_original = helpers.copyObject(vm.species_community);
-                        vm.speciesCommunitiesImage = vm.species_community.image_doc;
+            if (
+                vm.species_community.group_type === 'flora' ||
+                vm.species_community.group_type === 'fauna'
+            ) {
+                fetch(
+                    `/api/species/${vm.species_community.id}/internal_species.json`
+                ).then(
+                    async (response) => {
+                        const data = await response.json();
+                        vm.species_community = data.species_obj;
+                        vm.species_community_original = helpers.copyObject(
+                            vm.species_community
+                        );
+                        vm.speciesCommunitiesImage =
+                            vm.species_community.image_doc;
                     },
-                        err => {
-                            console.log(err);
-                        });
+                    (err) => {
+                        console.log(err);
+                    }
+                );
             } else {
-                Vue.http.get(`/api/community/${vm.species_community.id}/internal_community.json`)
-                    .then(res => {
-                        vm.species_community = res.body.community_obj;
-                        vm.species_community_original = helpers.copyObject(vm.species_community);
-                        vm.speciesCommunitiesImage = vm.species_community.image_doc;
+                fetch(
+                    `/api/community/${vm.species_community.id}/internal_community.json`
+                ).then(
+                    async (response) => {
+                        const data = await response.json();
+                        vm.species_community = data.community_obj;
+                        vm.species_community_original = helpers.copyObject(
+                            vm.species_community
+                        );
+                        vm.speciesCommunitiesImage =
+                            vm.species_community.image_doc;
                     },
-                        err => {
-                            console.log(err);
-                        });
+                    (err) => {
+                        console.log(err);
+                    }
+                );
             }
         },
         splitSpecies: async function () {
-            this.$refs.species_split.species_community_original = this.species_community;
-            let newSpeciesId1 = null
+            this.$refs.species_split.species_community_original =
+                this.species_community;
+            let newSpeciesId1 = null;
             try {
-                const createUrl = api_endpoints.species + "/";
+                const createUrl = api_endpoints.species + '/';
                 let payload = new Object();
                 payload.group_type_id = this.species_community.group_type_id;
-                let savedSpecies = await Vue.http.post(createUrl, payload);
-                if (savedSpecies) {
-                    newSpeciesId1 = savedSpecies.body.id;
-                    Vue.http.get(`/api/species/${newSpeciesId1}/internal_species.json`).then(res => {
-                        let species_obj = res.body.species_obj;
-                        //--- to add empty documents array
-                        species_obj.documents = []
-                        //---empty threats array added to store the select threat ids in from the child component
-                        species_obj.threats = []
-                        this.$refs.species_split.new_species_list.push(species_obj); //--temp species_obj
+                let response = await fetch(createUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                        err => {
+                    body: JSON.stringify(payload),
+                });
+                const savedSpecies = await response.json();
+                if (savedSpecies) {
+                    newSpeciesId1 = savedSpecies.id;
+                    fetch(
+                        `/api/species/${newSpeciesId1}/internal_species.json`
+                    ).then(
+                        async (response) => {
+                            const data = await response.json();
+                            let species_obj = data.species_obj;
+                            //--- to add empty documents array
+                            species_obj.documents = [];
+                            //---empty threats array added to store the select threat ids in from the child component
+                            species_obj.threats = [];
+                            this.$refs.species_split.new_species_list.push(
+                                species_obj
+                            ); //--temp species_obj
+                        },
+                        (err) => {
                             console.log(err);
-                        });
+                        }
+                    );
                 }
-            }
-            catch (err) {
+            } catch (err) {
                 console.log(err);
                 if (this.is_internal) {
                     return err;
                 }
             }
-            let newSpeciesId2 = null
+            let newSpeciesId2 = null;
             try {
-                const createUrl = api_endpoints.species + "/";
+                const createUrl = api_endpoints.species + '/';
                 let payload = new Object();
-                payload.group_type_id = this.species_community.group_type_id
-                let savedSpecies = await Vue.http.post(createUrl, payload);
-                if (savedSpecies) {
-                    newSpeciesId2 = savedSpecies.body.id;
-                    Vue.http.get(`/api/species/${newSpeciesId2}/internal_species.json`).then(res => {
-                        let species_obj = res.body.species_obj;
-                        // to add documents id array from original species
-                        species_obj.documents = []
-                        //---empty threats array added to store the select threat ids in from the child component
-                        species_obj.threats = []
-                        this.$refs.species_split.new_species_list.push(species_obj); //--temp species_obj
+                payload.group_type_id = this.species_community.group_type_id;
+                let response = await fetch(createUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                        err => {
+                    body: JSON.stringify(payload),
+                });
+                const savedSpecies = await response.json();
+                if (savedSpecies) {
+                    newSpeciesId2 = savedSpecies.id;
+                    fetch(
+                        `/api/species/${newSpeciesId2}/internal_species.json`
+                    ).then(
+                        async (response) => {
+                            const data = await response.json();
+                            let species_obj = data.species_obj;
+                            // to add documents id array from original species
+                            species_obj.documents = [];
+                            //---empty threats array added to store the select threat ids in from the child component
+                            species_obj.threats = [];
+                            this.$refs.species_split.new_species_list.push(
+                                species_obj
+                            ); //--temp species_obj
+                        },
+                        (err) => {
                             console.log(err);
-                        });
+                        }
+                    );
                 }
-            }
-            catch (err) {
+            } catch (err) {
                 console.log(err);
                 if (this.is_internal) {
                     return err;
@@ -981,30 +1558,43 @@ export default {
             this.$refs.species_split.isModalOpen = true;
         },
         combineSpecies: async function () {
-            this.$refs.species_combine.original_species_combine_list.push(this.species_community); //--push current original into the array
-            let newSpeciesId = null
+            this.$refs.species_combine.original_species_combine_list.push(
+                this.species_community
+            ); //--push current original into the array
+            let newSpeciesId = null;
             try {
-                const createUrl = api_endpoints.species + "/";
+                const createUrl = api_endpoints.species + '/';
                 let payload = new Object();
                 payload.group_type_id = this.species_community.group_type_id;
-                let savedSpecies = await Vue.http.post(createUrl, payload);
-                if (savedSpecies) {
-                    newSpeciesId = savedSpecies.body.id;
-                    Vue.http.get(`/api/species/${newSpeciesId}/internal_species.json`).then(res => {
-                        let species_obj = res.body.species_obj;
-                        //--- to add empty documents array
-                        species_obj.documents = []
-                        //---empty threats array added to store the selected threat ids in from the child component
-                        species_obj.threats = []
-                        this.$refs.species_combine.new_combine_species = species_obj; //---assign the new created species to the modal obj
+                let response = await fetch(createUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                        err => {
+                    body: JSON.stringify(payload),
+                });
+                const savedSpecies = await response.json();
+                if (savedSpecies) {
+                    newSpeciesId = savedSpecies.id;
+                    fetch(
+                        `/api/species/${newSpeciesId}/internal_species.json`
+                    ).then(
+                        async (response) => {
+                            const data = await response.json();
+                            let species_obj = data.species_obj;
+                            //--- to add empty documents array
+                            species_obj.documents = [];
+                            //---empty threats array added to store the selected threat ids in from the child component
+                            species_obj.threats = [];
+                            this.$refs.species_combine.new_combine_species =
+                                species_obj; //---assign the new created species to the modal obj
+                        },
+                        (err) => {
                             console.log(err);
-                        });
+                        }
+                    );
                 }
-
-            }
-            catch (err) {
+            } catch (err) {
                 console.log(err);
                 if (this.is_internal) {
                     return err;
@@ -1014,10 +1604,14 @@ export default {
         },
         renameSpecies: async function () {
             let rename_species_obj = null;
-            let newRenameSpecies = await Vue.http.get(`/api/species/${this.species_community.id}/rename_deep_copy.json`)
+            let response = await fetch(
+                `/api/species/${this.species_community.id}/rename_deep_copy.json`
+            );
+            const newRenameSpecies = await response.json();
             if (newRenameSpecies) {
-                rename_species_obj = newRenameSpecies.body.species_obj;
-                this.$refs.species_rename.new_rename_species = rename_species_obj;
+                rename_species_obj = newRenameSpecies.species_obj;
+                this.$refs.species_rename.new_rename_species =
+                    rename_species_obj;
                 this.$refs.species_rename.isModalOpen = true;
             }
         },
@@ -1030,92 +1624,73 @@ export default {
         makePrivate: function () {
             let vm = this;
             let endpoint = api_endpoints.species;
-            if (this.species_community.group_type === "community") {
+            if (this.species_community.group_type === 'community') {
                 vm.species_community.publishing_status.community_public = false;
                 endpoint = api_endpoints.community;
             } else {
                 vm.species_community.publishing_status.species_public = false;
             }
-            let data = JSON.stringify(vm.species_community.publishing_status)
-            vm.$http.post(helpers.add_endpoint_json(endpoint, (vm.species_community.id + '/update_publishing_status')), data, {
-                emulateJSON: true
-            }).then((response) => {
-                vm.updatingPublishing = false;
-                vm.species_community.publishing_status = response.body;
-                vm.species_community_original.publishing_status = helpers.copyObject(vm.species_community.publishing_status);
-                swal.fire({
-                    title: 'Saved',
-                    text: 'Record has been made private',
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
+            let data = JSON.stringify(vm.species_community.publishing_status);
+            fetch(
+                helpers.add_endpoint_json(
+                    endpoint,
+                    vm.species_community.id + '/update_publishing_status'
+                ),
+                {
+                    method: 'POST',
+                    body: data,
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                });
-            }, (error) => {
-                var text = helpers.apiVueResourceError(error);
-                swal.fire({
-                    title: 'Error',
-                    text: 'Publishing settings cannot be updated because of the following error: ' + text,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-                vm.updatingPublishing = false;
-            });
+                }
+            ).then(
+                async (response) => {
+                    vm.updatingPublishing = false;
+                    vm.species_community.publishing_status =
+                        await response.json();
+                    vm.species_community_original.publishing_status =
+                        helpers.copyObject(
+                            vm.species_community.publishing_status
+                        );
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Record has been made private',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                },
+                (error) => {
+                    var text = helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error',
+                        text:
+                            'Publishing settings cannot be updated because of the following error: ' +
+                            text,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.updatingPublishing = false;
+                }
+            );
         },
-        onImageLoad: function (e) {
+        onImageLoad: function () {
             this.downloadingImage = false;
-        }
-    },
-    created: function () {
-        if (!this.species_community) {
-            let end_point_type = 'species';
-            if (this.$route.query.group_type_name === 'community') {
-                end_point_type = 'community';
-            }
-            Vue.http.get(`/api/${end_point_type}/${this.$route.params.species_community_id}/internal_${end_point_type}.json`).then(res => {
-                this.species_community = res.body[`${end_point_type}_obj`]; //--temp community_obj
-                this.species_community_original = helpers.copyObject(this.species_community);
-                this.speciesCommunitiesImage = this.species_community.image_doc;
-            },
-                err => {
-                    console.log(err);
-                });
-        }
-    },
-    updated: function () {
-        let vm = this;
-        this.$nextTick(() => {
-            vm.form = document.forms.new_species;
-        });
-    },
-    beforeRouteEnter: function (to, from, next) {
-        let end_point_type = 'species';
-        if (to.query.group_type_name === 'community') {
-            end_point_type = 'community';
-        }
-        Vue.http.get(`/api/${end_point_type}/${to.params.species_community_id}/internal_${end_point_type}.json`).then(res => {
-            next(vm => {
-                vm.species_community = res.body[`${end_point_type}_obj`]; //--temp community_obj
-                vm.species_community_original = helpers.copyObject(vm.species_community);
-                vm.speciesCommunitiesImage = vm.species_community.image_doc;
-            });
         },
-            err => {
-                console.log(err);
-            });
     },
-}
+};
 </script>
 <style scoped>
 @keyframes placeHolderShimmer {
     0% {
-        background-position: -468px 0
+        background-position: -468px 0;
     }
 
     100% {
-        background-position: 468px 0
+        background-position: 468px 0;
     }
 }
 
@@ -1126,7 +1701,12 @@ export default {
     animation-name: placeHolderShimmer;
     animation-timing-function: linear;
     background: darkgray;
-    background: linear-gradient(to right, #eeeeee 10%, #dddddd 18%, #eeeeee 33%);
+    background: linear-gradient(
+        to right,
+        #eeeeee 10%,
+        #dddddd 18%,
+        #eeeeee 33%
+    );
     background-size: 800px 104px;
     height: 100px;
     position: relative;

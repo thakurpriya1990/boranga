@@ -1,35 +1,96 @@
 <template lang="html">
     <div id="makePublic">
-        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large id="make-public-modal">
+        <modal
+            id="make-public-modal"
+            transition="modal fade"
+            :title="title"
+            large
+            @ok="ok()"
+            @cancel="cancel()"
+        >
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="makePublicForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
                         <div class="row mb-3">
-                            <label for="distribution_publishing" class="col-sm-6 control-label">Distribution: </label>
+                            <label
+                                for="distribution_publishing"
+                                class="col-sm-6 control-label"
+                                >Distribution:
+                            </label>
                             <div class="col-sm-6">
-                                <label for="distribution_publishing" class="me-2">Private</label>
-                                <input :disabled="!isActive" type="radio" :value="false" class="form-check-input me-2"
+                                <label
+                                    for="distribution_publishing"
+                                    class="me-2"
+                                    >Private</label
+                                >
+                                <input
                                     id="distribution_publishing"
-                                    v-model="species_community.publishing_status.distribution_public">
-                                <label for="distribution_publishing" class="me-2">Public</label>
-                                <input :disabled="!isActive" type="radio" :value="true" class="form-check-input"
+                                    v-model="
+                                        species_community.publishing_status
+                                            .distribution_public
+                                    "
+                                    :disabled="!isActive"
+                                    type="radio"
+                                    :value="false"
+                                    class="form-check-input me-2"
+                                />
+                                <label
+                                    for="distribution_publishing"
+                                    class="me-2"
+                                    >Public</label
+                                >
+                                <input
                                     id="distribution_publishing"
-                                    v-model="species_community.publishing_status.distribution_public">
+                                    v-model="
+                                        species_community.publishing_status
+                                            .distribution_public
+                                    "
+                                    :disabled="!isActive"
+                                    type="radio"
+                                    :value="true"
+                                    class="form-check-input"
+                                />
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <label for="conservation_status_publishing" class="col-sm-6 control-label">Conservation
-                                Status: </label>
+                            <label
+                                for="conservation_status_publishing"
+                                class="col-sm-6 control-label"
+                                >Conservation Status:
+                            </label>
                             <div class="col-sm-6">
-                                <label for="conservation_status_publishing" class="me-2">Private</label>
-                                <input :disabled="!isActive" type="radio" :value="false" class="form-check-input me-2"
+                                <label
+                                    for="conservation_status_publishing"
+                                    class="me-2"
+                                    >Private</label
+                                >
+                                <input
                                     id="conservation_status_publishing"
-                                    v-model="species_community.publishing_status.conservation_status_public">
-                                <label for="conservation_status_publishing" class="me-2">Public</label>
-                                <input :disabled="!isActive" type="radio" :value="true" class="form-check-input"
+                                    v-model="
+                                        species_community.publishing_status
+                                            .conservation_status_public
+                                    "
+                                    :disabled="!isActive"
+                                    type="radio"
+                                    :value="false"
+                                    class="form-check-input me-2"
+                                />
+                                <label
+                                    for="conservation_status_publishing"
+                                    class="me-2"
+                                    >Public</label
+                                >
+                                <input
                                     id="conservation_status_publishing"
-                                    v-model="species_community.publishing_status.conservation_status_public">
+                                    v-model="
+                                        species_community.publishing_status
+                                            .conservation_status_public
+                                    "
+                                    :disabled="!isActive"
+                                    type="radio"
+                                    :value="true"
+                                    class="form-check-input"
+                                />
                             </div>
                         </div>
                         <!-- <div class="row mb-3">
@@ -47,38 +108,86 @@
                             </div>
                         </div> -->
                         <div class="row mb-3">
-                            <label for="threats_publishing" class="col-sm-6 control-label">Threats: </label>
+                            <label
+                                for="threats_publishing"
+                                class="col-sm-6 control-label"
+                                >Threats:
+                            </label>
                             <div class="col-sm-6">
-                                <label for="threats_publishing" class="me-2">Private</label>
-                                <input :disabled="!isActive" type="radio" :value="false" class="form-check-input me-2"
+                                <label for="threats_publishing" class="me-2"
+                                    >Private</label
+                                >
+                                <input
                                     id="threats_publishing"
-                                    v-model="species_community.publishing_status.threats_public">
-                                <label for="threats_publishing" class="me-2">Public</label>
-                                <input :disabled="!isActive" type="radio" :value="true" class="form-check-input"
+                                    v-model="
+                                        species_community.publishing_status
+                                            .threats_public
+                                    "
+                                    :disabled="!isActive"
+                                    type="radio"
+                                    :value="false"
+                                    class="form-check-input me-2"
+                                />
+                                <label for="threats_publishing" class="me-2"
+                                    >Public</label
+                                >
+                                <input
                                     id="threats_publishing"
-                                    v-model="species_community.publishing_status.threats_public">
+                                    v-model="
+                                        species_community.publishing_status
+                                            .threats_public
+                                    "
+                                    :disabled="!isActive"
+                                    type="radio"
+                                    :value="true"
+                                    class="form-check-input"
+                                />
                             </div>
                         </div>
                     </form>
                 </div>
             </div>
-            <div slot="footer">
-                <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
-                <button v-if="updatingPublishing" class="btn btn-primary pull-right" style="margin-top:5px;"
-                    disabled>Submit <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    <span class="visually-hidden">Loading...</span></button>
-                <button v-else class="btn btn-primary" @click.prevent="ok()" :disabled="updatingPublishing">Make
-                    Public</button>
-            </div>
+            <template #footer>
+                <div>
+                    <button
+                        type="button"
+                        class="btn btn-secondary me-2"
+                        @click="cancel"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        v-if="updatingPublishing"
+                        class="btn btn-primary pull-right"
+                        style="margin-top: 5px"
+                        disabled
+                    >
+                        Make Public
+                        <span
+                            class="spinner-border spinner-border-sm"
+                            role="status"
+                            aria-hidden="true"
+                        ></span>
+                        <span class="visually-hidden">Loading...</span>
+                    </button>
+                    <button
+                        v-else
+                        class="btn btn-primary"
+                        :disabled="updatingPublishing"
+                        @click.prevent="ok()"
+                    >
+                        Make Public
+                    </button>
+                </div>
+            </template>
         </modal>
     </div>
 </template>
 
 <script>
-
-import modal from '@vue-utils/bootstrap-modal.vue'
-import alert from '@vue-utils/alert.vue'
-import { helpers, api_endpoints } from "@/utils/hooks.js"
+import modal from '@vue-utils/bootstrap-modal.vue';
+import alert from '@vue-utils/alert.vue';
+import { helpers, api_endpoints } from '@/utils/hooks.js';
 export default {
     name: 'MakePublic',
     components: {
@@ -88,92 +197,122 @@ export default {
     props: {
         species_community: {
             type: Object,
-            required: true
+            required: true,
         },
         species_community_original: {
             type: Object,
-            required: true
+            required: true,
         },
         is_internal: {
             type: Boolean,
-            required: true
+            required: true,
         },
     },
     data: function () {
-        let vm = this;
         return {
             updatingPublishing: false,
             isModalOpen: false,
             form: null,
-            errors: false,
-            errorString: '',
-        }
+        };
     },
     computed: {
         csrf_token: function () {
-            return helpers.getCookie('csrftoken')
-        },
-        showError: function () {
-            var vm = this;
-            return vm.errors;
+            return helpers.getCookie('csrftoken');
         },
         title: function () {
             return 'Make Public';
         },
         distribution_public: function () {
-            return this.isPublic && this.species_community.publishing_status.distribution_public;
+            return (
+                this.isPublic &&
+                this.species_community.publishing_status.distribution_public
+            );
         },
         conservation_status_public: function () {
-            return this.isPublic && this.species_community.publishing_status.conservation_status_public;
+            return (
+                this.isPublic &&
+                this.species_community.publishing_status
+                    .conservation_status_public
+            );
         },
         conservation_attributes_public: function () {
-            return this.isPublic && this.species_community.publishing_status.conservation_attributes_public;
+            return (
+                this.isPublic &&
+                this.species_community.publishing_status
+                    .conservation_attributes_public
+            );
         },
         isActive: function () {
-            return this.species_community.processing_status === "Active" ? true : false;
+            return this.species_community.processing_status === 'Active'
+                ? true
+                : false;
         },
         isPublic: function () {
-            return this.isActive && this.species_community.publishing_status.species_public ? true : false;
+            return this.isActive &&
+                this.species_community.publishing_status.species_public
+                ? true
+                : false;
         },
+    },
+    mounted: function () {
+        let vm = this;
+        vm.form = document.forms.makePublicForm;
     },
     methods: {
         updatePublishing(data) {
             let vm = this;
 
             let endpoint = api_endpoints.species;
-            if (this.species_community.group_type === "community") {
+            if (this.species_community.group_type === 'community') {
                 endpoint = api_endpoints.community;
             }
 
-            vm.$http.post(helpers.add_endpoint_json(endpoint, (vm.species_community.id + '/update_publishing_status')), data, {
-                emulateJSON: true
-            }).then((response) => {
-                vm.updatingPublishing = false;
-                vm.species_community.publishing_status = response.body;
-                vm.species_community_original.publishing_status = helpers.copyObject(vm.species_community.publishing_status);
-                swal.fire({
-                    title: 'Saved',
-                    text: 'Record has been made public',
-                    icon: 'success',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
+            fetch(
+                helpers.add_endpoint_json(
+                    endpoint,
+                    vm.species_community.id + '/update_publishing_status'
+                ),
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                }).then((swalresult) => {
-                    vm.close()
+                    body: data,
+                }
+            )
+                .then(async (response) => {
+                    const data = await response.json();
+                    if (!response.ok) {
+                        swal.fire({
+                            title: 'Error',
+                            text:
+                                'Publishing settings cannot be updated because of the following error: ' +
+                                data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
+                    vm.species_community.publishing_status = data;
+                    vm.species_community_original.publishing_status =
+                        helpers.copyObject(
+                            vm.species_community.publishing_status
+                        );
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Record has been made public',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.close();
+                })
+                .finally(() => {
+                    vm.updatingPublishing = false;
                 });
-            }, (error) => {
-                var text = helpers.apiVueResourceError(error);
-                swal.fire({
-                    title: 'Error',
-                    text: 'Publishing settings cannot be updated because of the following error: ' + text,
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-                vm.species_community.publishing_status = helpers.copyObject(vm.species_community_original.publishing_status);
-                vm.updatingPublishing = false;
-            });
         },
         ok: function () {
             let vm = this;
@@ -182,31 +321,31 @@ export default {
             //but only if it is active
             if (!vm.isPublic && vm.isActive) {
                 swal.fire({
-                    title: "Make Public",
-                    text: "Are you sure you want to make this record public?",
-                    icon: "question",
+                    title: 'Make Public',
+                    text: 'Are you sure you want to make this record public?',
+                    icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: 'Make Public',
                     customClass: {
                         confirmButton: 'btn btn-primary',
-                        cancelButton: 'btn btn-secondary'
+                        cancelButton: 'btn btn-secondary',
                     },
                     reverseButtons: true,
                 }).then((swalresult) => {
                     if (swalresult.isConfirmed) {
                         //send with make public set to true
-                        if (this.species_community.group_type === "community") {
+                        if (this.species_community.group_type === 'community') {
                             vm.species_community.publishing_status.community_public = true;
                         } else {
                             vm.species_community.publishing_status.species_public = true;
                         }
-                        let data = JSON.stringify(vm.species_community.publishing_status)
+                        let data = JSON.stringify(
+                            vm.species_community.publishing_status
+                        );
                         vm.updatePublishing(data);
                     } else {
                         vm.updatingPublishing = false;
                     }
-                }, (error) => {
-                    console.error('Error:', error);
                 });
             } else {
                 swal.fire({
@@ -221,19 +360,13 @@ export default {
             }
         },
         cancel: function () {
-            this.close()
+            this.close();
         },
         close: function () {
-            let vm = this;
             this.isModalOpen = false;
-            this.errors = false;
         },
     },
-    mounted: function () {
-        let vm = this;
-        vm.form = document.forms.makePublicForm;
-    },
-}
+};
 </script>
 
 <style lang="css" scoped>
@@ -254,20 +387,20 @@ export default {
     margin-bottom: 2px;
 }
 
-.nav-item>li>a {
+.nav-item > li > a {
     background-color: yellow !important;
     color: #fff;
 }
 
-.nav-item>li.active>a,
-.nav-item>li.active>a:hover,
-.nav-item>li.active>a:focus {
+.nav-item > li.active > a,
+.nav-item > li.active > a:hover,
+.nav-item > li.active > a:focus {
     color: white;
     background-color: blue;
     border: 1px solid #888888;
 }
 
-.admin>div {
+.admin > div {
     display: inline-block;
     vertical-align: top;
     margin-right: 1em;
@@ -289,15 +422,15 @@ export default {
     background: gray;
 }
 
-.nav-pills>li {
+.nav-pills > li {
     position: relative;
 }
 
-.nav-pills>li>a {
+.nav-pills > li > a {
     display: inline-block;
 }
 
-.nav-pills>li>span {
+.nav-pills > li > span {
     display: none;
     cursor: pointer;
     position: absolute;
@@ -306,7 +439,7 @@ export default {
     color: red;
 }
 
-.nav-pills>li:hover>span {
+.nav-pills > li:hover > span {
     display: inline-block;
 }
 </style>
