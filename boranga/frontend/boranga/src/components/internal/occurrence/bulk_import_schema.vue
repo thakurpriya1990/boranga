@@ -1966,10 +1966,13 @@ export default {
                             showConfirmButton: false,
                             timer: 1500,
                         });
-                        this.$router.push(
-                            `/internal/occurrence-report/bulk_import_schema/${data.id}`
-                        );
-                        this.fetchBulkImportSchema();
+                        this.$router
+                            .push({
+                                path: `/internal/occurrence-report/bulk_import_schema/${data.id}`,
+                            })
+                            .then(() => {
+                                this.fetchBulkImportSchema();
+                            });
                     }
                 })
                 .catch((error) => {
