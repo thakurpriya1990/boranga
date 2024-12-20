@@ -98,6 +98,7 @@
                                                 'Approved',
                                                 'Closed',
                                                 'DeListed',
+                                                'Declined',
                                             ].includes(
                                                 conservation_status_obj.processing_status
                                             )
