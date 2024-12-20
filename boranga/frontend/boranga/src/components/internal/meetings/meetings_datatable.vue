@@ -232,7 +232,7 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                name: 'location',
+                name: 'location__room_name',
             };
         },
         column_title: function () {
