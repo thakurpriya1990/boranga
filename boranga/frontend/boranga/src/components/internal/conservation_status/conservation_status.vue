@@ -1252,7 +1252,6 @@ export default {
         canSendBackToAssessor: function () {
             return (
                 this.conservation_status_obj &&
-                this.conservation_status_obj.approval_level == 'minister' &&
                 [
                     constants.PROPOSAL_STATUS.PROPOSED_FOR_AGENDA.TEXT,
                     constants.PROPOSAL_STATUS.READY_FOR_AGENDA.TEXT,
@@ -2203,6 +2202,22 @@ export default {
                     .on('select2:select', function (e) {
                         let data = e.params.data.id;
                         vm.selected_referral = data;
+                        if (
+                            vm.selected_referral ==
+                            vm.conservation_status_obj.submitter.email
+                        ) {
+                            swal.fire({
+                                title: 'Referral Error',
+                                text: 'You cannot refer a proposal to the submitter.',
+                                icon: 'error',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            $(vm.$refs.referees).val(null).trigger('change');
+                            vm.selected_referral = null;
+                            return;
+                        }
                         vm.$nextTick(() => {
                             vm.$refs.referral_text.focus();
                         });
