@@ -119,17 +119,17 @@ RUN $VIRTUAL_ENV_PATH/bin/pip3 install --upgrade pip && \
 # RUN patch /usr/local/lib/python3.8/dist-packages/django/contrib/gis/geos/libgeos.py /app/libgeos.py.patch
 # RUN rm /app/libgeos.py.patch
 
-FROM python_dependencies_boranga as collectstatic_boranga
-
-RUN touch /app/.env && \
-    $VIRTUAL_ENV_PATH/bin/python manage.py collectstatic --noinput
-
-FROM collectstatic_boranga as build_vue_boranga
+FROM python_dependencies_boranga as build_vue_boranga
 
 RUN cd /app/boranga/frontend/boranga; npm ci --omit=dev && \
     cd /app/boranga/frontend/boranga; npm run build
 
-FROM build_vue_boranga as launch_boranga
+FROM build_vue_boranga as collectstatic_boranga
+
+RUN touch /app/.env && \
+    $VIRTUAL_ENV_PATH/bin/python manage.py collectstatic --noinput
+
+FROM collectstatic_boranga as launch_boranga
 
 EXPOSE 8080
 HEALTHCHECK --interval=1m --timeout=5s --start-period=10s --retries=3 CMD ["wget", "-q", "-O", "-", "http://localhost:8080/"]
