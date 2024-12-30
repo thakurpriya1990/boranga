@@ -15,7 +15,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     SITE_DOMAIN='dbca.wa.gov.au' \
     OSCAR_SHOP_NAME='Parks & Wildlife' \
     BPAY_ALLOWED=False \
-    NODE_MAJOR=20
+    NODE_MAJOR=20 \
+    NODE_OPTIONS=--max_old_space_size=4096
 
 FROM builder_base_boranga as apt_packages_boranga
 
@@ -27,17 +28,15 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     apt-get upgrade -y && \
     apt-get install --no-install-recommends -y \
     binutils \
-    ca-certificates \
     bzip2 \
+    ca-certificates \
     curl \
     g++ \
     gcc \
-    gdal-bin \
     git \
     graphviz \
     htop \
     ipython3 \
-    libgdal-dev \
     libgraphviz-dev \
     libmagic-dev \
     libpq-dev \
@@ -47,11 +46,11 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     patch \
     postgresql-client \
     python3-dev \
-    python3-gdal \
     python3-pil \
     python3-pip \
     python3-setuptools \
     python3-venv \
+    software-properties-common \
     sqlite3 \
     ssh \
     sudo \
@@ -61,6 +60,15 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     wget && \
     rm -rf /var/lib/apt/lists/* && \
     update-ca-certificates
+
+RUN add-apt-repository ppa:ubuntugis/ubuntugis-unstable
+
+RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install --no-install-recommends -y \
+    gdal-bin \
+    libgdal-dev \
+    python3-gdal
 
 FROM apt_packages_boranga as node_boranga
 
@@ -122,8 +130,6 @@ RUN cd /app/boranga/frontend/boranga; npm ci --omit=dev && \
     cd /app/boranga/frontend/boranga; npm run build
 
 FROM build_vue_boranga as launch_boranga
-
-RUN $VIRTUAL_ENV_PATH/bin/python manage.py collectstatic --noinput
 
 EXPOSE 8080
 HEALTHCHECK --interval=1m --timeout=5s --start-period=10s --retries=3 CMD ["wget", "-q", "-O", "-", "http://localhost:8080/"]
