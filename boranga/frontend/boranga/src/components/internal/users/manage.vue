@@ -257,6 +257,9 @@
                                                                     :value="
                                                                         c.code
                                                                     "
+                                                                    :key="
+                                                                        c.code
+                                                                    "
                                                                 >
                                                                     {{ c.name }}
                                                                 </option>
@@ -447,6 +450,7 @@
                                             >
                                                 <div
                                                     v-for="org in user.boranga_organisations"
+                                                    :key="org.id"
                                                 >
                                                     <div class="form-group">
                                                         <label
@@ -500,6 +504,7 @@
                                                 </div>
                                                 <div
                                                     v-for="orgReq in orgRequest_pending"
+                                                    :key="orgReq.id"
                                                 >
                                                     <div class="form-group">
                                                         <label
@@ -560,14 +565,12 @@
 <script>
 import { v4 as uuid } from 'uuid';
 import { api_endpoints, helpers } from '@/utils/hooks';
-import datatable from '@vue-utils/datatable.vue';
 import CommsLogs from '@common-utils/comms_logs.vue';
 import utils from '../utils';
 
 export default {
-    name: 'User',
+    name: 'ManageUser',
     components: {
-        datatable,
         CommsLogs,
     },
     beforeRouteEnter: function (to, from, next) {
