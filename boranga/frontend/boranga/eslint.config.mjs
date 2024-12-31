@@ -1,6 +1,6 @@
 import globals from 'globals';
 import jsLint from '@eslint/js';
-// import pluginVue from 'eslint-plugin-vue';
+import pluginVue from 'eslint-plugin-vue';
 import vueEslintParser from 'vue-eslint-parser';
 import pluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import eslintConfigPrettier from 'eslint-config-prettier';
@@ -20,7 +20,7 @@ const projectGlobals = {
 export default [
     jsLint.configs.recommended,
     pluginPrettierRecommended,
-    // ...pluginVue.configs['flat/essential'],
+    ...pluginVue.configs['flat/essential'],
     eslintConfigPrettier,
     {
         ignores: ['.venv/', '.env/', '.env', 'node_modules/'],
@@ -37,7 +37,7 @@ export default [
     {
         files: ['src/**/*.vue'],
         plugins: {
-            // vue: pluginVue,
+            vue: pluginVue,
         },
         languageOptions: {
             sourceType: 'module',
