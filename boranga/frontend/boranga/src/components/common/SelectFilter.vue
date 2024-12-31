@@ -7,7 +7,7 @@
             class="text-secondary mb-1"
             >{{ title }}</label
         >
-        <VueSelect
+        <v-select
             :id="`select-filter-${id}`"
             ref="vueSelectFilter"
             v-model="selectedFilterItem"
@@ -41,15 +41,13 @@
                 })
             "
         >
-        </VueSelect>
+        </v-select>
     </div>
 </template>
 
 <script>
-import { VueSelect } from 'vue-select';
 export default {
     name: 'SelectFilter',
-    components: { VueSelect },
     props: {
         id: {
             type: String,
@@ -163,13 +161,13 @@ export default {
                     value: Object.hasOwn(option, 'key')
                         ? option.key.toString() // Casting to string to avoid potential type mismatch
                         : Object.hasOwn(option, 'id')
-                        ? option.id.toString()
-                        : option.value.toString(),
+                          ? option.id.toString()
+                          : option.value.toString(),
                     text: Object.hasOwn(option, 'key')
                         ? option.value.toString()
                         : Object.hasOwn(option, 'name')
-                        ? option.name.toString()
-                        : option.text.toString(),
+                          ? option.name.toString()
+                          : option.text.toString(),
                 };
             });
         },
@@ -231,7 +229,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 @import 'vue-select/dist/vue-select.css';
 
 * {

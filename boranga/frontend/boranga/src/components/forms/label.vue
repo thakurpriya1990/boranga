@@ -6,9 +6,8 @@
 
 <script>
 export default {
-    props:["value", "id"]
-}
+    props: ['value', 'id'],
+};
 </script>
 
-<style lang="css">
-</style>
+<style lang="css"></style>

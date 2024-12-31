@@ -1455,11 +1455,13 @@ class ConservationStatusViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
         serializer = ConservationStatusLogEntrySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         comms = serializer.save()
-        for f in request.FILES:
+
+        # Save the files
+        for f in request.FILES.getlist("files"):
             document = comms.documents.create()
-            document.check_file(request.FILES[f])
-            document.name = str(request.FILES[f])
-            document._file = request.FILES[f]
+            document.check_file(f)
+            document.name = str(f)
+            document._file = f
             document.save()
 
         return Response(serializer.data)

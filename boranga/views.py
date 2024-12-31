@@ -43,37 +43,13 @@ class InternalView(UserPassesTestMixin, TemplateView):
     def test_func(self):
         return is_internal(self.request)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["dev"] = settings.DEV_STATIC
-        context["dev_url"] = settings.DEV_STATIC_URL
-        if hasattr(settings, "DEV_APP_BUILD_URL") and settings.DEV_APP_BUILD_URL:
-            context["app_build_url"] = settings.DEV_APP_BUILD_URL
-        return context
-
 
 class PublicView(TemplateView):
     template_name = "boranga/dash/index.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["dev"] = settings.DEV_STATIC
-        context["dev_url"] = settings.DEV_STATIC_URL
-        if hasattr(settings, "DEV_APP_BUILD_URL") and settings.DEV_APP_BUILD_URL:
-            context["app_build_url"] = settings.DEV_APP_BUILD_URL
-        return context
-
 
 class ExternalView(LoginRequiredMixin, TemplateView):
     template_name = "boranga/dash/index.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["dev"] = settings.DEV_STATIC
-        context["dev_url"] = settings.DEV_STATIC_URL
-        if hasattr(settings, "DEV_APP_BUILD_URL") and settings.DEV_APP_BUILD_URL:
-            context["app_build_url"] = settings.DEV_APP_BUILD_URL
-        return context
 
 
 class SpeciesView(TemplateView):

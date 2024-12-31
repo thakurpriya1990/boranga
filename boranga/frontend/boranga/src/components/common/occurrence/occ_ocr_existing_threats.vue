@@ -5,14 +5,15 @@
             :title="'Add Existing Threat'"
             :large="true"
             :full="true"
-            :showOK="false"
+            :show-o-k="false"
             cancel-text="Close"
             @cancel="close()"
         >
             <div class="container-fluid">
                 <div class="row">
                     <alert v-if="errorString" type="danger"
-                        ><strong>{{ errorString }}</strong></alert>
+                        ><strong>{{ errorString }}</strong></alert
+                    >
                     <div class="col-sm-12">
                         <div class="form-group">
                             <div class="row">
@@ -24,7 +25,11 @@
                                         :dt-headers="datatable_headers"
                                     />
                                 </div>
-                                <ThreatDetail ref="threat_detail" @refreshFromResponse="refreshFromResponse" :url="occ_threat_url"></ThreatDetail>
+                                <ThreatDetail
+                                    ref="threat_detail"
+                                    :url="occ_threat_url"
+                                    @refresh-from-response="refreshFromResponse"
+                                ></ThreatDetail>
                             </div>
                         </div>
                     </div>
@@ -34,12 +39,11 @@
     </div>
 </template>
 <script>
-import Vue from 'vue'
 import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
-import { helpers, api_endpoints, constants, utils } from '@/utils/hooks.js';
+import { helpers, api_endpoints, constants } from '@/utils/hooks.js';
 import datatable from '@/utils/vue/datatable.vue';
-import ThreatDetail from '@/components/common/species_communities/add_threat.vue'
+import ThreatDetail from '@/components/common/species_communities/add_threat.vue';
 import { v4 as uuid } from 'uuid';
 
 export default {
@@ -76,146 +80,143 @@ export default {
             return [
                 'Number',
                 'Occurrence Report',
-                'Category',                 
-                'Date Observed', 
+                'Category',
+                'Date Observed',
                 'Action',
                 'Threat Agent',
-                'Threat Source', 
+                'Threat Source',
                 'Comments',
-                'Current Impact', 
-                'Potential Impact'
+                'Current Impact',
+                'Potential Impact',
             ];
         },
         column_number: function () {
             return {
-                data: "threat_number",
+                data: 'threat_number',
                 orderable: true,
                 searchable: true,
-                mRender: function(data,type,full){
-                    if(full.visible){
+                mRender: function (data, type, full) {
+                    if (full.visible) {
                         return full.threat_number;
-                    }
-                    else{
-                        return '<s>'+ full.threat_number + '</s>'
+                    } else {
+                        return '<s>' + full.threat_number + '</s>';
                     }
                 },
             };
         },
         column_ocr: function () {
             return {
-                data: "occurrence_report",
+                data: 'occurrence_report',
                 orderable: true,
                 searchable: true,
-                mRender: function(data,type,full){
-                    if(full.visible){
-                        return "OCR" + full.occurrence_report;
-                    }
-                    else{
-                        return '<s>OCR' + full.occurrence_report + '</s>'
+                mRender: function (data, type, full) {
+                    if (full.visible) {
+                        return 'OCR' + full.occurrence_report;
+                    } else {
+                        return '<s>OCR' + full.occurrence_report + '</s>';
                     }
                 },
             };
         },
         column_category: function () {
             return {
-                data: "threat_category",
+                data: 'threat_category',
                 orderable: true,
                 searchable: true,
-                mRender: function(data,type,full){
-                    if(full.visible){
+                mRender: function (data, type, full) {
+                    if (full.visible) {
                         return full.threat_category;
-                    }
-                    else{
-                        return '<s>'+ full.threat_category + '</s>'
+                    } else {
+                        return '<s>' + full.threat_category + '</s>';
                     }
                 },
             };
         },
         column_source: function () {
             return {
-                data: "source",
+                data: 'source',
                 orderable: true,
                 searchable: true,
-                mRender: function(data,type,full){
-                    if(full.visible){
+                mRender: function (data, type, full) {
+                    if (full.visible) {
                         return full.source;
-                    }
-                    else{
-                        return '<s>'+ full.source + '</s>'
+                    } else {
+                        return '<s>' + full.source + '</s>';
                     }
                 },
             };
         },
         column_observed: function () {
             return {
-                data: "date_observed",
-                mRender:function (data,type,full){
-                    if(full.visible){
-                        return data != '' && data != null ? moment(data).format('DD/MM/YYYY'):'';
+                data: 'date_observed',
+                mRender: function (data, type, full) {
+                    if (full.visible) {
+                        return data != '' && data != null
+                            ? moment(data).format('DD/MM/YYYY')
+                            : '';
+                    } else {
+                        return data != '' && data != null
+                            ? '<s>' + moment(data).format('DD/MM/YYYY')
+                            : '' + '</s>';
                     }
-                    else{
-                        return data != '' && data != null ? '<s>'+ moment(data).format('DD/MM/YYYY'):'' + '</s>'
-                    }
-                }
+                },
             };
         },
         column_threat_agent: function () {
             return {
-                data: "threat_agent",
+                data: 'threat_agent',
                 orderable: true,
                 searchable: true,
-                mRender: function(data,type,full){
-                    if(full.visible){
+                mRender: function (data, type, full) {
+                    if (full.visible) {
                         return full.threat_agent;
-                    }
-                    else{
-                        return '<s>'+ full.threat_agent + '</s>'
+                    } else {
+                        return '<s>' + full.threat_agent + '</s>';
                     }
                 },
             };
         },
         column_comment: function () {
             return {
-                data: "comment",
+                data: 'comment',
                 orderable: true,
                 searchable: true,
-                'render': function(value, type, full){
+                render: function (value, type, full) {
                     let result = helpers.dtPopover(value, 30, 'hover');
-                    if(full.visible){
-                        return type=='export' ? value : result;
-                    }
-                    else{
-                        return type=='export' ? '<s>' + value + '</s>' : '<s>' + result + '</s>';
+                    if (full.visible) {
+                        return type == 'export' ? value : result;
+                    } else {
+                        return type == 'export'
+                            ? '<s>' + value + '</s>'
+                            : '<s>' + result + '</s>';
                     }
                 },
             };
         },
         column_current_impact: function () {
             return {
-                data: "current_impact_name",
+                data: 'current_impact_name',
                 orderable: true,
                 searchable: true,
-                mRender: function(data,type,full){
-                    if(full.visible){
+                mRender: function (data, type, full) {
+                    if (full.visible) {
                         return full.current_impact_name;
-                    }
-                    else{
-                        return '<s>'+ full.current_impact_name + '</s>'
+                    } else {
+                        return '<s>' + full.current_impact_name + '</s>';
                     }
                 },
             };
         },
         column_potential_impact: function () {
             return {
-                data: "potential_impact_name",
+                data: 'potential_impact_name',
                 orderable: true,
                 searchable: true,
-                mRender: function(data,type,full){
-                    if(full.visible){
+                mRender: function (data, type, full) {
+                    if (full.visible) {
                         return full.potential_impact_name;
-                    }
-                    else{
-                        return '<s>'+ full.potential_impact_name + '</s>'
+                    } else {
+                        return '<s>' + full.potential_impact_name + '</s>';
                     }
                 },
             };
@@ -226,12 +227,12 @@ export default {
                 orderable: false,
                 searchable: false,
                 visible: true,
-                mRender: function(data, type, full){
-                    let links = "";
+                mRender: function (data, type, full) {
+                    let links = '';
                     links += `<a href='#' data-view-threat='${full.id}'>View</a><br>`;
                     links += `<a href='#' data-add-threat='${full.id}'>Add</a><br>`;
                     return links;
-                }
+                },
             };
         },
         datatable_options: function () {
@@ -239,14 +240,14 @@ export default {
             let columns = [
                 vm.column_number,
                 vm.column_ocr,
-                vm.column_category,           
+                vm.column_category,
                 vm.column_observed,
                 vm.column_action,
                 vm.column_threat_agent,
                 vm.column_source,
                 vm.column_comment,
                 vm.column_current_impact,
-                vm.column_potential_impact,                
+                vm.column_potential_impact,
             ];
             return {
                 autoWidth: false,
@@ -264,7 +265,10 @@ export default {
                     { responsivePriority: 2, targets: 4 },
                 ],
                 ajax: {
-                    url: "/api/occurrence/" + this.occurrenceId + "/get_existing_ocr_threats/",
+                    url:
+                        '/api/occurrence/' +
+                        this.occurrenceId +
+                        '/get_existing_ocr_threats/',
                     dataSrc: '',
                 },
                 dom: 'lBfrtip',
@@ -272,6 +276,12 @@ export default {
                 processing: true,
             };
         },
+    },
+    mounted: function () {
+        let vm = this;
+        this.$nextTick(() => {
+            vm.addEventListeners();
+        });
     },
     methods: {
         close: function () {
@@ -282,101 +292,116 @@ export default {
         sendData: function () {
             let vm = this;
             vm.errors = false;
-            
+
             let newThreatObj = new Object();
             newThreatObj.occurrence_report_threat_id = vm.threatObj.id;
             newThreatObj.date_observed = vm.threatObj.date_observed;
-            newThreatObj.potential_threat_onset = vm.threatObj.potential_threat_onset;
+            newThreatObj.potential_threat_onset =
+                vm.threatObj.potential_threat_onset;
             newThreatObj.potential_impact = vm.threatObj.potential_impact;
             newThreatObj.current_impact = vm.threatObj.current_impact;
             newThreatObj.comment = vm.threatObj.comment;
             newThreatObj.threat_agent_id = vm.threatObj.threat_agent_id;
             newThreatObj.threat_category_id = vm.threatObj.threat_category_id;
             newThreatObj.occurrence = vm.occurrenceId;
-            
-            let threatObj = JSON.parse(JSON.stringify(newThreatObj));
-            let formData = new FormData()
 
-            vm.addingThreat = true;
+            let threatObj = JSON.parse(JSON.stringify(newThreatObj));
+            let formData = new FormData();
+
             formData.append('data', JSON.stringify(threatObj));
-            vm.$http.post(vm.occ_threat_url, formData, {
-                emulateJSON: true,
-            }).then((response) => {
-                vm.addingThreat = false;
-                vm.refreshFromResponse();
-                vm.$parent.updatedThreats();
-            }, (error) => {
-                vm.errors = true;
-                vm.addingThreat = false;
-                vm.errorString = helpers.apiVueResourceError(error);
-            });
-            
-        },
-        viewThreat: function(id){
-            let vm=this;
-            this.$refs.threat_detail.threat_id = id;
-            this.$refs.threat_detail.threat_action='view';
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.ocr_threat,id)).then((response) => {
-                    this.$refs.threat_detail.threatObj=response.body;
-                    this.$refs.threat_detail.threatObj.date_observed = response.body.date_observed != null && response.body.date_observed != undefined ? moment(response.body.date_observed).format('yyyy-MM-DD'): '';
+            fetch(vm.occ_threat_url, {
+                method: 'POST',
+                body: formData,
+            }).then(
+                () => {
+                    vm.refreshFromResponse();
+                    vm.$parent.updatedThreats();
                 },
-                err => {
-                        console.log(err);
-                    });
+                (error) => {
+                    vm.errors = true;
+                    vm.errorString = helpers.apiVueResourceError(error);
+                }
+            );
+        },
+        viewThreat: function (id) {
+            this.$refs.threat_detail.threat_id = id;
+            this.$refs.threat_detail.threat_action = 'view';
+            fetch(helpers.add_endpoint_json(api_endpoints.ocr_threat, id)).then(
+                async (response) => {
+                    const data = await response.json();
+                    this.$refs.threat_detail.threatObj = data;
+                    this.$refs.threat_detail.threatObj.date_observed =
+                        data.date_observed != null &&
+                        data.date_observed != undefined
+                            ? moment(data.date_observed).format('yyyy-MM-DD')
+                            : '';
+                },
+                (err) => {
+                    console.log(err);
+                }
+            );
             this.$refs.threat_detail.isModalOpen = true;
         },
-        addThreat: function(id){
-            let vm=this;
-            Vue.http.get(helpers.add_endpoint_json(api_endpoints.ocr_threat,id)).then((response) => {
-                    this.threatObj=response.body;
+        addThreat: function (id) {
+            let vm = this;
+            fetch(helpers.add_endpoint_json(api_endpoints.ocr_threat, id)).then(
+                async (response) => {
+                    const data = await response.json();
+                    this.threatObj = data;
                     console.log(this.threatObj);
-                    vm.sendData()
+                    vm.sendData();
                 },
-                err => {
-                        console.log(err);
-                    });            
+                (err) => {
+                    console.log(err);
+                }
+            );
         },
-        addEventListeners:function (){
-            let vm=this;
-            vm.$refs.threat_datatable.vmDataTable.on('click', 'a[data-view-threat]', function(e) {
-                e.preventDefault();
-                var id = $(this).attr('data-view-threat');
-                vm.viewThreat(id);
-            });
-            vm.$refs.threat_datatable.vmDataTable.on('click', 'a[data-add-threat]', function(e) {
-                e.preventDefault();
-                var id = $(this).attr('data-add-threat');
-                vm.addThreat(id);
-            });
+        addEventListeners: function () {
+            let vm = this;
+            vm.$refs.threat_datatable.vmDataTable.on(
+                'click',
+                'a[data-view-threat]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-view-threat');
+                    vm.viewThreat(id);
+                }
+            );
+            vm.$refs.threat_datatable.vmDataTable.on(
+                'click',
+                'a[data-add-threat]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-add-threat');
+                    vm.addThreat(id);
+                }
+            );
         },
-        refreshFromResponse: function(){
+        refreshFromResponse: function () {
             this.$refs.threat_datatable.vmDataTable.ajax.reload();
         },
     },
-    mounted: function(){
-            let vm = this;
-            this.$nextTick(() => {
-                vm.addEventListeners();
-            });
-        },
 };
 </script>
 
 <style lang="css" scoped>
-    /*ul, li {
+/*ul, li {
         zoom:1;
         display: inline;
     }*/
-    fieldset.scheduler-border {
+fieldset.scheduler-border {
     border: 1px groove #ddd !important;
     padding: 0 1.4em 1.4em 1.4em !important;
     margin: 0 0 1.5em 0 !important;
-    -webkit-box-shadow:  0px 0px 0px 0px #000;
-            box-shadow:  0px 0px 0px 0px #000;
-    }
-    legend.scheduler-border {
-    width:inherit; /* Or auto */
-    padding:0 10px; /* To give a bit of padding on the left and right */
-    border-bottom:none;
-    }
+    -webkit-box-shadow: 0px 0px 0px 0px #000;
+    box-shadow: 0px 0px 0px 0px #000;
+}
+
+legend.scheduler-border {
+    width: inherit;
+    /* Or auto */
+    padding: 0 10px;
+    /* To give a bit of padding on the left and right */
+    border-bottom: none;
+}
 </style>

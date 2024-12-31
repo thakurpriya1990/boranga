@@ -1,38 +1,69 @@
 <template id="external_occurrence_report_datatable">
     <div>
-        <CollapsibleFilters component_title="Filters" ref="collapsible_filters" @created="collapsible_component_mounted"
-            class="mb-2">
+        <CollapsibleFilters
+            ref="collapsible_filters"
+            component_title="Filters"
+            class="mb-2"
+            @created="collapsible_component_mounted"
+        >
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Type:</label>
-                        <select class="form-select" v-model="filterOCRGroupType">
+                        <select
+                            v-model="filterOCRGroupType"
+                            class="form-select"
+                        >
                             <option value="all">All</option>
-                            <option v-for="option in group_types" :value="option.name">{{ option.display }}
+                            <option
+                                v-for="option in group_types"
+                                :value="option.name"
+                            >
+                                {{ option.display }}
                             </option>
                         </select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="ocr_scientific_name_lookup">Scientific Name:</label>
-                        <select id="ocr_scientific_name_lookup" name="ocr_scientific_name_lookup"
-                            ref="ocr_scientific_name_lookup" class="form-control" />
+                        <label for="ocr_scientific_name_lookup"
+                            >Scientific Name:</label
+                        >
+                        <select
+                            id="ocr_scientific_name_lookup"
+                            ref="ocr_scientific_name_lookup"
+                            name="ocr_scientific_name_lookup"
+                            class="form-control"
+                        />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="ocr_community_name_lookup">Community Name:</label>
-                        <select id="ocr_community_name_lookup" name="ocr_community_name_lookup"
-                            ref="ocr_community_name_lookup" class="form-control" />
+                        <label for="ocr_community_name_lookup"
+                            >Community Name:</label
+                        >
+                        <select
+                            id="ocr_community_name_lookup"
+                            ref="ocr_community_name_lookup"
+                            name="ocr_community_name_lookup"
+                            class="form-control"
+                        />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="">Status:</label>
-                        <select class="form-select" v-model="filterOCRApplicationStatus">
+                        <select
+                            v-model="filterOCRApplicationStatus"
+                            class="form-select"
+                        >
                             <option value="all">All</option>
-                            <option v-for="status in proposal_status" :value="status.value">{{ status.name }}</option>
+                            <option
+                                v-for="status in proposal_status"
+                                :value="status.value"
+                            >
+                                {{ status.name }}
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -40,15 +71,24 @@
         </CollapsibleFilters>
         <div v-if="addOCRVisibility" class="col-md-12 dropdown">
             <div class="text-end">
-                <button class="btn btn-primary dropdown-toggle mb-2" type="button" id="ocr_type"
-                    data-bs-toggle="dropdown" aria-expanded="false">
+                <button
+                    id="ocr_type"
+                    class="btn btn-primary dropdown-toggle mb-2"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                >
                     Report Occurrence
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="ocr_type">
                     <li v-for="group in group_types">
-                        <a class="dropdown-item" role="button"
-                            @click.prevent="createOccurrenceReport(group.id, group.display)">{{
-                                group.display }}
+                        <a
+                            class="dropdown-item"
+                            role="button"
+                            @click.prevent="
+                                createOccurrenceReport(group.id, group.display)
+                            "
+                            >{{ group.display }}
                         </a>
                     </li>
                 </ul>
@@ -56,26 +96,30 @@
         </div>
         <div class="row">
             <div class="col-lg-12">
-                <datatable ref="occurrence_report_datatable" :id="datatable_id" :dtOptions="datatable_options"
-                    :dtHeaders="datatable_headers" />
+                <datatable
+                    :id="datatable_id"
+                    ref="occurrence_report_datatable"
+                    :dt-options="datatable_options"
+                    :dt-headers="datatable_headers"
+                />
             </div>
         </div>
     </div>
 </template>
 <script>
-import "babel-polyfill"
-import datatable from '@/utils/vue/datatable.vue'
-import CollapsibleFilters from '@/components/forms/collapsible_component.vue'
-import FormSection from '@/components/forms/section_toggle.vue'
-import Vue from 'vue'
+import { v4 as uuid } from 'uuid';
+import datatable from '@/utils/vue/datatable.vue';
+import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
+import FormSection from '@/components/forms/section_toggle.vue';
 
-import {
-    constants,
-    api_endpoints,
-    helpers
-} from '@/utils/hooks'
+import { constants, api_endpoints, helpers } from '@/utils/hooks';
 export default {
     name: 'ExternalOccurrenceReportDatatable',
+    components: {
+        datatable,
+        CollapsibleFilters,
+        FormSection,
+    },
     props: {
         level: {
             type: String,
@@ -83,18 +127,18 @@ export default {
             validator: function (val) {
                 let options = ['internal', 'referral', 'external'];
                 return options.indexOf(val) != -1 ? true : false;
-            }
+            },
         },
         url: {
             type: String,
-            required: true
+            required: true,
         },
         profile: {
             type: Object,
             required: false,
             default: function () {
-                return null
-            }
+                return null;
+            },
         },
         filterOCRGroupType_cache: {
             type: String,
@@ -118,22 +162,33 @@ export default {
         },
     },
     data() {
-        let vm = this;
         return {
-            datatable_id: 'ocuurrence-report-datatable-' + vm._uid,
+            datatable_id: 'ocuurrence-report-datatable-' + uuid(),
 
             // selected values for filtering
-            filterOCRGroupType: sessionStorage.getItem(this.filterOCRGroupType_cache) ?
-                sessionStorage.getItem(this.filterOCRGroupType_cache) : 'all',
+            filterOCRGroupType: sessionStorage.getItem(
+                this.filterOCRGroupType_cache
+            )
+                ? sessionStorage.getItem(this.filterOCRGroupType_cache)
+                : 'all',
 
-            filterOCRScientificName: sessionStorage.getItem(this.filterOCRScientificName_cache) ?
-                sessionStorage.getItem(this.filterOCRScientificName_cache) : 'all',
+            filterOCRScientificName: sessionStorage.getItem(
+                this.filterOCRScientificName_cache
+            )
+                ? sessionStorage.getItem(this.filterOCRScientificName_cache)
+                : 'all',
 
-            filterOCRExCommunityName: sessionStorage.getItem(this.filterOCRExCommunityName_cache) ?
-                sessionStorage.getItem(this.filterOCRExCommunityName_cache) : 'all',
+            filterOCRExCommunityName: sessionStorage.getItem(
+                this.filterOCRExCommunityName_cache
+            )
+                ? sessionStorage.getItem(this.filterOCRExCommunityName_cache)
+                : 'all',
 
-            filterOCRApplicationStatus: sessionStorage.getItem(this.filterOCRApplicationStatus_cache) ?
-                sessionStorage.getItem(this.filterOCRApplicationStatus_cache) : 'all',
+            filterOCRApplicationStatus: sessionStorage.getItem(
+                this.filterOCRApplicationStatus_cache
+            )
+                ? sessionStorage.getItem(this.filterOCRApplicationStatus_cache)
+                : 'all',
 
             //Filter list for scientific name and common name
             group_types: [],
@@ -148,50 +203,19 @@ export default {
                 { value: 'closed', name: 'Closed' },
             ],
             proposal_status: [],
-        }
-    },
-    components: {
-        datatable,
-        CollapsibleFilters,
-        FormSection,
-    },
-    watch: {
-        filterOCRGroupType: function () {
-            let vm = this;
-            vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRGroupType_cache, vm.filterOCRGroupType);
-        },
-        filterOCRScientificName: function () {
-            let vm = this;
-            vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRScientificName_cache, vm.filterOCRScientificName);
-        },
-        filterOCRExCommunityName: function () {
-            let vm = this;
-            vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRExCommunityName_cache, vm.filterOCRExCommunityName);
-        },
-        filterOCRApplicationStatus: function () {
-            let vm = this;
-            vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
-            sessionStorage.setItem(vm.filterOCRApplicationStatus_cache, vm.filterOCRApplicationStatus);
-        },
-        filterApplied: function () {
-            if (this.$refs.collapsible_filters) {
-                // Collapsible component exists
-                this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
-            }
-        },
+        };
     },
     computed: {
         filterApplied: function () {
-            if (this.filterOCRGroupType === 'all' &&
+            if (
+                this.filterOCRGroupType === 'all' &&
                 this.filterOCRScientificName === 'all' &&
                 this.filterOCRExCommunityName === 'all' &&
-                this.filterOCRApplicationStatus === 'all') {
-                return false
+                this.filterOCRApplicationStatus === 'all'
+            ) {
+                return false;
             } else {
-                return true
+                return true;
             }
         },
         addOCRVisibility: function () {
@@ -200,99 +224,104 @@ export default {
             return visibility;
         },
         datatable_headers: function () {
-            return ['ID', 'Number', 'Type', 'Scientific Name', 'Community Name', 'Status', 'Action']
+            return [
+                'ID',
+                'Number',
+                'Type',
+                'Scientific Name',
+                'Community Name',
+                'Status',
+                'Action',
+            ];
         },
         column_id: function () {
             return {
-                data: "id",
+                data: 'id',
                 orderable: true,
                 searchable: false,
                 visible: false,
-                name: "id",
-            }
+                name: 'id',
+            };
         },
         column_number: function () {
             return {
-                data: "occurrence_report_number",
+                data: 'occurrence_report_number',
                 orderable: true,
                 searchable: true,
                 visible: true,
-                name: "id",
-            }
+                name: 'id',
+            };
         },
         column_type: function () {
             return {
-                data: "group_type",
+                data: 'group_type',
                 orderable: true,
                 searchable: true,
                 visible: true,
-                name: "group_type__name",
-            }
+                name: 'group_type__name',
+            };
         },
         column_scientific_name: function () {
             return {
-                data: "scientific_name",
+                data: 'scientific_name',
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function (value, type) {
+                render: function (value, type) {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type == 'export' ? value : result;
                 },
-                name: "species__taxonomy__scientific_name",
-            }
+                name: 'species__taxonomy__scientific_name',
+            };
         },
         column_community_name: function () {
             return {
-                data: "community_name",
+                data: 'community_name',
                 orderable: true,
                 searchable: true,
                 visible: true,
-                'render': function (value, type) {
+                render: function (value, type) {
                     let result = helpers.dtPopover(value, 30, 'hover');
                     return type == 'export' ? value : result;
                 },
-                name: "community__taxonomy__community_name",
-            }
+                name: 'community__taxonomy__community_name',
+            };
         },
         column_status: function () {
             return {
-                data: "customer_status",
+                data: 'customer_status',
                 orderable: true,
                 searchable: true,
                 visible: true,
-                name: "customer_status",
-            }
+                name: 'customer_status',
+            };
         },
         column_action: function () {
-            let vm = this
             return {
-                data: "id",
+                data: 'id',
                 orderable: false,
                 searchable: false,
                 visible: true,
-                'render': function (data, type, full) {
-                    let links = "";
+                render: function (data, type, full) {
+                    let links = '';
                     if (full.can_user_edit) {
                         if (full.processing_status == 'discarded') {
                             links += `<a href='#${full.id}' data-reinstate-ocr-proposal='${full.id}'>Reinstate</a><br/>`;
                         } else {
-                            links += `<a href='/external/occurrence_report/${full.id}'>Continue</a><br/>`;
+                            links += `<a href='/external/occurrence-report/${full.id}'>Continue</a><br/>`;
                             links += `<a href='#${full.id}' data-discard-ocr-proposal='${full.id}'>Discard</a><br/>`;
                         }
-                    }
-                    else if (full.can_user_view) {
-                        links += `<a href='/external/occurrence_report/${full.id}'>View</a><br />`;
+                    } else if (full.can_user_view) {
+                        links += `<a href='/external/occurrence-report/${full.id}'>View</a><br />`;
                     }
                     links += `<a href='#${full.id}' data-copy-ocr-proposal='${full.id}'>Copy</a>`;
                     return links;
-                }
-            }
+                },
+            };
         },
         datatable_options: function () {
-            let vm = this
-            let columns = []
-            let search = null
+            let vm = this;
+            let columns = [];
             let buttons = [
                 {
                     extend: 'excel',
@@ -301,7 +330,7 @@ export default {
                     className: 'btn btn-primary me-2 rounded',
                     exportOptions: {
                         columns: ':not(.no-export)',
-                    }
+                    },
                 },
                 {
                     extend: 'csv',
@@ -310,9 +339,9 @@ export default {
                     className: 'btn btn-primary rounded',
                     exportOptions: {
                         columns: ':not(.no-export)',
-                    }
-                }
-            ]
+                    },
+                },
+            ];
             columns = [
                 vm.column_id,
                 vm.column_number,
@@ -321,39 +350,44 @@ export default {
                 vm.column_community_name,
                 vm.column_status,
                 vm.column_action,
-            ]
-            search = false
-            buttons = buttons
+            ];
 
             return {
                 autoWidth: false,
                 language: {
-                    processing: constants.DATATABLE_PROCESSING_HTML
+                    processing: constants.DATATABLE_PROCESSING_HTML,
                 },
-                order: [
-                    [0, 'desc']
+                order: [[0, 'desc']],
+                lengthMenu: [
+                    [10, 25, 50, 100, 100000000],
+                    [10, 25, 50, 100, 'All'],
                 ],
-                lengthMenu: [[10, 25, 50, 100, 100000000], [10, 25, 50, 100, "All"]],
                 responsive: true,
                 serverSide: true,
                 //  to show the "workflow Status","Action" columns always in the last position
                 columnDefs: [
                     { responsivePriority: 1, targets: 1 },
-                    { responsivePriority: 3, targets: -1, className: 'no-export' },
-                    { responsivePriority: 2, targets: -2 }
+                    {
+                        responsivePriority: 3,
+                        targets: -1,
+                        className: 'no-export',
+                    },
+                    { responsivePriority: 2, targets: -2 },
                 ],
                 ajax: {
-                    "url": this.url,
-                    "dataSrc": 'data',
-                    "data": function (d) {
+                    url: this.url,
+                    dataSrc: 'data',
+                    data: function (d) {
                         d.filter_group_type = vm.filterOCRGroupType;
                         d.filter_scientific_name = vm.filterOCRScientificName;
                         d.filter_community_name = vm.filterOCRExCommunityName;
-                        d.filter_application_status = vm.filterOCRApplicationStatus
+                        d.filter_application_status =
+                            vm.filterOCRApplicationStatus;
                         d.is_internal = vm.is_internal;
-                    }
+                    },
                 },
-                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                dom:
+                    "<'d-flex align-items-center'<'me-auto'l>fB>" +
                     "<'row'<'col-sm-12'tr>>" +
                     "<'d-flex align-items-center'<'me-auto'i>p>",
                 buttons: buttons,
@@ -365,81 +399,175 @@ export default {
                 initComplete: function () {
                     helpers.enablePopovers();
                 },
+            };
+        },
+    },
+    watch: {
+        filterOCRGroupType: function () {
+            let vm = this;
+            vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(
+                vm.filterOCRGroupType_cache,
+                vm.filterOCRGroupType
+            );
+        },
+        filterOCRScientificName: function () {
+            let vm = this;
+            vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(
+                vm.filterOCRScientificName_cache,
+                vm.filterOCRScientificName
+            );
+        },
+        filterOCRExCommunityName: function () {
+            let vm = this;
+            vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(
+                vm.filterOCRExCommunityName_cache,
+                vm.filterOCRExCommunityName
+            );
+        },
+        filterOCRApplicationStatus: function () {
+            let vm = this;
+            vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload(); // This calls ajax() backend call.
+            sessionStorage.setItem(
+                vm.filterOCRApplicationStatus_cache,
+                vm.filterOCRApplicationStatus
+            );
+        },
+        filterApplied: function () {
+            if (this.$refs.collapsible_filters) {
+                // Collapsible component exists
+                this.$refs.collapsible_filters.show_warning_icon(
+                    this.filterApplied
+                );
             }
-        }
+        },
+    },
+    mounted: function () {
+        this.fetchFilterLists();
+        let vm = this;
+        $('a[data-toggle="collapse"]').on('click', function () {
+            var chev = $(this).children()[0];
+            window.setTimeout(function () {
+                $(chev).toggleClass(
+                    'glyphicon-chevron-down glyphicon-chevron-up'
+                );
+            }, 100);
+        });
+        this.$nextTick(() => {
+            vm.initialiseScientificNameLookup();
+            vm.initialiseCommunityNameLookup();
+            vm.addEventListeners();
+            var newOption = null;
+            if (
+                sessionStorage.getItem('filterOCRScientificName') != 'all' &&
+                sessionStorage.getItem('filterOCRScientificName') != null
+            ) {
+                newOption = new Option(
+                    sessionStorage.getItem('filterOCRScientificNameText'),
+                    vm.filterOCRScientificName,
+                    false,
+                    true
+                );
+                $('#ocr_scientific_name_lookup').append(newOption);
+            }
+            if (
+                sessionStorage.getItem('filterOCRExCommunityName') != 'all' &&
+                sessionStorage.getItem('filterOCRExCommunityName') != null
+            ) {
+                newOption = new Option(
+                    sessionStorage.getItem('filterOCRExCommunityNameText'),
+                    vm.filterOCRExCommunityName,
+                    false,
+                    true
+                );
+                $('#ocr_community_name_lookup').append(newOption);
+            }
+        });
     },
     methods: {
         collapsible_component_mounted: function () {
-            this.$refs.collapsible_filters.show_warning_icon(this.filterApplied)
+            this.$refs.collapsible_filters.show_warning_icon(
+                this.filterApplied
+            );
         },
         initialiseScientificNameLookup: function () {
             let vm = this;
-            $(vm.$refs.ocr_scientific_name_lookup).select2({
-                minimumInputLength: 2,
-                "theme": "bootstrap-5",
-                allowClear: true,
-                placeholder: "Select Scientific Name",
-                ajax: {
-                    url: api_endpoints.species_lookup,
-                    dataType: 'json',
-                    data: function (params) {
-                        var query = {
-                            term: params.term,
-                            type: 'public',
-                        }
-                        return query;
+            $(vm.$refs.ocr_scientific_name_lookup)
+                .select2({
+                    minimumInputLength: 2,
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: 'Select Scientific Name',
+                    ajax: {
+                        url: api_endpoints.species_lookup,
+                        dataType: 'json',
+                        data: function (params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                            };
+                            return query;
+                        },
                     },
-                },
-            }).
-                on("select2:select", function (e) {
-                    var selected = $(e.currentTarget);
+                })
+                .on('select2:select', function (e) {
                     let data = e.params.data.id;
                     vm.filterOCRScientificName = data;
-                    sessionStorage.setItem("filterOCRScientificNameText", e.params.data.text);
-                }).
-                on("select2:unselect", function (e) {
-                    var selected = $(e.currentTarget);
+                    sessionStorage.setItem(
+                        'filterOCRScientificNameText',
+                        e.params.data.text
+                    );
+                })
+                .on('select2:unselect', function () {
                     vm.filterOCRScientificName = 'all';
-                    sessionStorage.setItem("filterOCRScientificNameText", '');
-                }).
-                on("select2:open", function (e) {
-                    const searchField = $('[aria-controls="select2-ocr_scientific_name_lookup-results"]')
+                    sessionStorage.setItem('filterOCRScientificNameText', '');
+                })
+                .on('select2:open', function () {
+                    const searchField = $(
+                        '[aria-controls="select2-ocr_scientific_name_lookup-results"]'
+                    );
                     // move focus to select2 field
                     searchField[0].focus();
                 });
         },
         initialiseCommunityNameLookup: function () {
             let vm = this;
-            $(vm.$refs.ocr_community_name_lookup).select2({
-                minimumInputLength: 2,
-                "theme": "bootstrap-5",
-                allowClear: true,
-                placeholder: "Select Community Name",
-                ajax: {
-                    url: api_endpoints.communities_lookup,
-                    dataType: 'json',
-                    data: function (params) {
-                        var query = {
-                            term: params.term,
-                            type: 'public',
-                        }
-                        return query;
+            $(vm.$refs.ocr_community_name_lookup)
+                .select2({
+                    minimumInputLength: 2,
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: 'Select Community Name',
+                    ajax: {
+                        url: api_endpoints.communities_lookup,
+                        dataType: 'json',
+                        data: function (params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                            };
+                            return query;
+                        },
                     },
-                },
-            }).
-                on("select2:select", function (e) {
-                    var selected = $(e.currentTarget);
+                })
+                .on('select2:select', function (e) {
                     let data = e.params.data.id;
                     vm.filterOCRExCommunityName = data;
-                    sessionStorage.setItem("filterOCRExCommunityNameText", e.params.data.text);
-                }).
-                on("select2:unselect", function (e) {
-                    var selected = $(e.currentTarget);
+                    sessionStorage.setItem(
+                        'filterOCRExCommunityNameText',
+                        e.params.data.text
+                    );
+                })
+                .on('select2:unselect', function () {
                     vm.filterOCRExCommunityName = 'all';
-                    sessionStorage.setItem("filterOCRExCommunityNameText", '');
-                }).
-                on("select2:open", function (e) {
-                    const searchField = $('[aria-controls="select2-ocr_community_name_lookup-results"]')
+                    sessionStorage.setItem('filterOCRExCommunityNameText', '');
+                })
+                .on('select2:open', function () {
+                    const searchField = $(
+                        '[aria-controls="select2-ocr_community_name_lookup-results"]'
+                    );
                     // move focus to select2 field
                     searchField[0].focus();
                 });
@@ -447,17 +575,20 @@ export default {
         fetchFilterLists: function () {
             let vm = this;
             vm.proposal_status = vm.external_status;
-            vm.$http.get(api_endpoints.group_types_dict).then((response) => {
-                vm.group_types = response.body;
-            }, (error) => {
-                console.log(error);
-            });
+            fetch(api_endpoints.group_types_dict).then(
+                async (response) => {
+                    vm.group_types = await response.json();
+                },
+                (error) => {
+                    console.log(error);
+                }
+            );
         },
         createOccurrenceReport: async function (group_type, group_type_name) {
             swal.fire({
                 title: `Add ${group_type_name} Occurrence Report`,
                 text: `Are you sure you want to add a new ${group_type_name} Occurrence Report?`,
-                icon: "question",
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: `Add ${group_type_name} Occurrence Report`,
                 reverseButtons: true,
@@ -466,17 +597,23 @@ export default {
                 },
             }).then(async (swalresult) => {
                 if (swalresult.isConfirmed) {
-                    let newOCRId = null
+                    let newOCRId = null;
                     try {
-                        const createUrl = api_endpoints.occurrence_report + "/";
+                        const createUrl = api_endpoints.occurrence_report + '/';
                         let payload = new Object();
-                        payload.group_type_id = group_type
-                        let savedOCR = await Vue.http.post(createUrl, payload);
-                        if (savedOCR) {
-                            newOCRId = savedOCR.body;
+                        payload.group_type_id = group_type;
+                        let response = await fetch(createUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload),
+                        });
+                        const data = await response.json();
+                        if (data) {
+                            newOCRId = data;
                         }
-                    }
-                    catch (err) {
+                    } catch (err) {
                         console.log(err);
                     }
                     this.$router.push({
@@ -489,9 +626,9 @@ export default {
         discardOCR: function (occurrence_report_id) {
             let vm = this;
             swal.fire({
-                title: "Discard Occurrence Report",
-                text: "Are you sure you want to discard this occurrence report?",
-                icon: "question",
+                title: 'Discard Occurrence Report',
+                text: 'Are you sure you want to discard this occurrence report?',
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Discard Occurrence Report',
                 customClass: {
@@ -501,8 +638,16 @@ export default {
                 reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    vm.$http.patch(api_endpoints.discard_ocr_proposal(occurrence_report_id))
-                        .then((response) => {
+                    fetch(
+                        api_endpoints.discard_ocr_proposal(
+                            occurrence_report_id
+                        ),
+                        {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                        }
+                    ).then(
+                        () => {
                             swal.fire({
                                 title: 'Occurrence Report Discarded',
                                 text: 'The occurrence report has been discarded',
@@ -512,52 +657,70 @@ export default {
                                 },
                             });
                             vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload();
-                        }, (error) => {
+                        },
+                        (error) => {
                             console.log(error);
-                        });
+                        }
+                    );
                 }
             });
         },
         reinstateOCRProposal: function (occurrence_report_id) {
             let vm = this;
             swal.fire({
-                title: "Reinstate Report",
-                text: "Are you sure you want to reinstate this report?",
-                icon: "question",
+                title: 'Reinstate Report',
+                text: 'Are you sure you want to reinstate this report?',
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Reinstate Report',
                 customClass: {
                     confirmButton: 'btn btn-primary',
-                    cancelButton: 'btn btn-secondary'
+                    cancelButton: 'btn btn-secondary',
                 },
                 reverseButtons: true,
-            }).then((swalresult) => {
-                if (swalresult.isConfirmed) {
-                    vm.$http.patch(api_endpoints.reinstate_ocr_proposal(occurrence_report_id))
-                        .then((response) => {
-                            swal.fire({
-                                title: 'Reinstated',
-                                text: 'Your report has been reinstated',
-                                icon: 'success',
-                                customClass: {
-                                    confirmButton: 'btn btn-primary',
-                                },
-                            });
-                            vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload(helpers.enablePopovers, false);
-                        }, (error) => {
-                            console.log(error);
-                        });
+            }).then(
+                (swalresult) => {
+                    if (swalresult.isConfirmed) {
+                        fetch(
+                            api_endpoints.reinstate_ocr_proposal(
+                                occurrence_report_id
+                            ),
+                            {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                            }
+                        ).then(
+                            () => {
+                                swal.fire({
+                                    title: 'Reinstated',
+                                    text: 'Your report has been reinstated',
+                                    icon: 'success',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload(
+                                    helpers.enablePopovers,
+                                    false
+                                );
+                            },
+                            (error) => {
+                                console.log(error);
+                            }
+                        );
+                    }
+                },
+                (error) => {
+                    console.log(error);
                 }
-            }, (error) => {
-                console.log(error);
-            });
+            );
         },
         copyOCRProposal: function (occurrence_report_id) {
             let vm = this;
             swal.fire({
-                title: "Copy Occurrence Report",
+                title: 'Copy Occurrence Report',
                 text: `Are you sure you want to make a copy of occurrence report OCR${occurrence_report_id}?`,
-                icon: "question",
+                icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Copy Occurrence Report',
                 customClass: {
@@ -567,52 +730,81 @@ export default {
                 reverseButtons: true,
             }).then((swalresult) => {
                 if (swalresult.isConfirmed) {
-                    this.$http.post(helpers.add_endpoint_json(api_endpoints.occurrence_report, occurrence_report_id + '/copy')).then(res => {
-                        const ocr_copy = res.body;
-                        swal.fire({
-                            title: 'Copied',
-                            text: `The occurrence report has been copied to ${ocr_copy.occurrence_report_number}. When you click OK, the new occurrence report will open in a new window.`,
-                            icon: 'success',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
-                            },
-                            didClose: () => {
-                                vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload();
-                                const routeData = this.$router.resolve({
-                                    name: 'draft_ocr_proposal',
-                                    params: { occurrence_report_id: ocr_copy.id },
-                                    query: { action: 'edit' }
-                                });
-                                window.open(routeData.href, '_blank');
-                            }
-                        });
-                    }, (error) => {
-                        console.log(error);
-                    });
+                    fetch(
+                        helpers.add_endpoint_json(
+                            api_endpoints.occurrence_report,
+                            occurrence_report_id + '/copy'
+                        ),
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                        }
+                    ).then(
+                        async (response) => {
+                            const ocr_copy = await response.json();
+                            swal.fire({
+                                title: 'Copied',
+                                text: `The occurrence report has been copied to ${ocr_copy.occurrence_report_number}. When you click OK, the new occurrence report will open in a new window.`,
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                                didClose: () => {
+                                    vm.$refs.occurrence_report_datatable.vmDataTable.ajax.reload();
+                                    const routeData = this.$router.resolve({
+                                        name: 'draft_ocr_proposal',
+                                        params: {
+                                            occurrence_report_id: ocr_copy.id,
+                                        },
+                                        query: { action: 'edit' },
+                                    });
+                                    window.open(routeData.href, '_blank');
+                                },
+                            });
+                        },
+                        (error) => {
+                            console.log(error);
+                        }
+                    );
                 }
             });
         },
         addEventListeners: function () {
             let vm = this;
             // External Discard listener
-            vm.$refs.occurrence_report_datatable.vmDataTable.on('click', 'a[data-discard-ocr-proposal]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-discard-ocr-proposal');
-                vm.discardOCR(id);
-            });
-            vm.$refs.occurrence_report_datatable.vmDataTable.on('click', 'a[data-reinstate-ocr-proposal]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-reinstate-ocr-proposal');
-                vm.reinstateOCRProposal(id);
-            });
-            vm.$refs.occurrence_report_datatable.vmDataTable.on('click', 'a[data-copy-ocr-proposal]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-copy-ocr-proposal');
-                vm.copyOCRProposal(id);
-            });
-            vm.$refs.occurrence_report_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
-                helpers.enablePopovers();
-            });
+            vm.$refs.occurrence_report_datatable.vmDataTable.on(
+                'click',
+                'a[data-discard-ocr-proposal]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-discard-ocr-proposal');
+                    vm.discardOCR(id);
+                }
+            );
+            vm.$refs.occurrence_report_datatable.vmDataTable.on(
+                'click',
+                'a[data-reinstate-ocr-proposal]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-reinstate-ocr-proposal');
+                    vm.reinstateOCRProposal(id);
+                }
+            );
+            vm.$refs.occurrence_report_datatable.vmDataTable.on(
+                'click',
+                'a[data-copy-ocr-proposal]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-copy-ocr-proposal');
+                    vm.copyOCRProposal(id);
+                }
+            );
+            vm.$refs.occurrence_report_datatable.vmDataTable.on(
+                'childRow.dt',
+                function () {
+                    helpers.enablePopovers();
+                }
+            );
         },
         check_assessor: function (proposal) {
             let vm = this;
@@ -620,46 +812,21 @@ export default {
                 {
                     if (proposal.assigned_officer == vm.profile.full_name)
                         return true;
-                    else
-                        return false;
+                    else return false;
                 }
-            }
-            else {
-                var assessor = proposal.allowed_assessors.filter(function (elem) {
-                    return (elem.id = vm.profile.id)
-                });
+            } else {
+                var assessor = proposal.allowed_assessors.filter(
+                    function (elem) {
+                        return (elem.id = vm.profile.id);
+                    }
+                );
 
-                if (assessor.length > 0)
-                    return true;
-                else
-                    return false;
+                if (assessor.length > 0) return true;
+                else return false;
             }
         },
     },
-    mounted: function () {
-        this.fetchFilterLists();
-        let vm = this;
-        $('a[data-toggle="collapse"]').on('click', function () {
-            var chev = $(this).children()[0];
-            window.setTimeout(function () {
-                $(chev).toggleClass("glyphicon-chevron-down glyphicon-chevron-up");
-            }, 100);
-        });
-        this.$nextTick(() => {
-            vm.initialiseScientificNameLookup();
-            vm.initialiseCommunityNameLookup();
-            vm.addEventListeners();
-            if (sessionStorage.getItem("filterOCRScientificName") != 'all' && sessionStorage.getItem("filterOCRScientificName") != null) {
-                var newOption = new Option(sessionStorage.getItem("filterOCRScientificNameText"), vm.filterOCRScientificName, false, true);
-                $('#ocr_scientific_name_lookup').append(newOption);
-            }
-            if (sessionStorage.getItem("filterOCRExCommunityName") != 'all' && sessionStorage.getItem("filterOCRExCommunityName") != null) {
-                var newOption = new Option(sessionStorage.getItem("filterOCRExCommunityNameText"), vm.filterOCRExCommunityName, false, true);
-                $('#ocr_community_name_lookup').append(newOption);
-            }
-        });
-    }
-}
+};
 </script>
 <style scoped>
 .dt-buttons {
@@ -687,7 +854,9 @@ export default {
     box-sizing: content-box;
     text-align: center;
     text-indent: 0 !important;
-    font-family: 'Courier New', Courier monospace;
+    font-family:
+        'Courier New',
+        Courier monospace;
     margin: 5px;
 }
 
@@ -712,7 +881,9 @@ export default {
     box-sizing: content-box;
     text-align: center;
     text-indent: 0 !important;
-    font-family: 'Courier New', Courier monospace;
+    font-family:
+        'Courier New',
+        Courier monospace;
     margin: 5px;
 }
 </style>

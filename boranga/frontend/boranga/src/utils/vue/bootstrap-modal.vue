@@ -11,8 +11,13 @@
                                     {{ title }}
                                 </slot>
                             </h4>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"
-                                @click="cancel"></button>
+                            <button
+                                type="button"
+                                class="btn-close btn-close-white"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"
+                                @click="cancel"
+                            ></button>
                         </div>
                     </slot>
                     <!--Container-->
@@ -22,10 +27,23 @@
                     <!--Footer-->
                     <div class="modal-footer">
                         <slot name="footer">
-                            <button v-if="showCancel" type="button" :class="cancelClass"
-                                @click="cancel">{{ cancelText }}</button>
-                            <button v-if="showOK" id="okBtn" type="button" :class="okClass"
-                                @click="ok">{{ okText }}</button>
+                            <button
+                                v-if="showCancel"
+                                type="button"
+                                :class="cancelClass"
+                                @click="cancel"
+                            >
+                                {{ cancelText }}
+                            </button>
+                            <button
+                                v-if="showOK"
+                                id="okBtn"
+                                type="button"
+                                :class="okClass"
+                                @click="ok"
+                            >
+                                {{ okText }}
+                            </button>
                         </slot>
                     </div>
                 </div>
@@ -44,64 +62,64 @@ export default {
     props: {
         title: {
             type: String,
-            default: 'Modal'
+            default: 'Modal',
         },
         small: {
             type: Boolean,
-            default: false
+            default: false,
         },
         large: {
             type: Boolean,
-            default: false
+            default: false,
         },
         extraLarge: {
             type: Boolean,
-            default: false
+            default: false,
         },
         full: {
             type: Boolean,
-            default: false
+            default: false,
         },
         force: {
             type: Boolean,
-            default: false
+            default: false,
         },
         transition: {
             type: String,
-            default: 'modal'
+            default: 'modal',
         },
         showOK: {
             type: Boolean,
-            default: true
+            default: true,
         },
         showCancel: {
             type: Boolean,
-            default: true
+            default: true,
         },
         okText: {
             type: String,
-            default: 'Confirm'
+            default: 'Confirm',
         },
         cancelText: {
             type: String,
-            default: 'Cancel'
+            default: 'Cancel',
         },
         okClass: {
             type: String,
-            default: 'btn btn-primary'
+            default: 'btn btn-primary',
         },
         cancelClass: {
             type: String,
-            default: 'btn btn-secondary'
+            default: 'btn btn-secondary',
         },
         closeWhenOK: {
             type: Boolean,
-            default: false
-        }
+            default: false,
+        },
     },
     data() {
         return {
-            duration: null
+            duration: null,
         };
     },
     computed: {
@@ -110,32 +128,37 @@ export default {
                 'modal-xl': this.extraLarge,
                 'modal-lg': this.large,
                 'modal-sm': this.small,
-                'modal-full': this.full
-            }
+                'modal-full': this.full,
+            };
         },
         show: function () {
             return this.$parent.isModalOpen;
-        }
+        },
+    },
+    watch: {
+        show(value) {
+            if (value) {
+                document.body.className += ' modal-open';
+            } else {
+                window.setTimeout(() => {
+                    document.body.className = document.body.className.replace(
+                        /\s?modal-open/,
+                        ''
+                    );
+                }, this.duration || 0);
+            }
+        },
     },
     created() {
         if (this.show) {
             document.body.className += ' modal-open';
         }
     },
-    beforeDestroy() {
-        document.body.className = document.body.className.replace(/\s?modal-open/, '');
-    },
-    watch: {
-        show(value) {
-            if (value) {
-                document.body.className += ' modal-open';
-            }
-            else {
-                window.setTimeout(() => {
-                    document.body.className = document.body.className.replace(/\s?modal-open/, '');
-                }, this.duration || 0);
-            }
-        }
+    beforeUnmount() {
+        document.body.className = document.body.className.replace(
+            /\s?modal-open/,
+            ''
+        );
     },
     methods: {
         ok() {
@@ -152,8 +175,8 @@ export default {
             if (!this.force) {
                 this.cancel();
             }
-        }
-    }
+        },
+    },
 };
 </script>
 
@@ -172,7 +195,7 @@ export default {
     background-color: #226fbb;
     color: #fff;
     background: #3580ca
-        url('../../../../../../staticfiles/img/parks-bg-banner.gif') repeat-x
+        url('/static/boranga_vue/src/assets/parks-bg-banner.gif') repeat-x
         center bottom;
 }
 

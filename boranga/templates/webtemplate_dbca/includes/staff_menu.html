@@ -6,5 +6,5 @@
     <li><a class="dropdown-item" href="{% url 'admin:index' %}">Admin</a></li>
 {% endif %}
 {% if request.user.is_superuser or is_django_admin_user or is_occurrence_approver %}
-    <li><a class="dropdown-item" href="/internal/occurrence_report/bulk_import_schema/">OCR Bulk Import Schema</a></li>
+    <li><a class="dropdown-item" href="/internal/occurrence-report/bulk_import_schema/">OCR Bulk Import Schema</a></li>
 {% endif %}

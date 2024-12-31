@@ -1,22 +1,42 @@
 <!-- eslint-disable vue/no-mutating-props -->
 <template lang="html">
     <div id="ocrLocation">
-        <FormSection :form-collapse="false" label="Location" Index="occurrence_report_location">
+        <FormSection
+            :form-collapse="false"
+            label="Location"
+            Index="occurrence_report_location"
+        >
             <div class="row mb-3">
                 <div class="col">
-                    <span class="text-danger">*</span> <span class="text-muted">You must indicate the location for your
-                        occurrence report</span>
+                    <span class="text-danger">*</span>
+                    <span class="text-muted"
+                        >You must indicate the location for your occurrence
+                        report</span
+                    >
                 </div>
             </div>
             <div class="row mb-3">
-                <MapComponent ref="component_map" :key="componentMapKey" class="me-3" :context="occurrence_report_obj"
-                    :is_external="is_external" :point-features-supported="true"
-                    :polygon-features-supported="isFauna == false" :drawable="true" :editable="true" level="external"
-                    style-by="assessor" :map-info-text="is_internal
-                        ? ''
-                        : 'Use the <b>draw</b> tool to draw the area of the report on the map.</br>You can <b>save</b> the report and continue at a later time.'
-                        " :selectable="true" :coordinate-reference-systems="coordinateReferenceSystems"
-                    :tile-layer-api-url="tileLayerApiUrl" :query-layer-definition="{
+                <MapComponent
+                    ref="component_map"
+                    :key="componentMapKey"
+                    class="me-3"
+                    :context="occurrence_report_obj"
+                    :is_external="is_external"
+                    :point-features-supported="true"
+                    :polygon-features-supported="isFauna == false"
+                    :drawable="true"
+                    :editable="true"
+                    level="external"
+                    style-by="assessor"
+                    :map-info-text="
+                        is_internal
+                            ? ''
+                            : 'Use the <b>draw</b> tool to draw the area of the report on the map.</br>You can <b>save</b> the report and continue at a later time.'
+                    "
+                    :selectable="true"
+                    :coordinate-reference-systems="coordinateReferenceSystems"
+                    :tile-layer-api-url="tileLayerApiUrl"
+                    :query-layer-definition="{
                         name: 'query_layer',
                         title: 'Occurrence Report',
                         default: true,
@@ -26,16 +46,27 @@
                         geometry_name: 'ocr_geometry',
                         collapse: false,
                         property_display_map: ocrPropertyDisplayMap,
-                    }" @validate-feature="validateFeature.bind(this)()" @refreshFromResponse="refreshFromResponse"
-                    @crs-select-search="searchForCRS"></MapComponent>
+                    }"
+                    @validate-feature="validateFeature.bind(this)()"
+                    @refresh-from-response="refreshFromResponse"
+                    @crs-select-search="searchForCRS"
+                ></MapComponent>
             </div>
 
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Region:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select" @change="filterDistrict($event)"
-                        v-model="occurrence_report_obj.location.region_id">
-                        <option v-for="option in region_list" :value="option.id" v-bind:key="option.id">
+                    <select
+                        v-model="occurrence_report_obj.location.region_id"
+                        :disabled="isReadOnly"
+                        class="form-select"
+                        @change="filterDistrict($event)"
+                    >
+                        <option
+                            v-for="option in region_list"
+                            :key="option.id"
+                            :value="option.id"
+                        >
                             {{ option.name }}
                         </option>
                     </select>
@@ -44,9 +75,16 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">District:</label>
                 <div class="col-sm-9">
-                    <select :disabled="isReadOnly" class="form-select"
-                        v-model="occurrence_report_obj.location.district_id">
-                        <option v-for="option in filtered_district_list" :value="option.id" v-bind:key="option.id">
+                    <select
+                        v-model="occurrence_report_obj.location.district_id"
+                        :disabled="isReadOnly"
+                        class="form-select"
+                    >
+                        <option
+                            v-for="option in filtered_district_list"
+                            :key="option.id"
+                            :value="option.id"
+                        >
                             {{ option.name }}
                         </option>
                     </select>
@@ -55,25 +93,51 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Locality:</label>
                 <div class="col-sm-9">
-                    <textarea id="locality" v-model="occurrence_report_obj.location.locality
-                        " :disabled="isReadOnly" class="form-control" rows="1" placeholder="" />
+                    <textarea
+                        id="locality"
+                        v-model="occurrence_report_obj.location.locality"
+                        :disabled="isReadOnly"
+                        class="form-control"
+                        rows="1"
+                        placeholder=""
+                    />
                 </div>
             </div>
 
             <!-- -------------------------------- -->
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label fw-bold">Location Description: <span
-                        class="text-danger">*</span></label>
+                <label for="" class="col-sm-3 control-label fw-bold"
+                    >Location Description:
+                    <span class="text-danger">*</span></label
+                >
                 <div class="col-sm-9">
-                    <textarea id="loc_description" v-model="occurrence_report_obj.location.location_description
-                        " :disabled="isReadOnly" class="form-control" rows="2" placeholder="" />
+                    <textarea
+                        id="loc_description"
+                        v-model="
+                            occurrence_report_obj.location.location_description
+                        "
+                        :disabled="isReadOnly"
+                        class="form-control"
+                        rows="2"
+                        placeholder=""
+                    />
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Boundary Description:</label>
+                <label for="" class="col-sm-3 control-label"
+                    >Boundary Description:</label
+                >
                 <div class="col-sm-9">
-                    <textarea id="boundary_descr" v-model="occurrence_report_obj.location.boundary_description
-                        " :disabled="isReadOnly" class="form-control" rows="2" placeholder="" />
+                    <textarea
+                        id="boundary_descr"
+                        v-model="
+                            occurrence_report_obj.location.boundary_description
+                        "
+                        :disabled="isReadOnly"
+                        class="form-control"
+                        rows="2"
+                        placeholder=""
+                    />
                 </div>
             </div>
             <!--<div class="row mb-3">
@@ -101,12 +165,24 @@
             </div>-->
 
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Map Data Type</label>
+                <label for="" class="col-sm-3 control-label"
+                    >Map Data Type</label
+                >
                 <div class="col-sm-6">
-                    <label class="me-2">Boundary</label><input disabled type="radio"
-                        :checked="occurrence_report_obj.location.has_boundary" class="form-check-input me-2">
-                    <label class="me-2">Point/s</label><input disabled type="radio"
-                        :checked="occurrence_report_obj.location.has_points" class="form-check-input me-2">
+                    <label class="me-2">Boundary</label
+                    ><input
+                        disabled
+                        type="radio"
+                        :checked="occurrence_report_obj.location.has_boundary"
+                        class="form-check-input me-2"
+                    />
+                    <label class="me-2">Point/s</label
+                    ><input
+                        disabled
+                        type="radio"
+                        :checked="occurrence_report_obj.location.has_points"
+                        class="form-check-input me-2"
+                    />
                 </div>
             </div>
 
@@ -148,29 +224,68 @@
                 </div>
             </div>-->
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Coordinate Source:</label>
+                <label for="" class="col-sm-3 control-label"
+                    >Coordinate Source:</label
+                >
                 <div class="col-sm-9">
                     <template v-if="!isReadOnly">
-                        <template v-if="coordinate_source_list && coordinate_source_list.length > 0 && occurrence_report_obj.location
-                            .coordinate_source_id && !coordinate_source_list.map((d) => d.id).includes(occurrence_report_obj.location
-                                .coordinate_source_id)">
-                            <input type="text" v-if="occurrence_report_obj.location.coordinate_source"
+                        <template
+                            v-if="
+                                coordinate_source_list &&
+                                coordinate_source_list.length > 0 &&
+                                occurrence_report_obj.location
+                                    .coordinate_source_id &&
+                                !coordinate_source_list
+                                    .map((d) => d.id)
+                                    .includes(
+                                        occurrence_report_obj.location
+                                            .coordinate_source_id
+                                    )
+                            "
+                        >
+                            <input
+                                v-if="
+                                    occurrence_report_obj.location
+                                        .coordinate_source
+                                "
+                                type="text"
                                 class="form-control mb-3"
-                                :value="occurrence_report_obj.location.coordinate_source + ' (Now Archived)'" disabled />
+                                :value="
+                                    occurrence_report_obj.location
+                                        .coordinate_source + ' (Now Archived)'
+                                "
+                                disabled
+                            />
                             <div class="mb-3 text-muted">
                                 Change coordinate source to:
                             </div>
                         </template>
-                        <select class="form-select"
-                            v-model="occurrence_report_obj.location.coordinate_source_id">
-                            <option v-for="option in coordinate_source_list" :value="option.id" v-bind:key="option.id">
+                        <select
+                            v-model="
+                                occurrence_report_obj.location
+                                    .coordinate_source_id
+                            "
+                            class="form-select"
+                        >
+                            <option
+                                v-for="option in coordinate_source_list"
+                                :key="option.id"
+                                :value="option.id"
+                            >
                                 {{ option.name }}
                             </option>
                         </select>
                     </template>
                     <template v-else>
-                        <input class="form-control" type="text" :disabled="isReadOnly"
-                            v-model="occurrence_report_obj.location.coordinate_source_id" />
+                        <input
+                            v-model="
+                                occurrence_report_obj.location
+                                    .coordinate_source_id
+                            "
+                            class="form-control"
+                            type="text"
+                            :disabled="isReadOnly"
+                        />
                     </template>
                 </div>
             </div>
@@ -193,29 +308,67 @@
                 </div>
             </div>-->
             <div v-if="canAssess" class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Location Accuracy:</label>
+                <label for="" class="col-sm-3 control-label"
+                    >Location Accuracy:</label
+                >
                 <div class="col-sm-9">
                     <template v-if="!isReadOnly">
-                        <template v-if="location_accuracy_list && location_accuracy_list.length > 0 && occurrence_report_obj.location
-                            .location_accuracy_id && !location_accuracy_list.map((d) => d.id).includes(occurrence_report_obj.location
-                                .location_accuracy_id)">
-                            <input type="text" v-if="occurrence_report_obj.location.location_accuracy"
+                        <template
+                            v-if="
+                                location_accuracy_list &&
+                                location_accuracy_list.length > 0 &&
+                                occurrence_report_obj.location
+                                    .location_accuracy_id &&
+                                !location_accuracy_list
+                                    .map((d) => d.id)
+                                    .includes(
+                                        occurrence_report_obj.location
+                                            .location_accuracy_id
+                                    )
+                            "
+                        >
+                            <input
+                                v-if="
+                                    occurrence_report_obj.location
+                                        .location_accuracy
+                                "
+                                type="text"
                                 class="form-control mb-3"
-                                :value="occurrence_report_obj.location.location_accuracy + ' (Now Archived)'" disabled />
+                                :value="
+                                    occurrence_report_obj.location
+                                        .location_accuracy + ' (Now Archived)'
+                                "
+                                disabled
+                            />
                             <div class="mb-3 text-muted">
                                 Change coordinate source to:
                             </div>
                         </template>
-                        <select class="form-select"
-                            v-model="occurrence_report_obj.location.location_accuracy_id">
-                            <option v-for="option in location_accuracy_list" :value="option.id" v-bind:key="option.id">
+                        <select
+                            v-model="
+                                occurrence_report_obj.location
+                                    .location_accuracy_id
+                            "
+                            class="form-select"
+                        >
+                            <option
+                                v-for="option in location_accuracy_list"
+                                :key="option.id"
+                                :value="option.id"
+                            >
                                 {{ option.name }}
                             </option>
                         </select>
                     </template>
                     <template v-else>
-                        <input class="form-control" type="text" :disabled="isReadOnly"
-                            v-model="occurrence_report_obj.location.location_accuracy" />
+                        <input
+                            v-model="
+                                occurrence_report_obj.location.location_accuracy
+                            "
+                            class="form-control"
+                            type="text"
+                            :disabled="isReadOnly"
+                        />
                     </template>
                 </div>
             </div>
@@ -223,12 +376,21 @@
             <div class="row mb-3">
                 <div class="col-sm-12">
                     <!-- <button v-if="!updatingLocationDetails" class="pull-right btn btn-primary" @click.prevent="updateDetails()" :disabled="!can_update()">Update</button> -->
-                    <button v-if="!updatingLocationDetails" class="btn btn-primary btn-sm float-end"
-                        @click.prevent="updateLocationDetails()" :disabled="isReadOnly">
+                    <button
+                        v-if="!updatingLocationDetails"
+                        class="btn btn-primary btn-sm float-end"
+                        :disabled="isReadOnly"
+                        @click.prevent="updateLocationDetails()"
+                    >
                         Update
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
-                        Updating <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Updating
+                        <span
+                            class="spinner-border spinner-border-sm"
+                            role="status"
+                            aria-hidden="true"
+                        ></span>
                         <span class="visually-hidden">Loading...</span>
                     </button>
                 </div>
@@ -238,7 +400,6 @@
 </template>
 
 <script>
-import Vue from 'vue';
 import { v4 as uuid } from 'uuid';
 // import datatable from '@vue-utils/datatable.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
@@ -247,14 +408,14 @@ import MapComponent from '../component_map.vue';
 import { api_endpoints, helpers } from '@/utils/hooks';
 // require("select2/dist/css/select2.min.css");
 // require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
-import { VueSelect } from 'vue-select';
+// import { VueSelect } from 'vue-select';
 
 export default {
     name: 'OCRLocation',
     components: {
         FormSection,
         MapComponent,
-        VueSelect,
+        // VueSelect,
     },
     props: {
         occurrence_report_obj: {
@@ -302,22 +463,22 @@ export default {
 
             deficiency_readonly:
                 !this.is_external &&
-                    !this.occurrence_report_obj.can_user_edit &&
-                    this.occurrence_report_obj.assessor_mode.assessor_level ==
+                !this.occurrence_report_obj.can_user_edit &&
+                this.occurrence_report_obj.assessor_mode.assessor_level ==
                     'assessor' &&
-                    this.occurrence_report_obj.assessor_mode.has_assessor_mode &&
-                    !this.occurrence_report_obj.assessor_mode
-                        .status_without_assessor
+                this.occurrence_report_obj.assessor_mode.has_assessor_mode &&
+                !this.occurrence_report_obj.assessor_mode
+                    .status_without_assessor
                     ? false
                     : true,
             assessor_comment_readonly:
                 !this.is_external &&
-                    !this.occurrence_report_obj.can_user_edit &&
-                    this.occurrence_report_obj.assessor_mode.assessor_level ==
+                !this.occurrence_report_obj.can_user_edit &&
+                this.occurrence_report_obj.assessor_mode.assessor_level ==
                     'assessor' &&
-                    this.occurrence_report_obj.assessor_mode.has_assessor_mode &&
-                    !this.occurrence_report_obj.assessor_mode
-                        .status_without_assessor
+                this.occurrence_report_obj.assessor_mode.has_assessor_mode &&
+                !this.occurrence_report_obj.assessor_mode
+                    .status_without_assessor
                     ? false
                     : true,
 
@@ -337,7 +498,8 @@ export default {
         },
         canAssess: function () {
             if (!this.is_external) {
-                return this.occurrence_report_obj.assessor_mode.assessor_can_assess;
+                return this.occurrence_report_obj.assessor_mode
+                    .assessor_can_assess;
             } else {
                 return false;
             }
@@ -381,11 +543,7 @@ export default {
             }
         },
         isReadOnly: function () {
-            //override for split reports
-            if (this.is_readonly) {
-                return this.is_readonly;
-            }
-            return this.occurrence_report_obj.readonly
+            return this.occurrence_report_obj.readonly;
         },
         componentMapKey: function () {
             return `component-map-${this.uuid}`;
@@ -429,8 +587,6 @@ export default {
     created: async function () {
         let vm = this;
         this.uuid = uuid();
-        //------fetch list of values according to action
-        let action = this.$route.query.action;
 
         //------fetch list of values
         fetch(
@@ -465,15 +621,14 @@ export default {
                 console.error('Error fetching location values list:', error);
             });
 
-        const response = await Vue.http.get('/api/region_district_filter_dict/');
-        vm.filterRegionDistrict = response.body;
+        const response = await fetch('/api/region_district_filter_dict/');
+        vm.filterRegionDistrict = await response.json();
         vm.region_list = vm.filterRegionDistrict.region_list;
         vm.district_list = vm.filterRegionDistrict.district_list;
-        vm.region_list.splice(0, 0,
-            {
-                id: null,
-                name: null,
-            });
+        vm.region_list.splice(0, 0, {
+            id: null,
+            name: null,
+        });
         this.filterDistrict();
     },
     mounted: function () {
@@ -489,14 +644,19 @@ export default {
                     this.occurrence_report_obj.location.district_id = null; //-----to remove the previous selection
                 }
                 this.filtered_district_list = [];
-                this.filtered_district_list = [{
-                    id: null,
-                    name: "",
-                    region_id: null,
-                }];
+                this.filtered_district_list = [
+                    {
+                        id: null,
+                        name: '',
+                        region_id: null,
+                    },
+                ];
                 //---filter districts as per region selected
                 for (let choice of this.district_list) {
-                    if (choice.region_id === this.occurrence_report_obj.location.region_id) {
+                    if (
+                        choice.region_id ===
+                        this.occurrence_report_obj.location.region_id
+                    ) {
                         this.filtered_district_list.push(choice);
                     }
                 }
@@ -527,56 +687,55 @@ export default {
                 vm.$refs.component_map.setLoadingMap(true);
             }
 
-            // const res = await fetch(vm.proposal_form_url, {
-            //     body: JSON.stringify(payload),
-            //     method: 'POST',
-            // });
-
-            vm.$http
-                .post(
-                    helpers.add_endpoint_json(
-                        api_endpoints.occurrence_report,
-                        vm.occurrence_report_obj.id + '/update_location_details'
-                    ),
-                    JSON.stringify(payload),
-                    {
-                        emulateJSON: true,
-                    }
-                )
-                .then(
-                    (response) => {
-                        vm.updatingLocationDetails = false;
-                        vm.occurrence_report_obj.location = response.body;
-                        swal.fire({
-                            title: 'Saved',
-                            text: 'Location details have been saved',
-                            icon: 'success',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
-                            },
-                        }).then((result) => {
-                            if (vm.occurrence_report_obj.processing_status == "Unlocked") {
-                                vm.$router.go();
-                            }
-                        });
-                        vm.$refs.component_map.forceToRefreshMap();
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.occurrence_report,
+                    vm.occurrence_report_obj.id + '/update_location_details'
+                ),
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
-                    (error) => {
-                        var text = helpers.apiVueResourceError(error);
-                        swal.fire({
-                            title: 'Error',
-                            text:
-                                'Location details cannot be saved because of the following error: ' +
-                                text,
-                            icon: 'error',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
-                            },
-                        });
-                        vm.updatingLocationDetails = false;
-                        vm.$refs.component_map.setLoadingMap(false);
-                    }
-                );
+                    body: JSON.stringify(payload),
+                }
+            ).then(
+                async (response) => {
+                    vm.updatingLocationDetails = false;
+                    vm.occurrence_report_obj.location = await response.json();
+                    swal.fire({
+                        title: 'Saved',
+                        text: 'Location details have been saved',
+                        icon: 'success',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    }).then(() => {
+                        if (
+                            vm.occurrence_report_obj.processing_status ==
+                            'Unlocked'
+                        ) {
+                            vm.$router.go();
+                        }
+                    });
+                    vm.$refs.component_map.forceToRefreshMap();
+                },
+                (error) => {
+                    var text = helpers.apiVueResourceError(error);
+                    swal.fire({
+                        title: 'Error',
+                        text:
+                            'Location details cannot be saved because of the following error: ' +
+                            text,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.updatingLocationDetails = false;
+                    vm.$refs.component_map.setLoadingMap(false);
+                }
+            );
         },
         incrementComponentMapKey: function () {
             this.uuid = uuid();

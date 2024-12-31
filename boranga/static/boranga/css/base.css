@@ -132,16 +132,11 @@ body {
 .popover {
     max-width: 100%;
 }
-/* .swal2-confirm{
-    border: 0 !important;
-    border-radius: 0.25em !important;
-    background: initial !important;
-    background-color: rgb(48, 133, 214) !important;
-    color: #fff !important;
-    font-size: 1em !important;
-    box-shadow: None !important;
 
-} */
+.swal2-confirm:focus {
+    box-shadow:0 0 0 3px rgba(48, 133, 214, 0.7) !important;
+}
+
 .btn-primary{
     color: #fff !important;
     background-color: #226fbb !important;

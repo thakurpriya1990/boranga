@@ -556,22 +556,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         return SystemGroup.objects.get(name=GROUP_NAME_OCCURRENCE_APPROVER)
 
     @property
-    def assessor_recipients(self):
-        recipients = []
-        group_ids = member_ids(GROUP_NAME_OCCURRENCE_ASSESSOR, include_superusers=False)
-        for id in group_ids:
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
-
-    @property
-    def approver_recipients(self):
-        recipients = []
-        group_ids = member_ids(GROUP_NAME_OCCURRENCE_APPROVER, include_superusers=False)
-        for id in group_ids:
-            recipients.append(EmailUser.objects.get(id=id).email)
-        return recipients
-
-    @property
     def related_item_identifier(self):
         return self.occurrence_report_number
 
@@ -594,7 +578,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             descriptor=self.related_item_descriptor,
             status=self.related_item_status,
             action_url=(
-                f'<a href="/internal/occurrence_report/{self.id}'
+                f'<a href="/internal/occurrence-report/{self.id}'
                 f'?action=view" target="_blank">View '
                 '<i class="bi bi-box-arrow-up-right"></i></a>'
             ),
@@ -2471,7 +2455,7 @@ class OCRHabitatCondition(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)
+        return f"OCRHabitat Condition: {self.id} for Occurrence Report: {self.occurrence_report}"
 
 
 class OCRVegetationStructure(models.Model):
@@ -2502,7 +2486,7 @@ class OCRVegetationStructure(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)
+        return f"OCR Vegetation Structure: {self.id} for Occurrence Report: {self.occurrence_report}"
 
 
 class Intensity(ArchivableModel):
@@ -2560,7 +2544,7 @@ class OCRFireHistory(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)
+        return f"OCR Fire History: {self.id} for Occurrence Report: {self.occurrence_report}"
 
 
 class OCRAssociatedSpecies(models.Model):
@@ -2589,7 +2573,7 @@ class OCRAssociatedSpecies(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)
+        return f"OCR Associated Species {self.id} for Occurrence Report {self.occurrence_report}"
 
 
 class ObservationMethod(ArchivableModel):
@@ -2647,7 +2631,7 @@ class OCRObservationDetail(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)
+        return f"OCR Observation Detail: {self.id} for Occurrence Report: {self.occurrence_report}"
 
 
 class PlantCountMethod(ArchivableModel):
@@ -2831,7 +2815,7 @@ class OCRPlantCount(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)
+        return f"OCR Plant Count: {self.id} for Occurrence Report: {self.occurrence_report}"
 
 
 # used for Animal Observation(MultipleSelect)
@@ -3035,7 +3019,7 @@ class OCRAnimalObservation(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)
+        return f"OCR Animal Observation: {self.id} for Occurrence Report: {self.occurrence_report}"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -3195,7 +3179,7 @@ class OCRIdentification(models.Model):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.occurrence_report)
+        return f"OCR Identification: {self.id} for Occurrence Report: {self.occurrence_report}"
 
 
 class OccurrenceReportDocument(Document):
@@ -5642,6 +5626,20 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
             return
 
         ocr_migrated_from_id = row[0]
+
+        # If the migrated from id is None then complain and return
+        if not ocr_migrated_from_id:
+            error_message = "Row does not have an Occurrence Report migrated from id"
+            errors.append(
+                {
+                    "row_index": index,
+                    "error_type": "missing_migrated_from_id",
+                    "data": row,
+                    "error_message": error_message,
+                }
+            )
+            return
+
         mode = "create"
         if (
             ocr_migrated_from_id in ocr_migrated_from_ids
@@ -5663,8 +5661,31 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
         geometries = {}
         many_to_many_fields = {}
 
-        # Validate each cell
+        # Find any sets of columns (models) where the fields are all empty
+        # so that we can exclude them from the row data (and therefor not bother validating them)
+        required_content_types = []
         for column_index, column in enumerate(self.schema.columns.all()):
+            cell_value = row[column_index]
+            if (
+                cell_value is not None
+                and column.django_import_content_type not in required_content_types
+            ):
+                required_content_types.append(column.django_import_content_type)
+
+        indexes_to_remove = []
+        for column_index, column in enumerate(self.schema.columns.all()):
+            if column.django_import_content_type not in required_content_types:
+                indexes_to_remove.append(column_index)
+
+        row = [i for j, i in enumerate(row) if j not in indexes_to_remove]
+        headers = [i for j, i in enumerate(headers) if j not in indexes_to_remove]
+
+        # Validate each cell
+        for column_index, column in enumerate(
+            self.schema.columns.filter(
+                django_import_content_type__in=required_content_types
+            )
+        ):
             column_error_count = 0
 
             cell_value = row[column_index]
@@ -5704,9 +5725,6 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                     {"field": column.django_import_field_name, "value": cell_value}
                 )
 
-                # Continue to the next column without adding the cell value to the model data
-                continue
-
             column_error_count += errors_added
 
             row_error_count += column_error_count
@@ -5721,6 +5739,12 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                 models[model_name] = {"field_names": [], "values": []}
 
             models[model_name]["field_names"].append(column.django_import_field_name)
+
+            # Attempting to assign the cell value directly to the m2m field
+            # will raise an error, so we skip it here and handle it later
+            if type(field) is ManyToManyField:
+                continue
+
             models[model_name]["values"].append(cell_value)
 
         if row_error_count > 0:
@@ -5801,10 +5825,42 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                         )
                         return
                 else:
+                    if (
+                        model_data.get("occurrence_name", None)
+                        and Occurrence.objects.filter(
+                            occurrence_name=model_data["occurrence_name"]
+                        ).exists()
+                    ):
+                        error_message = (
+                            f"An occurrence with the name '{model_data['occurrence_name']}' "
+                            "already exists in the database. Please populate the Occurrence "
+                            "Number or OCC Occurrence Migrated From ID field instead."
+                        )
+                        errors.append(
+                            {
+                                "row_index": index,
+                                "error_type": "duplicate_occurrence_name",
+                                "data": model_data,
+                                "error_message": error_message,
+                            }
+                        )
+                        return
+
                     if not occ_migrated_from_id:
                         if not model_data.get("group_type"):
                             model_data["group_type"] = self.schema.group_type
+
                         current_model_instance = Occurrence(**model_data)
+                        current_model_instance.occurrence_source = (
+                            Occurrence.OCCURRENCE_CHOICE_OCR
+                        )
+                        ocr_instance = model_instances[
+                            OccurrenceReport._meta.model_name
+                        ]
+                        if ocr_instance.species:
+                            current_model_instance.species = ocr_instance.species
+                        else:
+                            current_model_instance.community = ocr_instance.community
                     else:
                         if Occurrence.objects.filter(
                             migrated_from_id=occ_migrated_from_id
@@ -5816,11 +5872,17 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                             current_model_instance = Occurrence.objects.create(
                                 migrated_from_id=occ_migrated_from_id,
                                 group_type=self.schema.group_type,
-                                species=model_instances[
-                                    OccurrenceReport._meta.model_name
-                                ].species,
+                                occurrence_source=Occurrence.OCCURRENCE_CHOICE_OCR,
                             )
-
+                            ocr_instance = model_instances[
+                                OccurrenceReport._meta.model_name
+                            ]
+                            if ocr_instance.species:
+                                current_model_instance.species = ocr_instance.species
+                            else:
+                                current_model_instance.community = (
+                                    ocr_instance.community
+                                )
                         if (
                             not current_model_instance.group_type
                             == self.schema.group_type
@@ -5843,7 +5905,8 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                             OccurrenceReport._meta.model_name
                         ]
                         if (
-                            not current_model_instance.species
+                            current_model_instance.species
+                            and not current_model_instance.species
                             == occurrence_report.species
                         ):
                             error_message = (
@@ -5854,6 +5917,25 @@ class OccurrenceReportBulkImportTask(ArchivableModel):
                                 {
                                     "row_index": index,
                                     "error_type": "invalid_occurrence_species",
+                                    "data": model_data,
+                                    "error_message": error_message,
+                                }
+                            )
+                            return
+
+                        if (
+                            current_model_instance.community
+                            and not current_model_instance.community
+                            == occurrence_report.community
+                        ):
+                            error_message = (
+                                "The community of the occurrence does not match "
+                                "the community of the occurrence report"
+                            )
+                            errors.append(
+                                {
+                                    "row_index": index,
+                                    "error_type": "invalid_occurrence_community",
                                     "data": model_data,
                                     "error_message": error_message,
                                 }
@@ -7425,7 +7507,7 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
         if isinstance(field, gis_models.GeometryField):
             try:
                 geom_json = json.loads(cell_value)
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, TypeError):
                 error_message = f"Value {cell_value} in column {self.xlsx_column_header_name} is not a valid JSON"
                 errors.append(
                     {
@@ -7674,6 +7756,28 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                 errors_added += 1
                 return cell_value, errors_added
 
+            if related_model_instances.count() == 0:
+                error_message = (
+                    f"Can't find any {self.django_import_field_name} records by looking up "
+                    f"{lookup_field} with value {cell_value} "
+                    f"for column {self.xlsx_column_header_name}"
+                )
+                if "," in cell_value[0]:
+                    error_message += (
+                        " (Hint: The delimiter for many to many fields is '"
+                        f"{settings.OCR_BULK_IMPORT_M2M_DELIMITER}' not ',')"
+                    )
+                errors.append(
+                    {
+                        "row_index": index,
+                        "error_type": "column",
+                        "data": cell_value,
+                        "error_message": error_message,
+                    }
+                )
+                errors_added += 1
+                return cell_value, errors_added
+
             # Replace the lookup cell_value with a list of model instances to be assigned
             cell_value = list(related_model_instances)
             return cell_value, errors_added
@@ -7695,6 +7799,33 @@ class OccurrenceReportBulkImportSchemaColumn(OrderedModel):
                     )
                     errors_added += 1
                 return cell_value, errors_added
+
+            # Convert the cell value to a boolean as the application that was used
+            # to create the xlsx may have stored it as a string. For example, it often
+            # automatically formats cells with a text value of 'TRUE' or 'FALSE' as a boolean
+            # then when the file is saved the value in the cell will be converted to '=TRUE()' or '=FALSE()'
+            if isinstance(cell_value, str):
+                cell_value = cell_value.lower()
+                if cell_value in ["=true()", "true", "1", "yes", "y"]:
+                    cell_value = True
+                elif cell_value in ["=false()", "false", "0", "no", "n"]:
+                    cell_value = False
+                else:
+                    error_message = (
+                        f"Value {cell_value} in column {self.xlsx_column_header_name} "
+                        "is not a valid boolean. The bulk importer is able to convert "
+                        "the following values to booleans: 'True', '1', 'yes', 'y', "
+                        "'=TRUE()', 'False', '0', 'no', 'n', '=False()'"
+                    )
+                    errors.append(
+                        {
+                            "row_index": index,
+                            "error_type": "column",
+                            "data": cell_value,
+                            "error_message": error_message,
+                        }
+                    )
+                    errors_added += 1
 
             if cell_value not in [True, False]:
                 error_message = (

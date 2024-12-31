@@ -16,7 +16,6 @@ django-countries~=7.5
 django-cron==0.6.0 # This project is no longer maintained
 django-dynamic-fixture==3.1.3
 django-filter~=24.3
-gdal==3.8.4
 openpyxl~=3.1
 datapackage~=1.15
 python-dateutil~=2.8
@@ -76,3 +75,4 @@ django-colorfield~=0.11.0
 py7zr~=0.21.1
 git+https://github.com/dbca-wa/django5-utils-six.git#egg=django5_six
 django-ordered-model~=3.7
+django-vite~=3.0.5

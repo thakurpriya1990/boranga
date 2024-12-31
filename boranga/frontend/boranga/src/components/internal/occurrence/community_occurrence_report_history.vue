@@ -2,21 +2,25 @@
     <div id="communityOccurrenceReportHistory">
         <modal
             transition="modal fade"
-            :title="'Occurrence Report OCR'+ occurrenceReportId +' - History'"
+            :title="'Occurrence Report OCR' + occurrenceReportId + ' - History'"
             :large="true"
             :full="true"
-            :showOK="false"
+            :show-o-k="false"
             cancel-text="Close"
             @cancel="close()"
         >
             <div class="container-fluid">
                 <div class="row">
                     <alert v-if="errorString" type="danger"
-                        ><strong>{{ errorString }}</strong></alert>
+                        ><strong>{{ errorString }}</strong></alert
+                    >
                     <div class="col-sm-12">
                         <div class="form-group">
                             <div class="row">
-                                <div v-if="occurrenceReportId" class="col-lg-12">
+                                <div
+                                    v-if="occurrenceReportId"
+                                    class="col-lg-12"
+                                >
                                     <datatable
                                         :id="datatable_id"
                                         ref="history_datatable"
@@ -24,14 +28,16 @@
                                         :dt-headers="datatable_headers"
                                     />
                                     <div v-if="historyId">
-                                    <DisplayHistory
-                                        ref="display_history"
-                                        :key="historyId"
-                                        :primary_model_number="'OCR'+occurrenceReportId"
-                                        :revision_id="historyId"
-                                        :revision_sequence="historySequence"
-                                        :primary_model="'OccurrenceReport'"
-                                    />
+                                        <DisplayHistory
+                                            ref="display_history"
+                                            :key="historyId"
+                                            :primary_model_number="
+                                                'OCR' + occurrenceReportId
+                                            "
+                                            :revision_id="historyId"
+                                            :revision_sequence="historySequence"
+                                            :primary_model="'OccurrenceReport'"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -45,7 +51,7 @@
 <script>
 import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
-import { helpers, api_endpoints, constants, utils } from '@/utils/hooks.js';
+import { helpers, api_endpoints, constants } from '@/utils/hooks.js';
 import datatable from '@/utils/vue/datatable.vue';
 import DisplayHistory from '../../common/display_history.vue';
 import { v4 as uuid } from 'uuid';
@@ -70,8 +76,7 @@ export default {
             historyId: null,
             historySequence: null,
             datatable_id: 'history-datatable-' + uuid(),
-            documentDetails: {
-            },
+            documentDetails: {},
             isModalOpen: false,
             errorString: '',
             successString: '',
@@ -109,16 +114,28 @@ export default {
         },
         column_sequence: function () {
             return {
-
                 data: 'revision_sequence',
                 orderable: true,
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    if (full.data.occurrencereport.fields.occurrence_report_number) {
-                        return full.data.occurrencereport.fields.occurrence_report_number+'-'+full.revision_sequence;
+                    if (
+                        full.data.occurrencereport.fields
+                            .occurrence_report_number
+                    ) {
+                        return (
+                            full.data.occurrencereport.fields
+                                .occurrence_report_number +
+                            '-' +
+                            full.revision_sequence
+                        );
                     } else {
-                        return "OCR"+full.data.occurrencereport.pk+'-'+full.revision_sequence;
+                        return (
+                            'OCR' +
+                            full.data.occurrencereport.pk +
+                            '-' +
+                            full.revision_sequence
+                        );
                     }
                 },
                 name: 'revision_sequence',
@@ -145,14 +162,14 @@ export default {
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    return full.data.occurrencereport.fields.occurrence_report_number;
+                    return full.data.occurrencereport.fields
+                        .occurrence_report_number;
                 },
                 name: 'occurrence_report_number',
             };
         },
         column_revision_id: function () {
             return {
-
                 data: 'revision_id',
                 orderable: true,
                 searchable: true,
@@ -165,7 +182,6 @@ export default {
         },
         column_revision_date: function () {
             return {
-
                 data: 'date_created',
                 orderable: true,
                 searchable: true,
@@ -178,7 +194,6 @@ export default {
         },
         column_revision_user: function () {
             return {
-
                 data: 'revision_user',
                 orderable: false,
                 searchable: false,
@@ -201,7 +216,6 @@ export default {
         },
         column_occurrence: function () {
             return {
-
                 data: 'data.data.occurrencereport.fields.occurrence',
                 defaultContent: '',
                 orderable: true,
@@ -209,15 +223,16 @@ export default {
                 visible: true,
                 render: function (row, type, full) {
                     if (full.data.occurrencereport.fields.occurrence)
-                        return "OCC"+full.data.occurrencereport.fields.occurrence;
-                    return ""
+                        return (
+                            'OCC' + full.data.occurrencereport.fields.occurrence
+                        );
+                    return '';
                 },
                 name: 'occurrence',
             };
         },
         column_processing_status: function () {
             return {
-
                 data: 'data.data.occurrencereport.fields.processing_status',
                 defaultContent: '',
                 orderable: true,
@@ -235,11 +250,11 @@ export default {
                 orderable: false,
                 searchable: false,
                 visible: true,
-                mRender: function(data, type, full){
-                    let links = "";
+                mRender: function (data, type, full) {
+                    let links = '';
                     links += `<a href='#' data-view-history='${full.revision_id}' data-view-history-seq='${full.revision_sequence}'>View</a><br>`;
                     return links;
-                }
+                },
             };
         },
         datatable_options: function () {
@@ -265,7 +280,10 @@ export default {
                 order: [[0, 'desc']],
                 serverSide: true,
                 ajax: {
-                    url: api_endpoints.lookup_history_occurrence_report(this.occurrenceReportId)+"?format=datatables",
+                    url:
+                        api_endpoints.lookup_history_occurrence_report(
+                            this.occurrenceReportId
+                        ) + '?format=datatables',
                     dataSrc: 'data',
                 },
                 buttons: [
@@ -275,8 +293,8 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> Excel',
                         className: 'btn btn-primary me-2 rounded',
                         exportOptions: {
-                            orthogonal: 'export'
-                        }
+                            orthogonal: 'export',
+                        },
                     },
                     {
                         extend: 'csv',
@@ -284,57 +302,24 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> CSV',
                         className: 'btn btn-primary rounded',
                         exportOptions: {
-                            orthogonal: 'export'
-                        }
+                            orthogonal: 'export',
+                        },
                     },
                 ],
-                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
-                         "<'row'<'col-sm-12'tr>>" +
-                         "<'d-flex align-items-center'<'me-auto'i>p>",
+                dom:
+                    "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'d-flex align-items-center'<'me-auto'i>p>",
                 columns: columns,
                 processing: true,
-                drawCallback: function() {
+                drawCallback: function () {
                     helpers.enablePopovers();
                 },
-                initComplete: function() {
+                initComplete: function () {
                     helpers.enablePopovers();
                 },
             };
         },
-    },
-    methods: {
-        close: function () {
-            this.errorString = '';
-            this.isModalOpen = false;
-            $('.has-error').removeClass('has-error');
-        },
-        viewHistory: function(id,seq){
-                console.log("viewHistory");
-                this.historyId = parseInt(id);
-                this.historySequence = parseInt(seq);
-                this.uuid++;
-                this.$nextTick(() => {
-                    this.$refs.display_history.isModalOpen = true;
-                });
-            },
-        addEventListeners:function (){
-            let vm=this;
-            vm.$refs.history_datatable.vmDataTable.on('click', 'a[data-view-history]', function(e) {
-                e.preventDefault();
-                var id = $(this).attr('data-view-history');
-                var seq = $(this).attr('data-view-history-seq');
-                vm.viewHistory(id,seq);
-            });
-            vm.$refs.history_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
-                helpers.enablePopovers();
-            });
-        }
-    },
-    mounted: function(){
-        let vm = this;
-        this.$nextTick(() => {
-            vm.addEventListeners();
-        });
     },
     watch: {
         isModalOpen() {
@@ -342,7 +327,48 @@ export default {
             if (this.isModalOpen) {
                 vm.$refs.history_datatable.vmDataTable.ajax.reload();
             }
-        }
+        },
+    },
+    mounted: function () {
+        let vm = this;
+        this.$nextTick(() => {
+            vm.addEventListeners();
+        });
+    },
+    methods: {
+        close: function () {
+            this.errorString = '';
+            this.isModalOpen = false;
+            $('.has-error').removeClass('has-error');
+        },
+        viewHistory: function (id, seq) {
+            console.log('viewHistory');
+            this.historyId = parseInt(id);
+            this.historySequence = parseInt(seq);
+            this.uuid++;
+            this.$nextTick(() => {
+                this.$refs.display_history.isModalOpen = true;
+            });
+        },
+        addEventListeners: function () {
+            let vm = this;
+            vm.$refs.history_datatable.vmDataTable.on(
+                'click',
+                'a[data-view-history]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-view-history');
+                    var seq = $(this).attr('data-view-history-seq');
+                    vm.viewHistory(id, seq);
+                }
+            );
+            vm.$refs.history_datatable.vmDataTable.on(
+                'childRow.dt',
+                function () {
+                    helpers.enablePopovers();
+                }
+            );
+        },
     },
 };
 </script>

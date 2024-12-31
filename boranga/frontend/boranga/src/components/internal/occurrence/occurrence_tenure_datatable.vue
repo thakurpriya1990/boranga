@@ -1,21 +1,43 @@
 <template>
     <div id="occurrence_tenure_datatable_template">
-        <CollapsibleFilters ref="collapsible_filters" component_title="Filters" :collapsed="!filterApplied"
-            @created="collapsible_component_mounted">
+        <CollapsibleFilters
+            ref="collapsible_filters"
+            component_title="Filters"
+            :collapsed="!filterApplied"
+            @created="collapsible_component_mounted"
+        >
             <div class="row">
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="occurrence_tenure_feature_id_lookup">Feature ID:</label>
-                        <select id="occurrence_tenure_feature_id_lookup" ref="occurrence_tenure_feature_id_lookup"
-                            name="occurrence_tenure_feature_id_lookup" class="form-control" />
+                        <label for="occurrence_tenure_feature_id_lookup"
+                            >Feature ID:</label
+                        >
+                        <select
+                            id="occurrence_tenure_feature_id_lookup"
+                            ref="occurrence_tenure_feature_id_lookup"
+                            name="occurrence_tenure_feature_id_lookup"
+                            class="form-control"
+                        />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="occurrence_tenure_status_lookup" class="text-nowrap">Status:</label>
-                        <select ref="occurrence_tenure_status_lookup" v-model="filterStatus" class="form-select">
+                        <label
+                            for="occurrence_tenure_status_lookup"
+                            class="text-nowrap"
+                            >Status:</label
+                        >
+                        <select
+                            ref="occurrence_tenure_status_lookup"
+                            v-model="filterStatus"
+                            class="form-select"
+                        >
                             <option value="all">All</option>
-                            <option v-for="status in tenure_statuses" :key="status.value" :value="status.value">
+                            <option
+                                v-for="status in tenure_statuses"
+                                :key="status.value"
+                                :value="status.value"
+                            >
                                 {{ status.name }}
                             </option>
                         </select>
@@ -23,27 +45,54 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="occurrence_tenure_vesting_lookup">Vesting:</label>
-                        <select id="occurrence_tenure_vesting_lookup" ref="occurrence_tenure_vesting_lookup"
-                            name="occurrence_tenure_vesting_lookup" class="form-control" />
+                        <label for="occurrence_tenure_vesting_lookup"
+                            >Vesting:</label
+                        >
+                        <select
+                            id="occurrence_tenure_vesting_lookup"
+                            ref="occurrence_tenure_vesting_lookup"
+                            name="occurrence_tenure_vesting_lookup"
+                            class="form-control"
+                        />
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="occurrence_tenure_purpose_lookup">Purpose:</label>
-                        <select id="occurrence_tenure_purpose_lookup" ref="occurrence_tenure_purpose_lookup"
-                            name="occurrence_tenure_purpose_lookup" class="form-control" />
+                        <label for="occurrence_tenure_purpose_lookup"
+                            >Purpose:</label
+                        >
+                        <select
+                            id="occurrence_tenure_purpose_lookup"
+                            ref="occurrence_tenure_purpose_lookup"
+                            name="occurrence_tenure_purpose_lookup"
+                            class="form-control"
+                        />
                     </div>
                 </div>
             </div>
         </CollapsibleFilters>
-        <datatable :id="datatable_id" ref="occurrence_tenure_datatable" :dt-options="options" :dt-headers="headers" />
-        <OccurrenceTenureModal ref="occurrence_tenure_modal" title="Tenure Area" :occurrence-id="occurrenceId"
-            :url="occ_tenure_url" :change-warning="''" :always-read-only="['status', 'tenure_area_id', 'owner_name']"
-            @refreshFromResponse="updatedTenureArea">
+        <datatable
+            :id="datatable_id"
+            ref="occurrence_tenure_datatable"
+            :dt-options="options"
+            :dt-headers="headers"
+        />
+        <OccurrenceTenureModal
+            ref="occurrence_tenure_modal"
+            title="Tenure Area"
+            :occurrence-id="occurrenceId"
+            :url="occ_tenure_url"
+            :change-warning="''"
+            :always-read-only="['status', 'tenure_area_id', 'owner_name']"
+            @refresh-from-response="updatedTenureArea"
+        >
         </OccurrenceTenureModal>
         <div v-if="occTenureHistoryId">
-            <OCCTenureHistory ref="occ_tenure_history" :key="occTenureHistoryId" :tenure-id="occTenureHistoryId" />
+            <OCCTenureHistory
+                ref="occ_tenure_history"
+                :key="occTenureHistoryId"
+                :tenure-id="occTenureHistoryId"
+            />
         </div>
     </div>
 </template>
@@ -112,7 +161,7 @@ export default {
                 'Purpose',
                 'Signif. to OCC',
                 'Comments',
-                "Owner/Manager",
+                'Owner/Manager',
                 'Updated',
                 'Action',
             ],
@@ -242,12 +291,12 @@ export default {
                 orderable: false,
                 searchable: false,
                 visible: true,
-                // eslint-disable-next-line no-unused-vars
+
                 render: function (data, type, row) {
                     const coordinates = row.tenure_area_point_on_surface
                         ? JSON.stringify(
-                            row.tenure_area_point_on_surface.coordinates
-                        )
+                              row.tenure_area_point_on_surface.coordinates
+                          )
                         : '';
                     let html = `<a href="#${vm.hrefContainerId}" data-highlight-on-map-coordinates="${coordinates}">Highlight on Map</a>`;
                     html += `<br><a href="#" data-edit-tenure-details="${data}">Edit Tenure Details</a>`;
@@ -331,7 +380,7 @@ export default {
                 columns: columns,
                 processing: true,
                 serverSide: true,
-                // eslint-disable-next-line no-unused-vars
+
                 drawCallback: function () {
                     helpers.enablePopovers();
                 },
@@ -441,14 +490,21 @@ export default {
                     vm.editTenureDetails(id);
                 }
             );
-            vm.$refs.occurrence_tenure_datatable.vmDataTable.on('click', 'a[data-history-tenure]', function (e) {
-                e.preventDefault();
-                var id = $(this).attr('data-history-tenure');
-                vm.historyTenure(id);
-            });
-            vm.$refs.occurrence_tenure_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
-                helpers.enablePopovers();
-            });
+            vm.$refs.occurrence_tenure_datatable.vmDataTable.on(
+                'click',
+                'a[data-history-tenure]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-history-tenure');
+                    vm.historyTenure(id);
+                }
+            );
+            vm.$refs.occurrence_tenure_datatable.vmDataTable.on(
+                'childRow.dt',
+                function () {
+                    helpers.enablePopovers();
+                }
+            );
         },
         highlightOnMap: function (coordinates = null) {
             this.$emit('highlight-on-map', JSON.parse(coordinates));

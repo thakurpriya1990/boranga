@@ -5,6 +5,7 @@ from datetime import datetime, time
 from io import BytesIO
 
 from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos.error import GEOSException
 from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import CharField, Q, Value
@@ -1791,14 +1792,14 @@ class OccurrenceReportViewSet(
         serializer = OccurrenceReportLogEntrySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         comms = serializer.save()
+
         # Save the files
-        for f in request.FILES:
+        for f in request.FILES.getlist("files"):
             document = comms.documents.create()
-            document.check_file(request.FILES[f])
-            document.name = str(request.FILES[f])
-            document._file = request.FILES[f]
+            document.check_file(f)
+            document.name = str(f)
+            document._file = f
             document.save()
-        # End Save Documents
 
         return Response(serializer.data)
 
@@ -3131,7 +3132,7 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
             occ_ids = json.loads(request.POST.get("occurrence_ids"))
             documents = OccurrenceDocument.objects.filter(
                 occurrence__id__in=occ_ids
-            ).filter(visible=True)
+            ).filter(active=True)
 
             values_list = list(
                 documents.values(
@@ -3930,14 +3931,14 @@ class OccurrenceViewSet(
         serializer = OccurrenceLogEntrySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         comms = serializer.save()
+
         # Save the files
-        for f in request.FILES:
+        for f in request.FILES.getlist("files"):
             document = comms.documents.create()
-            document.check_file(request.FILES[f])
-            document.name = str(request.FILES[f])
-            document._file = request.FILES[f]
+            document.check_file(f)
+            document.name = str(f)
+            document._file = f
             document.save()
-        # End Save Documents
 
         return Response(serializer.data)
 
@@ -5737,9 +5738,18 @@ class OccurrenceSiteViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     def create(self, request, *args, **kwargs):
 
         data = json.loads(request.data.get("data"))
-        point_data = "POINT({} {})".format(data["point_coord1"], data["point_coord2"])
+        try:
+            point_data = "POINT({} {})".format(
+                data["point_coord1"], data["point_coord2"]
+            )
+        except KeyError:
+            raise serializers.ValidationError("Please enter a point coordinate")
 
-        original_geom = GEOSGeometry(point_data, srid=data["datum"])
+        try:
+            original_geom = GEOSGeometry(point_data, srid=data["datum"])
+        except GEOSException:
+            raise serializers.ValidationError("Please enter a valid point coordinate")
+
         geom = GEOSGeometry(point_data, srid=data["datum"])
         geom.transform(4326)
 

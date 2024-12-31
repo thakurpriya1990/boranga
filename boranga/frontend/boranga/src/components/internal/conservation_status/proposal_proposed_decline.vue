@@ -1,26 +1,48 @@
 <template lang="html">
     <div id="proposal-proposed-decline">
-        <modal transition="modal fade" @ok="ok()" @cancel="cancel()" :title="title" large>
+        <modal
+            transition="modal fade"
+            :title="title"
+            large
+            @ok="ok()"
+            @cancel="cancel()"
+        >
             <div class="container-fluid">
                 <div class="row">
                     <form class="form-horizontal" name="declineForm">
-                        <alert :show.sync="showError" type="danger"><strong>{{ errorString }}</strong></alert>
+                        <alert v-if="errorString" type="danger"
+                            ><strong>{{ errorString }}</strong></alert
+                        >
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row mb-3">
                                     <div class="col-sm-12">
-                                        <label class="control-label" for="Name">Details</label>
-                                        <textarea style="width: 70%;" class="form-control" name="reason" ref="reason"
-                                            v-model="decline.reason"></textarea>
+                                        <label class="control-label" for="Name"
+                                            >Details</label
+                                        >
+                                        <textarea
+                                            ref="reason"
+                                            v-model="decline.reason"
+                                            style="width: 70%"
+                                            class="form-control"
+                                            name="reason"
+                                        ></textarea>
                                     </div>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <div class="row" mb-3>
                                     <div class="col-sm-12">
-                                        <label class="control-label" for="Name">CC email</label>
-                                        <input type="text" style="width: 70%;" class="form-control" name="cc_email"
-                                            v-model="decline.cc_email" />
+                                        <label class="control-label" for="Name"
+                                            >CC email</label
+                                        >
+                                        <input
+                                            v-model="decline.cc_email"
+                                            type="text"
+                                            style="width: 70%"
+                                            class="form-control"
+                                            name="cc_email"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -28,35 +50,62 @@
                     </form>
                 </div>
             </div>
-            <div slot="footer">
-                <button type="button" class="btn btn-secondary me-2" @click="cancel">Cancel</button>
-                <button type="button" v-if="decliningProposal" disabled class="btn btn-primary" @click="ok">Processing
-                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    <span class="visually-hidden">Loading...</span></button>
-                <button type="button" v-else class="btn btn-primary" @click="ok">Decline</button>
-            </div>
+            <template #footer>
+                <div>
+                    <button
+                        type="button"
+                        class="btn btn-secondary me-2"
+                        @click="cancel"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        v-if="decliningProposal"
+                        type="button"
+                        disabled
+                        class="btn btn-primary"
+                        @click="ok"
+                    >
+                        Processing
+                        <span
+                            class="spinner-border spinner-border-sm"
+                            role="status"
+                            aria-hidden="true"
+                        ></span>
+                        <span class="visually-hidden">Loading...</span>
+                    </button>
+                    <button
+                        v-else
+                        type="button"
+                        class="btn btn-primary"
+                        @click="ok"
+                    >
+                        Decline
+                    </button>
+                </div>
+            </template>
         </modal>
     </div>
 </template>
 
 <script>
-import modal from '@vue-utils/bootstrap-modal.vue'
-import alert from '@vue-utils/alert.vue'
-import { helpers, api_endpoints } from "@/utils/hooks.js"
+import modal from '@vue-utils/bootstrap-modal.vue';
+import alert from '@vue-utils/alert.vue';
+import { helpers, api_endpoints } from '@/utils/hooks.js';
 export default {
-    name: 'Decline-Proposal',
+    name: 'DeclineProposal',
     components: {
         modal,
-        alert
+        alert,
     },
     props: {
         conservation_status_id: {
             type: Number,
-            required: true
+            required: true,
         },
         processing_status: {
             type: String,
-            required: true
+            required: true,
         },
     },
     data: function () {
@@ -65,12 +114,13 @@ export default {
             form: null,
             decline: {},
             decliningProposal: false,
-            errors: false,
-            validation_form: null,
             errorString: '',
-            successString: '',
-            success: false,
-        }
+        };
+    },
+    computed: {
+        title: function () {
+            return `Decline Conservation Status CS${this.conservation_status_id}`;
+        },
     },
     watch: {
         isModalOpen: function (val) {
@@ -79,16 +129,11 @@ export default {
                     this.$refs['reason'].focus();
                 });
             }
-        }
-    },
-    computed: {
-        showError: function () {
-            var vm = this;
-            return vm.errors;
         },
-        title: function () {
-            return `Decline Conservation Status CS${this.conservation_status_id}`;
-        }
+    },
+    mounted: function () {
+        let vm = this;
+        vm.form = document.forms.declineForm;
     },
     methods: {
         ok: function () {
@@ -103,33 +148,48 @@ export default {
         close: function () {
             this.isModalOpen = false;
             this.decline = {};
-            this.errors = false;
+            this.errorString = '';
             $('.has-error').removeClass('has-error');
         },
         sendData: function () {
             let vm = this;
-            vm.errors = false;
+            vm.errorString = '';
             let decline = JSON.parse(JSON.stringify(vm.decline));
             vm.decliningProposal = true;
-            if (vm.processing_status == 'With Assessor' || vm.processing_status == 'On Agenda') {
-                vm.$http.post(helpers.add_endpoint_json(api_endpoints.conservation_status, vm.conservation_status_id + '/final_decline'), JSON.stringify(decline), {
-                    emulateJSON: true,
-                }).then((response) => {
-                    vm.decliningProposal = false;
-                    vm.close();
-                    vm.$emit('refreshFromResponse', response);
-                    vm.$router.push({ path: '/internal/conservation-status/' }); //Navigate to dashboard after propose decline.
-                }, (error) => {
-                    vm.errors = true;
-                    vm.decliningProposal = false;
-                    vm.errorString = helpers.apiVueResourceError(error);
-                });
+            if (
+                vm.processing_status == 'With Assessor' ||
+                vm.processing_status == 'On Agenda'
+            ) {
+                fetch(
+                    helpers.add_endpoint_json(
+                        api_endpoints.conservation_status,
+                        vm.conservation_status_id + '/final_decline'
+                    ),
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(decline),
+                    }
+                )
+                    .then(async (response) => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            vm.errorString = data;
+                            return;
+                        }
+                        vm.close();
+                        vm.$emit('refreshFromResponse', response);
+                        vm.$router.push({
+                            path: '/internal/conservation-status/',
+                        }); //Navigate to dashboard after propose decline.
+                    })
+                    .finally(() => {
+                        vm.decliningProposal = false;
+                    });
             }
         },
     },
-    mounted: function () {
-        let vm = this;
-        vm.form = document.forms.declineForm;
-    }
-}
+};
 </script>

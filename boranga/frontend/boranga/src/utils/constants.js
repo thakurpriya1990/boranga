@@ -1,11 +1,14 @@
-module.exports = {
+export default {
     PROPOSAL_STATUS: {
         DRAFT: { ID: 'draft', TEXT: 'Draft' },
         DISCARDED: { ID: 'discarded', TEXT: 'Discarded' },
         WITH_ASSESSOR: { ID: 'with_assessor', TEXT: 'With Assessor' },
         WITH_REFERRAL: { ID: 'with_referral', TEXT: 'With Referral' },
         DEFERRED: { ID: 'deferred', TEXT: 'Deferred' },
-        PROPOSED_FOR_AGENDA: { ID: 'proposed_for_agenda', TEXT: 'Proposed For Agenda' },
+        PROPOSED_FOR_AGENDA: {
+            ID: 'proposed_for_agenda',
+            TEXT: 'Proposed For Agenda',
+        },
         READY_FOR_AGENDA: { ID: 'ready_for_agenda', TEXT: 'Ready For Agenda' },
         ON_AGENDA: { ID: 'on_agenda', TEXT: 'On Agenda' },
         WITH_APPROVER: { ID: 'with_approver', TEXT: 'Proposed DeListed' },
@@ -28,4 +31,4 @@ module.exports = {
     },
     DATATABLE_PROCESSING_HTML:
         '<div class="d-flex justify-content-center"><div class="d-flex spinner-border text-primary my-4" role="status"><span class="visually-hidden">Loading...</span></div></div>',
-}
+};

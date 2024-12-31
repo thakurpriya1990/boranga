@@ -42,7 +42,6 @@
                 </div>
             </div>
         </div>
-
         <div
             :id="map_container_id"
             class="d-flex justify-content-center"
@@ -231,11 +230,11 @@
                                             feature.getProperties().show_on_map
                                         "
                                         :set="
-                                            (displayProperties =
+                                            displayProperties =
                                                 featureGetDisplayProperties(
                                                     feature,
                                                     getLayerByName(name)
-                                                ))
+                                                )
                                         "
                                         class="input-group input-group-sm mb-1 text-nowrap"
                                     >
@@ -775,7 +774,7 @@
                                     ? 'optional-layers-button-active'
                                     : 'optional-layers-button',
                             ]"
-                            @click="set_mode('measure')"
+                            @click="callSetMode('measure')"
                         >
                             <img
                                 class="svg-icon"
@@ -812,7 +811,7 @@
                                             ? ''
                                             : 'disabled',
                                     ]"
-                                    @click="set_mode('draw', 'Polygon')"
+                                    @click="callSetMode('draw', 'Polygon')"
                                 >
                                     <img
                                         class="svg-icon"
@@ -843,7 +842,7 @@
                                             ? ''
                                             : 'disabled',
                                     ]"
-                                    @click="set_mode('draw', 'Point')"
+                                    @click="callSetMode('draw', 'Point')"
                                 >
                                     <img
                                         class="svg-icon"
@@ -905,7 +904,7 @@
                                     ? ''
                                     : 'disabled',
                             ]"
-                            @click="set_mode('transform')"
+                            @click="callSetMode('transform')"
                         >
                             <img
                                 class="svg-icon"
@@ -1130,15 +1129,13 @@
                                                 "
                                             >
                                                 <img
-                                                    :src="
-                                                        require(`../../assets/${
-                                                            spatialOperationsAvailable.find(
-                                                                (op) =>
-                                                                    op.id ==
-                                                                    selectedSpatialOperation
-                                                            ).icon
-                                                        }`)
-                                                    "
+                                                    :src="`../../static/boranga_vue/src/assets/${
+                                                        spatialOperationsAvailable.find(
+                                                            (op) =>
+                                                                op.id ==
+                                                                selectedSpatialOperation
+                                                        ).icon
+                                                    }.svg`"
                                                 />
                                             </div>
                                         </div>
@@ -1293,7 +1290,7 @@
                                     ? 'optional-layers-button-active'
                                     : 'optional-layers-button',
                             ]"
-                            @click="set_mode('info')"
+                            @click="callSetMode('info')"
                         >
                             <img
                                 class="svg-icon"
@@ -1598,6 +1595,9 @@
 </template>
 
 <script>
+// @Karsten: TODO - I could not get transform working in vue 3
+// When the transform interaction is activated, the selected feature seems
+// to become unselected
 import { v4 as uuid } from 'uuid';
 import { api_endpoints, helpers } from '@/utils/hooks';
 
@@ -1948,6 +1948,7 @@ export default {
         'refreshFromResponse',
         'features-loaded',
         'toggle-show-hide',
+        'crs-select-search',
     ],
     data() {
         return {
@@ -2030,6 +2031,10 @@ export default {
             cursorInLeftHalfOfMap: true,
             cursorInBottomHalfOfMap: true,
             showToastCloseButton: false,
+            editableLayersArray: [],
+            activeEditLayer: null,
+            optionalLayersActive: false,
+            mapMarker: '../../static/boranga_vue/src/assets/map-marker.svg',
         };
     },
     computed: {
@@ -2050,7 +2055,6 @@ export default {
                 endpoint,
                 '/' + obj_id + '/process_shapefile_document/'
             );
-            console.log({ url });
             return url;
         },
         canUndoAction: function () {
@@ -2080,15 +2084,6 @@ export default {
                 this.drawPolygonsForModel.getActive() &&
                 this.undoredo_forSketch.getStack('redo').length > 0
             );
-        },
-        optionalLayersActive: function () {
-            if (this.optionalLayers.length == 0) {
-                return false;
-            }
-            let visible_layers = this.optionalLayers.filter(
-                (layer) => layer.values_.visible === true
-            );
-            return visible_layers.length > 0;
         },
         featureCount: function () {
             this.defaultQueryLayerName;
@@ -2204,37 +2199,37 @@ export default {
                 {
                     id: 'buffer_geometries',
                     name: 'Buffer',
-                    icon: 'buffer-geometries.svg',
+                    icon: 'buffer-geometries',
                     number_params: 1,
                 },
                 {
                     id: 'convex_hull',
                     name: 'Convex Hull',
-                    icon: 'convex-hull.svg',
+                    icon: 'convex-hull',
                     number_params: 0,
                 },
                 {
                     id: 'intersect_geometries',
                     name: 'Intersection',
-                    icon: 'intersect-geometries.svg',
+                    icon: 'intersect-geometries',
                     number_params: 0,
                 },
                 {
                     id: 'union_geometries',
                     name: 'Union',
-                    icon: 'union-geometries.svg',
+                    icon: 'union-geometries',
                     number_params: 0,
                 },
                 {
                     id: 'voronoi',
                     name: 'Voronoi',
-                    icon: 'voronoi.svg',
+                    icon: 'voronoi',
                     number_params: 0,
                 },
                 {
                     id: 'centroid',
                     name: 'Centroid',
-                    icon: 'centroid.svg',
+                    icon: 'centroid',
                     number_params: 0,
                 },
                 // Spatial statistics functions below
@@ -2325,17 +2320,13 @@ export default {
             });
         },
         activeEditLayerName: function () {
-            const layer = this.editableLayers().find((layer) => {
-                return layer.get('editing') === true;
-            });
-            return layer?.getProperties().name;
+            if (!this.activeEditLayer) {
+                return null;
+            }
+            return this.activeEditLayer.getProperties().name;
         },
         isEditingALayer: function () {
-            const editableLayers = this.editableLayers().filter((layer) => {
-                return layer.get('editing') === true;
-            });
-
-            return editableLayers.length > 0;
+            return Boolean(this.activeEditLayer);
         },
         vectorLayersArray: function () {
             return Object.values(this.vectorLayers);
@@ -2346,6 +2337,18 @@ export default {
             if (this.selectedFeatureIds.length == 0) {
                 this.errorMessageProperty(null);
             }
+        },
+        optionalLayers: {
+            handler: function (newVal) {
+                if (newVal.length == 0) {
+                    return false;
+                }
+                let visibleLayers = newVal.filter(
+                    (layer) => layer.values_.visible === true
+                );
+                this.optionalLayersActive = visibleLayers.length > 0;
+            },
+            deep: true,
         },
     },
     created: function () {
@@ -2358,7 +2361,7 @@ export default {
                 this.queryLayerDefinition.query_param_key
             ),
             // Tile Layers
-            this.fetchTileLayers(this, this.tileLayerApiUrl),
+            fetchTileLayers(this, this.tileLayerApiUrl),
         ];
         // Addional Layers
         const additionalInitialisers = [];
@@ -2409,7 +2412,6 @@ export default {
         console.log('Map created');
     },
     mounted: function () {
-        console.log('mounted()');
         let vm = this;
         vm.setLoadingMap(true);
 
@@ -2425,16 +2427,12 @@ export default {
             } else {
                 console.log('Done initializing map (no refresh)');
             }
-            // Priya calling this event from mounted as its only been triggered from loadMapFeatures() which is coomented at the moment
-            // vm.map.dispatchEvent({
-            //     type: 'features-loaded',
-            //     details: {
-            //         loaded: true,
-            //     },
-            // });
         });
     },
     methods: {
+        callSetMode: function (mode, subMode = null) {
+            this.set_mode(this, mode, subMode);
+        },
         setLoadingMap(loading = false) {
             console.log('set loading-map', loading);
             this.loadingMap = loading;
@@ -2471,7 +2469,6 @@ export default {
             const features = [];
             selectedFeatures.forEach((f) => {
                 const feature = f.clone();
-                console.log(feature.getProperties());
                 feature.unset('model');
                 features.push(feature);
             });
@@ -2484,7 +2481,6 @@ export default {
             );
         },
         displayAllFeatures: function (features) {
-            console.log('in displayAllFeatures()');
             let vm = this;
             if (vm.map) {
                 if (
@@ -2848,7 +2844,6 @@ export default {
                 formatConstructors: [GeoJSON],
             });
             vm.dragAndDrop.on('addfeatures', function (event) {
-                console.log('dragAndDrop addfeatures', event);
                 let features = event.features;
                 let source = vm.layerSources[vm.defaultQueryLayerName];
                 for (let i = 0, ii = features.length; i < ii; i++) {
@@ -2885,13 +2880,12 @@ export default {
                 evt.preventDefault();
             });
             vm.map.getViewport().addEventListener('drop', function (evt) {
-                console.log('drag: drop', evt);
                 // Prevent default behavior (Prevent file from being opened)
                 evt.preventDefault();
                 vm.processDatatransferEvent(evt);
             });
 
-            vm.set_mode('layer');
+            vm.callSetMode('layer');
             vm.setBaseLayer('street');
         },
         initialiseMeasurementLayer: function () {
@@ -2952,7 +2946,7 @@ export default {
                             'Point',
                             null,
                             null,
-                            require('../../assets/map-marker.svg'),
+                            this.mapMarker,
                             rgba[3]
                         );
                     }
@@ -3069,7 +3063,7 @@ export default {
                         if (vm.canUndoDrawnVertex) {
                             vm.undoredo_forSketch.undo();
                         } else {
-                            vm.set_mode('layer');
+                            vm.callSetMode('layer');
                         }
                     } else {
                         return false;
@@ -3159,6 +3153,7 @@ export default {
                 title: 'Background Maps',
                 layers: [this.tileLayerMapbox, this.tileLayerSat],
             });
+            console.log('baseLayers', baseLayers);
             // Hack
             if (!baseLayers.getSource) {
                 baseLayers.getSource = () => {
@@ -3217,7 +3212,10 @@ export default {
 
                     const img = $('<img>');
                     img.addClass('svg-object');
-                    img.attr('src', require('../../assets/pen-icon.svg'));
+                    img.attr(
+                        'src',
+                        '../../static/boranga_vue/src/assets/pen-icon.svg?raw'
+                    );
 
                     divDraw.append(img);
                     divWrapper.append(divDraw);
@@ -3253,11 +3251,11 @@ export default {
 
                                 // A bit clunky but this makes it so when switching editing modes the feature selection styles get properly set
                                 const mode = this.mode;
-                                const subMode = this.submode;
-                                this.set_mode('layer');
-                                this.set_mode(mode, subMode);
+                                const subMode = this.subMode;
+                                this.callSetMode('layer');
+                                this.callSetMode(mode, subMode);
                             } else {
-                                this.set_mode('layer');
+                                this.callSetMode('layer');
                             }
 
                             // Toggle on this layer's editing
@@ -3287,7 +3285,7 @@ export default {
             });
 
             // Add a button to show/hide the layers
-            const button = $('<div class="toggleVisibility" title="show/hide">')
+            const button = $('<div title="show/hide" style="cursor: pointer;">')
                 .text('Show/hide all')
                 .click(() => {
                     const a = this.map
@@ -3501,7 +3499,7 @@ export default {
                         'Point',
                         null,
                         null,
-                        require('../../assets/map-marker.svg'),
+                        vm.mapMarker,
                         rgba[3]
                     );
                 }
@@ -3570,7 +3568,7 @@ export default {
                                     type,
                                     null,
                                     null,
-                                    require('../../assets/map-marker.svg'),
+                                    vm.mapMarker,
                                     rgba[3]
                                 )
                             );
@@ -3735,7 +3733,7 @@ export default {
             // select interaction working on "singleclick"
             const selectSingleClick = new Select({
                 style: vm.basicSelectStyle,
-                layers: vm.additionLayersArray,
+                layers: vm.vectorLayersArray,
                 wrapX: false,
                 condition: function () {
                     // Prevent the interaction's standard select event
@@ -3744,6 +3742,7 @@ export default {
             });
             selectSingleClick.on('select', (evt) => {
                 if (vm.transforming) {
+                    console.log('ignoring select event while transforming');
                     return;
                 }
                 $.each(evt.selected, function (idx, feature) {
@@ -3923,7 +3922,6 @@ export default {
             });
 
             const transformEndCallback = function (evt) {
-                // eslint-disable-next-line no-unused-vars
                 evt.features.forEach((feature) => {
                     vm.emitValidateFeature(feature);
                     const original_srid =
@@ -4095,8 +4093,11 @@ export default {
             return processedGeometry;
         },
         removeModelFeatures: function () {
+            console.log('Removing model features');
             let vm = this;
             let cannot_delete_features = [];
+            console.log('selectedFeatureIds', vm.selectedFeatureIds);
+            console.log('Selected features:', vm.selectedFeatures());
             const features = vm.selectedFeatures().filter((feature) => {
                 if (
                     [undefined, false].includes(
@@ -4114,7 +4115,9 @@ export default {
                     cannot_delete_features.push(feature.getProperties().id);
                 }
             });
+            console.log('Features to delete:', features);
 
+            console.log('Cannot delete features:', cannot_delete_features);
             if (cannot_delete_features.length > 0) {
                 vm.errorMessageProperty(null);
                 vm.errorMessageProperty(
@@ -4123,6 +4126,8 @@ export default {
                     )} anymore.`
                 );
             }
+
+            console.log('Removing feature from layer');
 
             const layersWithFeatures = vm.getLayersWithFeatures();
             layersWithFeatures.map((layer) => {
@@ -4244,7 +4249,7 @@ export default {
                 vm.layerSources[vm.defaultQueryLayerName];
             // If no geometry name is provided, assume the geometry is the proposals object itself
             const geometry_name =
-                vm.getLayerDefinitionByName(toSource).geometry_name || null;
+                vm.getLayerDefinitionByName(toSource)?.geometry_name || null;
 
             console.log(`Loading features to source ${toSource}`, proposals);
             let opacities = [];
@@ -4376,6 +4381,7 @@ export default {
         addTileLayers: function () {
             let vm = this;
             for (let tileLayer of this.optionalLayers) {
+                console.log('Adding optional layer', tileLayer);
                 vm.map.addLayer(tileLayer);
                 tileLayer.on('change:visible', function (e) {
                     if (e.oldValue == false) {
@@ -4648,7 +4654,7 @@ export default {
             const feature = this.drawPolygonsForModel.finishDrawing();
             this.setLoadingMap(false);
             if (this.mode == 'draw' && this.selectedFeatureIds.length == 0) {
-                this.set_mode('layer');
+                this.callSetMode('layer');
             }
         },
         /**
@@ -4699,16 +4705,14 @@ export default {
             }
         },
         validate_map_docs: function () {
-            var formData = new FormData();
             var vm = this;
-            formData.append('csrfmiddlewaretoken', vm.csrf_token);
-            vm.isValidating = true;
+            var formData = new FormData();
             vm.errorString = '';
             const options = {
                 method: 'POST',
                 body: formData,
-                'content-type': 'application/json',
             };
+            vm.isValidating = true;
             fetch(
                 helpers.add_endpoint_join(
                     api_endpoints.occurrence_report,
@@ -4730,7 +4734,10 @@ export default {
                     // so calling this will remove the file list from the front end
                     vm.$refs.shapefile_document.get_documents();
                     vm.$nextTick(() => {
-                        vm.loadMapFeatures([data]);
+                        vm.loadMapFeatures(
+                            [data],
+                            this.queryLayerDefinition.name
+                        );
                         vm.displayAllFeatures();
                         swal.fire(
                             'Success',
@@ -4764,7 +4771,7 @@ export default {
                 try {
                     layer.getSource().getFeatures();
                     layers.push(layer);
-                } catch (error) {
+                } catch {
                     //
                 }
             }, layers);
@@ -4804,7 +4811,7 @@ export default {
         selectedFeatures: function () {
             let vm = this;
             const features = vm.getMapFeatures();
-
+            console.log('features:', features);
             return features.filter((feature) => {
                 return vm.selectedFeatureIds.includes(
                     feature.getProperties().id
@@ -5107,7 +5114,7 @@ export default {
                     type,
                     null,
                     null,
-                    require('../../assets/map-marker.svg'),
+                    this.mapMarker,
                     rgba[3]
                 );
             }
@@ -5455,11 +5462,11 @@ export default {
                 document.querySelectorAll('[data-bs-toggle="tooltip"]')
             );
             // eslint-disable-next-line no-unused-vars
-            var tooltipList = tooltipTriggerList.map(function (
-                tooltipTriggerEl
-            ) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
+            var tooltipList = tooltipTriggerList.map(
+                function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                }
+            );
         },
         /**
          * Returns the type of a feature
@@ -5470,10 +5477,10 @@ export default {
                 'getGeometry' in feature
                     ? feature.getGeometry().getType()
                     : feature.geometry
-                    ? feature.geometry.type
-                    : feature.type
-                    ? feature.type
-                    : null;
+                      ? feature.geometry.type
+                      : feature.type
+                        ? feature.type
+                        : null;
             if (!type) {
                 console.error('Unknown feature type: ' + feature);
             }
@@ -5482,9 +5489,10 @@ export default {
         },
         editableLayers: function () {
             const layers = this.getLayersWithFeatures();
-            return layers.filter((layer) => {
+            this.editableLayersArray = layers.filter((layer) => {
                 return layer.get('can_edit');
             });
+            return this.editableLayersArray;
         },
         vectorLayerDefinitions: function () {
             return this.additionalLayersDefinitions.concat(
@@ -5538,12 +5546,14 @@ export default {
                 btn.addClass('btn-danger');
                 $(toggleButton).attr('title', 'Layer Editing: On');
                 layer.set('editing', true);
+                this.activeEditLayer = layer;
             } else {
                 btn.removeClass('btn-danger');
                 btn.removeClass('btn-success');
                 img.removeClass('svg-green');
                 $(toggleButton).attr('title', 'Layer Editing: Off');
                 layer.set('editing', false);
+                this.activeEditLayer = null;
             }
         },
         /**
@@ -5741,11 +5751,11 @@ export default {
     },
 };
 </script>
-
-<style scoped>
+<style>
 @import '../../../../../static/boranga/css/map.css';
 @import 'ol-ext/dist/ol-ext.css';
-
+</style>
+<style scoped>
 #featureToast {
     position: absolute;
 }

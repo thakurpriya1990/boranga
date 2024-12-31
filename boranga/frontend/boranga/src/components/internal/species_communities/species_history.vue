@@ -2,17 +2,18 @@
     <div id="speciesHistory">
         <modal
             transition="modal fade"
-            :title="'Species S'+ speciesId +' - History'"
+            :title="'Species S' + speciesId + ' - History'"
             :large="true"
             :full="true"
-            :showOK="false"
+            :show-o-k="false"
             cancel-text="Close"
             @cancel="close()"
         >
             <div class="container-fluid">
                 <div class="row">
                     <alert v-if="errorString" type="danger"
-                        ><strong>{{ errorString }}</strong></alert>
+                        ><strong>{{ errorString }}</strong></alert
+                    >
                     <div class="col-sm-12">
                         <div class="form-group">
                             <div class="row">
@@ -24,14 +25,16 @@
                                         :dt-headers="datatable_headers"
                                     />
                                     <div v-if="historyId">
-                                    <DisplayHistory
-                                        ref="display_history"
-                                        :key="historyId"
-                                        :primary_model_number="'S'+speciesId"
-                                        :revision_id="historyId"
-                                        :revision_sequence="historySequence"
-                                        :primary_model="'Species'"
-                                    />
+                                        <DisplayHistory
+                                            ref="display_history"
+                                            :key="historyId"
+                                            :primary_model_number="
+                                                'S' + speciesId
+                                            "
+                                            :revision_id="historyId"
+                                            :revision_sequence="historySequence"
+                                            :primary_model="'Species'"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -45,13 +48,13 @@
 <script>
 import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
-import { helpers, api_endpoints, constants, utils } from '@/utils/hooks.js';
+import { helpers, api_endpoints, constants } from '@/utils/hooks.js';
 import datatable from '@/utils/vue/datatable.vue';
 import DisplayHistory from '../../common/display_history.vue';
 import { v4 as uuid } from 'uuid';
 
 export default {
-    name: 'speciesHistory',
+    name: 'SpeciesHistory',
     components: {
         modal,
         alert,
@@ -70,8 +73,7 @@ export default {
             historyId: null,
             historySequence: null,
             datatable_id: 'history-datatable-' + uuid(),
-            documentDetails: {
-            },
+            documentDetails: {},
             isModalOpen: false,
             errorString: '',
             successString: '',
@@ -110,16 +112,24 @@ export default {
         },
         column_sequence: function () {
             return {
-
                 data: 'revision_sequence',
                 orderable: true,
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
                     if (full.data.species.fields.species_number) {
-                        return full.data.species.fields.species_number+'-'+full.revision_sequence;
+                        return (
+                            full.data.species.fields.species_number +
+                            '-' +
+                            full.revision_sequence
+                        );
                     } else {
-                        return "S"+full.data.species.pk+'-'+full.revision_sequence;
+                        return (
+                            'S' +
+                            full.data.species.pk +
+                            '-' +
+                            full.revision_sequence
+                        );
                     }
                 },
                 name: 'revision_sequence',
@@ -153,7 +163,6 @@ export default {
         },
         column_revision_id: function () {
             return {
-
                 data: 'revision_id',
                 orderable: true,
                 searchable: true,
@@ -166,7 +175,6 @@ export default {
         },
         column_revision_date: function () {
             return {
-
                 data: 'date_created',
                 orderable: true,
                 searchable: true,
@@ -179,7 +187,6 @@ export default {
         },
         column_revision_user: function () {
             return {
-
                 data: 'revision_user',
                 orderable: false,
                 searchable: false,
@@ -198,13 +205,16 @@ export default {
                 searchable: true,
                 visible: true,
                 render: function (row, type, full) {
-                    if (full.data.taxonomy !== undefined && full.data.taxonomy.fields !== undefined) {
+                    if (
+                        full.data.taxonomy !== undefined &&
+                        full.data.taxonomy.fields !== undefined
+                    ) {
                         //return full.data.taxonomy.fields.scientific_name;
                         let value = full.data.taxonomy.fields.scientific_name;
                         let result = helpers.dtPopover(value, 30, 'hover');
-                        return type=='export' ? value : result;
+                        return type == 'export' ? value : result;
                     } else {
-                        return ''
+                        return '';
                     }
                 },
                 name: 'scientific_name', //_name',
@@ -218,20 +228,27 @@ export default {
                 searchable: true,
                 visible: true,
                 render: function (row, type, full) {
-                    if (full.data.taxonpreviousname !== undefined && full.data.taxonpreviousname.fields !== undefined) {
-                        let value = full.data.taxonpreviousname.fields.previous_scientific_name;
+                    if (
+                        full.data.taxonpreviousname !== undefined &&
+                        full.data.taxonpreviousname.fields !== undefined
+                    ) {
+                        let value =
+                            full.data.taxonpreviousname.fields
+                                .previous_scientific_name;
                         let result = helpers.dtPopover(value, 30, 'hover');
-                        return type=='export' ? value : result;
-                    }
-                    else if (full.data.taxonpreviousname !== undefined &&
+                        return type == 'export' ? value : result;
+                    } else if (
+                        full.data.taxonpreviousname !== undefined &&
                         full.data.taxonpreviousname.fields === undefined &&
-                        full.data.taxonpreviousname.length > 0) {
-                        let value = full.data.taxonpreviousname[0].fields.previous_scientific_name;
+                        full.data.taxonpreviousname.length > 0
+                    ) {
+                        let value =
+                            full.data.taxonpreviousname[0].fields
+                                .previous_scientific_name;
                         let result = helpers.dtPopover(value, 30, 'hover');
-                        return type=='export' ? value : result;
-                    }
-                    else {
-                        return ''
+                        return type == 'export' ? value : result;
+                    } else {
+                        return '';
                     }
                 },
                 name: 'previous_scientific_name', //_name',
@@ -248,25 +265,35 @@ export default {
                     if (full.data.taxonvernacular !== undefined) {
                         //list not dict
                         if (full.data.taxonvernacular.fields === undefined) {
-                            var combined_name = ""
-                            for (var i = 0; i < full.data.taxonvernacular.length; i++) {
-                                if (i==0) {
-                                    combined_name = full.data.taxonvernacular[i].fields.vernacular_name;
+                            var combined_name = '';
+                            for (
+                                var i = 0;
+                                i < full.data.taxonvernacular.length;
+                                i++
+                            ) {
+                                if (i == 0) {
+                                    combined_name =
+                                        full.data.taxonvernacular[i].fields
+                                            .vernacular_name;
                                 } else {
-                                    combined_name += ","+full.data.taxonvernacular[i].fields.vernacular_name
+                                    combined_name +=
+                                        ',' +
+                                        full.data.taxonvernacular[i].fields
+                                            .vernacular_name;
                                 }
                             }
                             //return combined_name;
                             let value = combined_name;
                             let result = helpers.dtPopover(value, 30, 'hover');
-                            return type=='export' ? value : result;
+                            return type == 'export' ? value : result;
                         }
                         //return full.data.taxonvernacular.fields.vernacular_name;
-                        let value = full.data.taxonvernacular.fields.vernacular_name;
+                        let value =
+                            full.data.taxonvernacular.fields.vernacular_name;
                         let result = helpers.dtPopover(value, 30, 'hover');
-                        return type=='export' ? value : result;
+                        return type == 'export' ? value : result;
                     } else {
-                        return ''
+                        return '';
                     }
                 },
                 name: 'vernacular_name', //_name',
@@ -274,19 +301,25 @@ export default {
         },
         column_processing_status: function () {
             return {
-
                 data: 'data.data.species.fields.processing_status',
                 defaultContent: '',
                 orderable: true,
                 searchable: false,
                 visible: true,
                 render: function (row, type, full) {
-                    if (full.data.speciespublishingstatus !== undefined &&
-                        full.data.species.fields.processing_status === "active"
-                    )
-                    {
-                        let public_status = full.data.speciespublishingstatus.fields.species_public ? "public" : "private";
-                        return full.data.species.fields.processing_status + " - " + public_status;
+                    if (
+                        full.data.speciespublishingstatus !== undefined &&
+                        full.data.species.fields.processing_status === 'active'
+                    ) {
+                        let public_status = full.data.speciespublishingstatus
+                            .fields.species_public
+                            ? 'public'
+                            : 'private';
+                        return (
+                            full.data.species.fields.processing_status +
+                            ' - ' +
+                            public_status
+                        );
                     }
                     return full.data.species.fields.processing_status;
                 },
@@ -295,7 +328,6 @@ export default {
         },
         column_comment: function () {
             return {
-
                 data: 'data.data.species.fields.comment',
                 defaultContent: '',
                 orderable: false,
@@ -305,7 +337,7 @@ export default {
                     //return full.data.species.fields.comment;
                     let value = full.data.species.fields.comment;
                     let result = helpers.dtPopover(value, 30, 'hover');
-                    return type=='export' ? value : result;
+                    return type == 'export' ? value : result;
                 },
                 name: 'comment',
             };
@@ -316,11 +348,11 @@ export default {
                 orderable: false,
                 searchable: false,
                 visible: true,
-                mRender: function(data, type, full){
-                    let links = "";
+                mRender: function (data, type, full) {
+                    let links = '';
                     links += `<a href='#' data-view-history='${full.revision_id}' data-view-history-seq='${full.revision_sequence}'>View</a><br>`;
                     return links;
-                }
+                },
             };
         },
         datatable_options: function () {
@@ -347,7 +379,9 @@ export default {
                 order: [[0, 'desc']],
                 serverSide: true,
                 ajax: {
-                    url: api_endpoints.lookup_history_species(this.speciesId)+"?format=datatables",
+                    url:
+                        api_endpoints.lookup_history_species(this.speciesId) +
+                        '?format=datatables',
                     dataSrc: 'data',
                 },
                 buttons: [
@@ -357,8 +391,8 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> Excel',
                         className: 'btn btn-primary me-2 rounded',
                         exportOptions: {
-                            orthogonal: 'export'
-                        }
+                            orthogonal: 'export',
+                        },
                     },
                     {
                         extend: 'csv',
@@ -366,57 +400,24 @@ export default {
                         text: '<i class="fa-solid fa-download"></i> CSV',
                         className: 'btn btn-primary rounded',
                         exportOptions: {
-                            orthogonal: 'export'
-                        }
+                            orthogonal: 'export',
+                        },
                     },
                 ],
-                dom: "<'d-flex align-items-center'<'me-auto'l>fB>" +
-                         "<'row'<'col-sm-12'tr>>" +
-                         "<'d-flex align-items-center'<'me-auto'i>p>",
+                dom:
+                    "<'d-flex align-items-center'<'me-auto'l>fB>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'d-flex align-items-center'<'me-auto'i>p>",
                 columns: columns,
                 processing: true,
-                drawCallback: function() {
+                drawCallback: function () {
                     helpers.enablePopovers();
                 },
-                initComplete: function() {
+                initComplete: function () {
                     helpers.enablePopovers();
                 },
             };
         },
-    },
-    methods: {
-        close: function () {
-            this.errorString = '';
-            this.isModalOpen = false;
-            $('.has-error').removeClass('has-error');
-        },
-        viewHistory: function(id,seq){
-                console.log("viewHistory");
-                this.historyId = parseInt(id);
-                this.historySequence = parseInt(seq);
-                this.uuid++;
-                this.$nextTick(() => {
-                    this.$refs.display_history.isModalOpen = true;
-                });
-            },
-        addEventListeners:function (){
-            let vm=this;
-            vm.$refs.history_datatable.vmDataTable.on('click', 'a[data-view-history]', function(e) {
-                e.preventDefault();
-                var id = $(this).attr('data-view-history');
-                var seq = $(this).attr('data-view-history-seq');
-                vm.viewHistory(id,seq);
-            });
-            vm.$refs.history_datatable.vmDataTable.on('childRow.dt', function (e, settings) {
-                helpers.enablePopovers();
-            });
-        }
-    },
-    mounted: function(){
-        let vm = this;
-        this.$nextTick(() => {
-            vm.addEventListeners();
-        });
     },
     watch: {
         isModalOpen() {
@@ -424,7 +425,48 @@ export default {
             if (this.isModalOpen) {
                 vm.$refs.history_datatable.vmDataTable.ajax.reload();
             }
-        }
+        },
+    },
+    mounted: function () {
+        let vm = this;
+        this.$nextTick(() => {
+            vm.addEventListeners();
+        });
+    },
+    methods: {
+        close: function () {
+            this.errorString = '';
+            this.isModalOpen = false;
+            $('.has-error').removeClass('has-error');
+        },
+        viewHistory: function (id, seq) {
+            console.log('viewHistory');
+            this.historyId = parseInt(id);
+            this.historySequence = parseInt(seq);
+            this.uuid++;
+            this.$nextTick(() => {
+                this.$refs.display_history.isModalOpen = true;
+            });
+        },
+        addEventListeners: function () {
+            let vm = this;
+            vm.$refs.history_datatable.vmDataTable.on(
+                'click',
+                'a[data-view-history]',
+                function (e) {
+                    e.preventDefault();
+                    var id = $(this).attr('data-view-history');
+                    var seq = $(this).attr('data-view-history-seq');
+                    vm.viewHistory(id, seq);
+                }
+            );
+            vm.$refs.history_datatable.vmDataTable.on(
+                'childRow.dt',
+                function () {
+                    helpers.enablePopovers();
+                }
+            );
+        },
     },
 };
 </script>
