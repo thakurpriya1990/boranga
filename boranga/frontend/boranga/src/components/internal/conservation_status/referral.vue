@@ -161,14 +161,12 @@
     </div>
 </template>
 <script>
-import datatable from '@vue-utils/datatable.vue';
 import Submission from '@common-utils/submission.vue';
 import ProposalConservationStatus from '@/components/form_conservation_status.vue';
 import { api_endpoints, helpers } from '@/utils/hooks';
 export default {
     name: 'ConservationStatusReferral',
     components: {
-        datatable,
         Submission,
         ProposalConservationStatus,
     },
