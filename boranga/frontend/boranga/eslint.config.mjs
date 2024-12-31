@@ -53,6 +53,7 @@ export default [
             'prettier/prettier': 'error',
             'no-redeclare': 'warn',
             'no-unused-vars': 'warn',
+            'vue/no-mutating-props': 'off',
         },
     },
 ];
