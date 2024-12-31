@@ -19,18 +19,15 @@
                 <div v-if="revision_sequence > 0">
                     <strong>Modified By:</strong> {{ revision_user }}
                 </div>
-                <div v-else="revision_sequence > 0">
+                <div v-else>
                     <strong>Created By:</strong> {{ revision_user }}
                 </div>
                 <div v-if="revision_sequence > 0">
                     <strong>Date Modified:</strong> {{ revision_date }}
                 </div>
-                <div v-else="revision_sequence > 0">
+                <div v-else>
                     <strong>Date Created:</strong> {{ revision_date }}
                 </div>
-                <!--<div v-for="(data, itemObjKey) in version_data">
-                <strong>{{itemObjKey}}:</strong> <textarea class="form-control">{{ JSON.stringify(data, null, '\t') }}</textarea>
-            </div>-->
                 <div>
                     <label for="checkbox" class="control-label"
                         ><strong>Show Null Fields:&nbsp;</strong></label
@@ -46,69 +43,25 @@
                 <div>
                     <strong>Data:</strong>
                 </div>
-                <textarea disabled class="form-control" rows="25">{{
-                    JSON.stringify(version_data_formatted, null, '\t')
-                }}</textarea>
+                <textarea
+                    disabled
+                    class="form-control"
+                    rows="25"
+                    v-model="version_data_formatted_json"
+                ></textarea>
             </div>
-
-            <!--<div v-for="(data, itemObjKey) in version_data">
-                <div v-if="data.fields">
-                <FormSection :formCollapse="false" :label="data.model_display_name+' - '+data.pk" :Index="itemObjKey+data.pk">
-                    <div class="card-body card-collapse">
-                        <div v-for="(value,index) in data.fields">
-                            <div v-if="value" class="row-sm-12">
-                                <div v-if="typeof value == 'object'" class="col-sm-12">
-                                    <div v-for="(o_value,o_index) in value">
-                                        <label class="col-sm-6 control-label"><strong>{{index}}.{{o_index}}:</strong></label>
-                                        <input :disabled="true" type="text" class="form-control col-sm-6" :value=o_value>
-                                    </div>
-                                </div>
-                                <div v-else class="col-sm-12">
-                                    <label class="col-sm-6 control-label"><strong>{{index}}:</strong></label>
-                                    <input :disabled="true" type="text" class="form-control col-sm-6" :value=value>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </FormSection>
-                </div>
-                <div v-else>
-                    <div v-for="(sub_data) in data">
-                    <FormSection :formCollapse="false" :label="sub_data.model_display_name+' - '+sub_data.pk" :Index="itemObjKey+sub_data.pk">
-                        <div class="card-body card-collapse">
-                            <div v-for="(value,index) in sub_data.fields">
-                                <div v-if="value" class="row-sm-12">
-                                    <div v-if="typeof value == 'object'" class="col-sm-12">
-                                        <div v-for="(o_value,o_index) in value">
-                                            <label class="col-sm-6 control-label"><strong>{{index}}.{{o_index}}:</strong></label>
-                                            <input :disabled="true" type="text" class="form-control col-sm-6" :value=o_value>
-                                        </div>
-                                    </div>
-                                    <div v-else class="col-sm-12">
-                                        <label class="col-sm-6 control-label"><strong>{{index}}:</strong></label>
-                                        <input :disabled="true" type="text" class="form-control col-sm-6" :value=value>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </FormSection>
-                    </div>
-                </div>
-            </div>-->
         </modal>
     </div>
 </template>
 
 <script>
 import modal from '@vue-utils/bootstrap-modal.vue';
-import FormSection from '@/components/forms/section_toggle.vue';
 import { api_endpoints } from '@/utils/hooks';
 
 export default {
     name: 'DisplayHistory',
     components: {
         modal,
-        FormSection,
     },
     props: {
         primary_model: {
@@ -146,7 +99,11 @@ export default {
             vm.fetchHistoryData();
         });
     },
-
+    computed: {
+        version_data_formatted_json: function () {
+            return JSON.stringify(this.version_data_formatted, null, '\t');
+        },
+    },
     methods: {
         close: function () {
             this.errorString = '';

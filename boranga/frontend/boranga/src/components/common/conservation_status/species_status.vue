@@ -1422,6 +1422,7 @@
                                                 <div
                                                     v-for="ref in referral_comments_boxes"
                                                     class="row mb-3"
+                                                    :key="ref.name"
                                                 >
                                                     <div class="col">
                                                         <div

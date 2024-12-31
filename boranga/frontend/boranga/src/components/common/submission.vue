@@ -30,7 +30,7 @@
 
 <script>
 export default {
-    name: 'Submission',
+    name: 'SubmissionComponent',
     props: {
         submitter_first_name: {
             type: String,

@@ -30,6 +30,7 @@
                                             <option
                                                 v-for="r in reason_choices"
                                                 :value="r.key"
+                                                :key="r.key"
                                             >
                                                 {{ r.value }}
                                             </option>

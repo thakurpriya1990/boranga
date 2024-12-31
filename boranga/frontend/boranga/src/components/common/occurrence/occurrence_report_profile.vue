@@ -71,6 +71,7 @@
                                         </div>
                                         <template
                                             v-for="ref in referral_comments_boxes"
+                                            :key="ref.name"
                                         >
                                             <div class="row mb-3">
                                                 <div class="col">

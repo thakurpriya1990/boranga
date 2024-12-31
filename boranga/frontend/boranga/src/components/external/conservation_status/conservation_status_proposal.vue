@@ -18,6 +18,7 @@
                             <ul class="list-group list-group-numbered ps-2">
                                 <li
                                     v-for="a in amendment_request"
+                                    :key="a.id"
                                     class="list-group-item d-flex justify-content-between align-items-start"
                                 >
                                     <div class="ms-4 me-auto">
@@ -25,7 +26,10 @@
                                             <span class="fw-bold">Reason:</span>
                                             {{ a.reason_text }}
                                         </div>
-                                        <p v-for="t in splitText(a.text)">
+                                        <p
+                                            v-for="t in splitText(a.text)"
+                                            :key="t"
+                                        >
                                             {{ t }}
                                         </p>
                                         <template
@@ -43,6 +47,7 @@
                                             >
                                                 <li
                                                     v-for="document in a.cs_amendment_request_documents"
+                                                    :key="document.id"
                                                     class="list-group-item"
                                                 >
                                                     <i

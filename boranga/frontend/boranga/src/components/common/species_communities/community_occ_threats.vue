@@ -18,6 +18,7 @@
                             <option
                                 v-for="option in threat_source_filter_list"
                                 :value="option"
+                                :key="option"
                             >
                                 {{ option }}
                             </option>
@@ -35,6 +36,7 @@
                             <option
                                 v-for="option in threat_category_filter_list"
                                 :value="option.id"
+                                :key="option.id"
                             >
                                 {{ option.name }}
                             </option>
@@ -52,6 +54,7 @@
                             <option
                                 v-for="option in threat_current_impact_filter_list"
                                 :value="option.id"
+                                :key="option.id"
                             >
                                 {{ option.name }}
                             </option>
@@ -69,6 +72,7 @@
                             <option
                                 v-for="option in threat_potential_impact_filter_list"
                                 :value="option.id"
+                                :key="option.id"
                             >
                                 {{ option.name }}
                             </option>
@@ -86,6 +90,7 @@
                             <option
                                 v-for="option in threat_status_filter_list"
                                 :value="option.id"
+                                :key="option.id"
                             >
                                 {{ option.name }}
                             </option>

@@ -68,6 +68,7 @@
                     <div style="position: relative">
                         <transition>
                             <div
+                                v-show="hover"
                                 class="optional-layers-button-wrapper"
                                 :title="`There are ${optionalLayers.length} optional layers available}`"
                             >

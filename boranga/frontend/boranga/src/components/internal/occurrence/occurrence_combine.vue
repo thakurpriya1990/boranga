@@ -247,9 +247,13 @@
                                                     }}:
                                                     <span
                                                         v-for="source in occurrence.occurrence_source"
+                                                        :key="source"
                                                     >
                                                         <span
-                                                            v-for="occ_source in occurrence_source_list"
+                                                            v-for="(
+                                                                occ_source, i
+                                                            ) in occurrence_source_list"
+                                                            :key="i"
                                                         >
                                                             <span
                                                                 v-if="
@@ -305,6 +309,7 @@
                                                     }}:
                                                     <span
                                                         v-for="wild_status in wild_status_list"
+                                                        :key="wild_status.id"
                                                     >
                                                         <span
                                                             v-if="

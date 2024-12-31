@@ -236,7 +236,6 @@
 
 <script>
 import modal from '@vue-utils/bootstrap-modal.vue';
-import alert from '@vue-utils/alert.vue';
 import ConservationStatusFloraDashTable from '@common-utils/conservation_status_flora_dashboard.vue';
 import ConservationStatusFaunaDashTable from '@common-utils/conservation_status_fauna_dashboard.vue';
 import ConservationStatusCommunityDashTable from '@common-utils/conservation_status_community_dashboard.vue';
@@ -247,7 +246,6 @@ export default {
     name: 'AgendaModal',
     components: {
         modal,
-        alert,
         ConservationStatusFloraDashTable,
         ConservationStatusFaunaDashTable,
         ConservationStatusCommunityDashTable,
@@ -301,6 +299,7 @@ export default {
                     return this.group_types[i].id;
                 }
             }
+            return null;
         },
     },
     mounted: function () {

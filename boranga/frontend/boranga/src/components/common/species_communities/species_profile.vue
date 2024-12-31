@@ -1249,7 +1249,7 @@ import HelpText from '@/components/common/help_text.vue';
 
 import { api_endpoints, helpers } from '@/utils/hooks';
 export default {
-    name: 'Species',
+    name: 'SpeciesProfile',
     components: {
         FormSection,
         BasicConservationStatus,

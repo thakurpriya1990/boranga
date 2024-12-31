@@ -88,6 +88,7 @@
                             <option
                                 v-for="status in species_status"
                                 :value="status.value"
+                                :key="status.value"
                             >
                                 {{ status.name }}
                             </option>
@@ -124,6 +125,7 @@
                             <option
                                 v-for="district in filtered_district_list"
                                 :value="district.id"
+                                :key="district.id"
                             >
                                 {{ district.name }}
                             </option>
@@ -144,6 +146,7 @@
                             <option
                                 v-for="list in wa_legislative_lists"
                                 :value="list.id"
+                                :key="list.id"
                             >
                                 {{ list.code }}
                             </option>
@@ -164,6 +167,7 @@
                             <option
                                 v-for="list in wa_legislative_categories"
                                 :value="list.id"
+                                :key="list.id"
                             >
                                 {{ list.code }}
                             </option>
@@ -184,6 +188,7 @@
                             <option
                                 v-for="list in wa_priority_categories"
                                 :value="list.id"
+                                :key="list.id"
                             >
                                 {{ list.code }}
                             </option>
@@ -282,7 +287,6 @@
 import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
-import FormSection from '@/components/forms/section_toggle.vue';
 import SpeciesHistory from '../internal/species_communities/species_history.vue';
 
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
@@ -291,7 +295,6 @@ export default {
     components: {
         datatable,
         CollapsibleFilters,
-        FormSection,
         SpeciesHistory,
     },
     props: {
@@ -603,8 +606,7 @@ export default {
                     'Conservation Criteria',
                     'Action',
                 ];
-            }
-            if (this.is_internal) {
+            } else {
                 return [
                     'Id',
                     'Number',

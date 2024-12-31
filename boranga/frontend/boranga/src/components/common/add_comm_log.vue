@@ -127,7 +127,10 @@
                                         >
                                     </div>
                                     <div class="col-sm-9">
-                                        <template v-for="(f, i) in files">
+                                        <template
+                                            v-for="(f, i) in files"
+                                            :key="i"
+                                        >
                                             <div
                                                 :class="
                                                     'row top-buffer file-row-' +

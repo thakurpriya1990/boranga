@@ -154,7 +154,8 @@
         >
             <div class="row mb-3">
                 <div
-                    v-for="(species, index) in original_species_combine_list"
+                    v-for="species in original_species_combine_list"
+                    :key="species.id"
                     class="row mb-3"
                 >
                     <label for="" class="col-sm-3 control-label"
@@ -204,7 +205,8 @@
             </div>
             <div>
                 <div
-                    v-for="(species, index) in original_species_combine_list"
+                    v-for="species in original_species_combine_list"
+                    :key="species.id"
                     class="row mb-3"
                 >
                     <label for="" class="col-sm-3 control-label"
@@ -258,7 +260,8 @@
             </div>
             <div>
                 <div
-                    v-for="(species, index) in original_species_combine_list"
+                    v-for="species in original_species_combine_list"
+                    :key="species.id"
                     class="row mb-3"
                 >
                     <label for="" class="col-sm-3 control-label"
@@ -311,7 +314,8 @@
             </div>
             <div>
                 <div
-                    v-for="(species, index) in original_species_combine_list"
+                    v-for="species in original_species_combine_list"
+                    :key="species.id"
                     class="row mb-3"
                 >
                     <label for="" class="col-sm-3 control-label"
@@ -373,7 +377,8 @@
             </div>
             <div>
                 <div
-                    v-for="(species, index) in original_species_combine_list"
+                    v-for="species in original_species_combine_list"
+                    :key="species.id"
                     class="row mb-3"
                 >
                     <label for="" class="col-sm-3 control-label"
@@ -435,7 +440,8 @@
             </div>
             <div>
                 <div
-                    v-for="(species, index) in original_species_combine_list"
+                    v-for="species in original_species_combine_list"
+                    :key="species.id"
                     class="row mb-3"
                 >
                     <label for="" class="col-sm-3 control-label"
@@ -504,7 +510,8 @@
             </div>
             <div>
                 <div
-                    v-for="(species, index) in original_species_combine_list"
+                    v-for="species in original_species_combine_list"
+                    :key="species.id"
                     class="row mb-3"
                 >
                     <label for="" class="col-sm-3 control-label"
@@ -541,7 +548,8 @@
             </div>
             <div>
                 <div
-                    v-for="(species, index) in original_species_combine_list"
+                    v-for="species in original_species_combine_list"
+                    :key="species.id"
                     class="row mb-3"
                 >
                     <label for="" class="col-sm-3 control-label"
@@ -584,7 +592,7 @@
         <!--
         <FormSection :formCollapse="false" label="Conservation Attributes" :Index="conservationBody">
             <div class="row mb-3">
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Habitat/Growth Form:</label>
                     <div class="col-sm-8">
                         <textarea :disabled="true" type="text" class="form-control" placeholder=""
@@ -605,7 +613,7 @@
             </div>
 
             <div v-show="!isFauna">
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Flowering Period:</label>
                    <div class="col-sm-8" :id="select_flowering_period_readonly">
                         <select :disabled="true"
@@ -638,7 +646,7 @@
             </div>
 
             <div v-show="!isFauna">
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Fruiting Period:</label>
                     <div class="col-sm-8" :id="select_fruiting_period_readonly">
                         <select :disabled="true"
@@ -671,7 +679,7 @@
             </div>
 
             <div v-show="!isFauna">
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Flora Recruitment Type:</label>
                     <div class="col-sm-8">
                         <select :disabled="true" class="form-select"
@@ -700,7 +708,7 @@
             </div>
 
             <div v-show="!isFauna">
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Flora Recruitment Notes:</label>
                     <div class="col-sm-8">
                         <textarea :disabled="true" type="text" class="form-control"
@@ -723,9 +731,9 @@
             </div>
 
             <div v-show="!isFauna">
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Seed Viability and Germination Info:</label>
-                    <!-- <div class="col-sm-8">
+                    <div class="col-sm-8">
                         <select :disabled="true" class="form-select"
                             v-model="species.conservation_attributes.seed_viability_germination_info_id">
                             <option v-for="option in seed_viability_germination_info_list" :value="option.id" v-bind:key="option.id">
@@ -758,7 +766,7 @@
             </div>
 
             <div v-show="!isFauna">
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Root Morphology:</label>
                     <div class="col-sm-8">
                         <select :disabled="true" class="form-select"
@@ -787,7 +795,7 @@
             </div>
 
             <div v-show="!isFauna">
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Pollinator Information:</label>
                     <div class="col-sm-8">
                         <!- - <select :disabled="true" class="form-select"
@@ -820,7 +828,7 @@
             </div>
 
             <div v-show="isFauna">
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Breeding Period:</label>
                     <div class="col-sm-8" :id="select_breeding_period_readonly">
                         <select :disabled="true"
@@ -853,7 +861,7 @@
             </div>
 
             <div v-show="isFauna">
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Fauna Breeding:</label>
                     <div class="col-sm-8">
                         <!- - <div v-for="option in fauna_breeding_list">
@@ -886,7 +894,7 @@
             </div>
 
             <div v-show="isFauna">
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Fauna Reproductive capacity:</label>
                     <div class="col-sm-8">
                         <input :disabled="true" type="text" class="form-control"
@@ -907,7 +915,7 @@
                     v-model="species_community.conservation_attributes.fauna_reproductive_capacity"/>
                 </div>
             </div>
-            <div v-for="(species, index) in original_species_combine_list">
+            <div v-for="species in original_species_combine_list">
                 <div class="row mb-3">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Time to Maturity:</label>
                     <div class="col-sm-8">
@@ -1015,7 +1023,7 @@
                         </select>
                     </div>
             </div>
-             <div v-for="(species, index) in original_species_combine_list">
+             <div v-for="species in original_species_combine_list">
                 <div class="row mb-3">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Generation Length:</label>
                     <div class="col-sm-8">
@@ -1123,7 +1131,7 @@
                         </select>
                     </div>
             </div>
-            <div v-for="(species, index) in original_species_combine_list">
+            <div v-for="species in original_species_combine_list">
                 <div class="row mb-3">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Average Lifespan:</label>
                     <div class="col-sm-8">
@@ -1232,7 +1240,7 @@
                     </div>
             </div>
 
-            <div v-for="(species, index) in original_species_combine_list">
+            <div v-for="species in original_species_combine_list">
                 <div class="row mb-3">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Minimum Fire Interval:</label>
                     <div class="col-sm-8">
@@ -1342,7 +1350,7 @@
             </div>
 
             <div>
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Response to Fire:</label>
                     <div class="col-sm-8">
                         <textarea :disabled="true" type="text" class="form-control" id="response_to_fire" placeholder="" v-model="species.conservation_attributes.response_to_fire"/>
@@ -1362,7 +1370,7 @@
             </div>
 
             <div>
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Post Fire Habitat Interactions:</label>
                     <div class="col-sm-8">
                         <select :disabled="true" class="form-select"
@@ -1392,7 +1400,7 @@
             </div>
 
             <div>
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Habitat:</label>
                     <div class="col-sm-8">
                         <textarea :disabled="true" type="text" class="form-control" id="habitat"
@@ -1414,7 +1422,7 @@
             </div>
 
             <div>
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Hydrology:</label>
                     <div class="col-sm-8">
                         <textarea :disabled="true" type="text" class="form-control" id="hydrology"
@@ -1436,7 +1444,7 @@
             </div>
 
             <div v-show="isFauna">
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Diet and Food Source:</label>
                     <div class="col-sm-8">
                         <textarea :disabled="true" type="text" class="form-control" id="diet_food_source"
@@ -1458,7 +1466,7 @@
             </div>
 
             <div v-show="isFauna">
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Home Range:</label>
                     <div class="col-sm-8">
                         <textarea :disabled="true" type="text" class="form-control" id="home_range"
@@ -1480,7 +1488,7 @@
             </div>
 
             <div>
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Research Requirements:</label>
                     <div class="col-sm-8">
                         <textarea :disabled="true" type="text" class="form-control"
@@ -1504,7 +1512,7 @@
             </div>
 
             <div v-show="!isFauna">
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Response to Dieback:</label>
                     <div class="col-sm-8">
                         <textarea :disabled="true" type="text" class="form-control"
@@ -1528,7 +1536,7 @@
             </div>
 
             <div>
-                <div class="row mb-3" v-for="(species, index) in original_species_combine_list">
+                <div class="row mb-3" v-for="species in original_species_combine_list">
                     <label for="" class="col-sm-3 control-label">{{ species.species_number }} Other relevant diseases:</label>
                     <div class="col-sm-8">
                         <textarea :disabled="true" type="text" class="form-control"
@@ -1559,7 +1567,8 @@
         >
             <div>
                 <div
-                    v-for="(species, index) in original_species_combine_list"
+                    v-for="species in original_species_combine_list"
+                    :key="species.id"
                     class="row mb-3"
                 >
                     <label for="" class="col-sm-3 control-label"
@@ -1629,7 +1638,8 @@
             </div>
             <div>
                 <div
-                    v-for="(species, index) in original_species_combine_list"
+                    v-for="species in original_species_combine_list"
+                    :key="species.id"
                     class="row mb-3"
                 >
                     <label for="" class="col-sm-3 control-label"

@@ -50,6 +50,7 @@
                             <option
                                 v-for="status in proposal_status"
                                 :value="status.value"
+                                :key="status.value"
                             >
                                 {{ status.name }}
                             </option>
@@ -94,7 +95,6 @@
 import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
-import FormSection from '@/components/forms/section_toggle.vue';
 import OccurrenceHistory from '../internal/occurrence/species_occurrence_history.vue';
 
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
@@ -103,7 +103,6 @@ export default {
     components: {
         datatable,
         CollapsibleFilters,
-        FormSection,
         OccurrenceHistory,
     },
     props: {
@@ -258,20 +257,18 @@ export default {
             return visibility;
         },
         datatable_headers: function () {
-            if (this.is_internal) {
-                return [
-                    'ID',
-                    'Number',
-                    'Name of Occurrrence',
-                    'Scientific Name',
-                    'Wild Status',
-                    'Number of Reports',
-                    'Migrated From ID',
-                    'Review Due',
-                    'Status',
-                    'Action',
-                ];
-            }
+            return [
+                'ID',
+                'Number',
+                'Name of Occurrrence',
+                'Scientific Name',
+                'Wild Status',
+                'Number of Reports',
+                'Migrated From ID',
+                'Review Due',
+                'Status',
+                'Action',
+            ];
         },
         column_id: function () {
             return {

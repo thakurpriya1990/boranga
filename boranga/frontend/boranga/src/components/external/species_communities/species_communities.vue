@@ -109,13 +109,11 @@
     </div>
 </template>
 <script>
-import datatable from '@vue-utils/datatable.vue';
 import ProposalSpeciesCommunities from '@/components/form_species_communities.vue';
 
 export default {
     name: 'ExternalSpeciesCommunity',
     components: {
-        datatable,
         ProposalSpeciesCommunities,
     },
     beforeRouteEnter: function (to, from, next) {

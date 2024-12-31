@@ -35,6 +35,7 @@
                                         <option
                                             v-for="groupType in groupTypes"
                                             :value="groupType.id"
+                                            :key="groupType.id"
                                         >
                                             {{
                                                 groupType.name
@@ -91,6 +92,7 @@
                                     :class="
                                         schema.is_master ? 'master-schema' : ''
                                     "
+                                    :key="schema.id"
                                 >
                                     <td>
                                         {{ schema.version
@@ -108,7 +110,7 @@
                                     </td>
                                     <td class="text-truncate">
                                         <span
-                                            v-for="(tag, index) in tags_to_show(
+                                            v-for="tag in tags_to_show(
                                                 schema.tags
                                             )"
                                             :key="tag"
@@ -202,15 +204,10 @@
 </template>
 
 <script>
-import alert from '@vue-utils/alert.vue';
-
 import { api_endpoints } from '@/utils/hooks.js';
 
 export default {
     name: 'OccurrenceReportBulkImportSchemaList',
-    components: {
-        alert,
-    },
     data() {
         return {
             groupTypes: null,

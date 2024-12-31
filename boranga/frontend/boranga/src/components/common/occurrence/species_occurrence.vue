@@ -69,6 +69,7 @@
                 >
                 <div
                     v-for="source in occurrence_source_list"
+                    :key="source[0]"
                     class="col-sm-auto"
                 >
                     <input

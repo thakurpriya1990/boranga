@@ -18,6 +18,7 @@
                             <option
                                 v-for="option in group_types"
                                 :value="option.name"
+                                :key="option.id"
                             >
                                 {{ option.display }}
                             </option>
@@ -61,6 +62,7 @@
                             <option
                                 v-for="status in proposal_status"
                                 :value="status.value"
+                                :key="status.value"
                             >
                                 {{ status.name }}
                             </option>
@@ -81,7 +83,7 @@
                     Report Occurrence
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="ocr_type">
-                    <li v-for="group in group_types">
+                    <li v-for="group in group_types" :key="group.id">
                         <a
                             class="dropdown-item"
                             role="button"
@@ -110,7 +112,6 @@
 import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
-import FormSection from '@/components/forms/section_toggle.vue';
 
 import { constants, api_endpoints, helpers } from '@/utils/hooks';
 export default {
@@ -118,7 +119,6 @@ export default {
     components: {
         datatable,
         CollapsibleFilters,
-        FormSection,
     },
     props: {
         level: {
