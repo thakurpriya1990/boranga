@@ -33,10 +33,12 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     curl \
     g++ \
     gcc \
+    gdal-bin \
     git \
     graphviz \
     htop \
     ipython3 \
+    libgdal-dev \
     libgraphviz-dev \
     libmagic-dev \
     libpq-dev \
@@ -46,6 +48,7 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     patch \
     postgresql-client \
     python3-dev \
+    python3-gdal \
     python3-pil \
     python3-pip \
     python3-setuptools \
@@ -60,15 +63,6 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     wget && \
     rm -rf /var/lib/apt/lists/* && \
     update-ca-certificates
-
-RUN add-apt-repository ppa:ubuntugis/ubuntugis-unstable
-
-RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install --no-install-recommends -y \
-    gdal-bin \
-    libgdal-dev \
-    python3-gdal
 
 FROM apt_packages_boranga as node_boranga
 

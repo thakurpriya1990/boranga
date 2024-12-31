@@ -2427,13 +2427,6 @@ export default {
             } else {
                 console.log('Done initializing map (no refresh)');
             }
-            // Priya calling this event from mounted as its only been triggered from loadMapFeatures() which is coomented at the moment
-            // vm.map.dispatchEvent({
-            //     type: 'features-loaded',
-            //     details: {
-            //         loaded: true,
-            //     },
-            // });
         });
     },
     methods: {
@@ -4256,7 +4249,7 @@ export default {
                 vm.layerSources[vm.defaultQueryLayerName];
             // If no geometry name is provided, assume the geometry is the proposals object itself
             const geometry_name =
-                vm.getLayerDefinitionByName(toSource).geometry_name || null;
+                vm.getLayerDefinitionByName(toSource)?.geometry_name || null;
 
             console.log(`Loading features to source ${toSource}`, proposals);
             let opacities = [];
@@ -4741,7 +4734,10 @@ export default {
                     // so calling this will remove the file list from the front end
                     vm.$refs.shapefile_document.get_documents();
                     vm.$nextTick(() => {
-                        vm.loadMapFeatures([data]);
+                        vm.loadMapFeatures(
+                            [data],
+                            this.queryLayerDefinition.name
+                        );
                         vm.displayAllFeatures();
                         swal.fire(
                             'Success',
