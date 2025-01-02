@@ -49,7 +49,6 @@ export default defineConfig({
             '@': path.resolve(__dirname, './src'),
             '@vue-utils': path.resolve(__dirname, 'src/utils/vue'),
             '@common-utils': path.resolve(__dirname, 'src/components/common/'),
-            '@static-root': path.resolve(__dirname, '../../../staticfiles/'),
         },
     },
     build: {
