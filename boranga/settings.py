@@ -333,6 +333,11 @@ USE_X_FORWARDED_HOST = env("USE_X_FORWARDED_HOST", False)
 if USE_X_FORWARDED_HOST:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
+
+# Make sure this returns true when in local development
+# so you can use the vite dev server with hot module reloading
+USE_VITE_DEV_SERVER = RUNNING_DEVSERVER and EMAIL_INSTANCE == "DEV"
+
 DJANGO_VITE = {
     "default": {
         "dev_mode": True,
@@ -345,10 +350,6 @@ VUE3_ENTRY_SCRIPT = env(
     "VUE3_ENTRY_SCRIPT",
     default="src/main.js",  # This path will be auto prefixed with the static_url_prefix from DJANGO_VITE above
 )  # Path of the vue3 entry point script served by vite
-
-# Make sure this returns true when in local development
-# so you can use the vite dev server with hot module reloading
-USE_VITE_DEV_SERVER = RUNNING_DEVSERVER and EMAIL_INSTANCE == "DEV"
 
 
 # ---------- Identifier fields for logging ----------
