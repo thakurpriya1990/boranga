@@ -1002,12 +1002,12 @@
                 </label>
                 <div class="col-sm-9">
                     <input
-                        ref="last_data_curration_date"
-                        v-model="species_community.last_data_curration_date"
+                        ref="last_data_curation_date"
+                        v-model="species_community.last_data_curation_date"
                         :disabled="isReadOnly"
                         type="date"
                         class="form-control"
-                        name="last_data_curration_date"
+                        name="last_data_curation_date"
                         @change="checkDate()"
                     />
                 </div>
@@ -1809,11 +1809,11 @@ export default {
         },
         checkDate: function () {
             let vm = this;
-            if (vm.$refs.last_data_curration_date.value) {
-                vm.species_community.last_data_curration_date =
-                    vm.$refs.last_data_curration_date.value;
+            if (vm.$refs.last_data_curation_date.value) {
+                vm.species_community.last_data_curation_date =
+                    vm.$refs.last_data_curation_date.value;
             } else {
-                vm.species_community.last_data_curration_date = null;
+                vm.species_community.last_data_curation_date = null;
             }
         },
         initialiseScientificNameLookup: function () {

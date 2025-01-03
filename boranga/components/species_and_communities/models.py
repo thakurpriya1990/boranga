@@ -421,7 +421,7 @@ class Species(RevisionedMixin):
     districts = models.ManyToManyField(
         District, blank=True, related_name="species_districts"
     )
-    last_data_curration_date = models.DateField(blank=True, null=True)
+    last_data_curation_date = models.DateField(blank=True, null=True)
     conservation_plan_exists = models.BooleanField(default=False)
     conservation_plan_reference = models.CharField(
         max_length=500, null=True, blank=True
@@ -1230,7 +1230,7 @@ class Community(RevisionedMixin):
     districts = models.ManyToManyField(
         District, blank=True, related_name="community_districts"
     )
-    last_data_curration_date = models.DateField(blank=True, null=True)
+    last_data_curation_date = models.DateField(blank=True, null=True)
     conservation_plan_exists = models.BooleanField(default=False)
     conservation_plan_reference = models.CharField(
         max_length=500, null=True, blank=True
