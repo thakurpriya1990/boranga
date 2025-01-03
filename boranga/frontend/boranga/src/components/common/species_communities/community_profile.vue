@@ -1052,7 +1052,9 @@ export default {
                 return true;
             }
             let action = this.$route.query.action;
-            if (
+            if (action === 'view') {
+                return true;
+            } else if (
                 action === 'edit' &&
                 this.species_community &&
                 this.species_community.user_edit_mode
