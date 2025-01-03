@@ -338,7 +338,7 @@ if USE_X_FORWARDED_HOST:
 # so you can use the vite dev server with hot module reloading
 USE_VITE_DEV_SERVER = RUNNING_DEVSERVER and EMAIL_INSTANCE == "DEV" and DEBUG is True
 
-STATIC_URL_PREFIX = "/static/boranga/" if USE_VITE_DEV_SERVER else "boranga_vue/"
+STATIC_URL_PREFIX = "/static/boranga_vue/" if USE_VITE_DEV_SERVER else "boranga_vue/"
 
 DJANGO_VITE = {
     "default": {
