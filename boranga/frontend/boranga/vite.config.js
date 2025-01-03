@@ -5,11 +5,12 @@ import eslint from 'vite-plugin-eslint2';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import svgLoader from 'vite-svg-loader';
 
+const applicationNameShort = 'boranga';
 const port = process.env.PORT ? parseInt(process.env.PORT) : 5173;
 const host = process.env.HOST || '0.0.0.0';
 
 export default defineConfig({
-    base: '/static/boranga_vue/',
+    base: `/static/${applicationNameShort}_vue/`,
     server: {
         host: host,
         port: port,
@@ -56,8 +57,11 @@ export default defineConfig({
         filenameHashing: false,
         commonjsOptions: { transformMixedEsModules: true },
         root: path.resolve(__dirname, './src'),
-        outDir: path.resolve(__dirname, '../../static/boranga_vue'),
-        publicPath: '/static/boranga_vue/',
+        outDir: path.resolve(
+            __dirname,
+            `../../static/${applicationNameShort}_vue`
+        ),
+        publicPath: `/static/${applicationNameShort}_vue/`,
         sourcemap: true,
         rollupOptions: {
             input: {
