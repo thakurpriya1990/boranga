@@ -600,7 +600,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         null=True,
     )
 
-    comment = models.CharField(max_length=512, blank=True, null=True)
+    comment = models.TextField(blank=True, null=True)
     review_due_date = models.DateField(null=True, blank=True)
     effective_from = models.DateField(null=True, blank=True)
     effective_to = models.DateField(null=True, blank=True)
