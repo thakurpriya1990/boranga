@@ -1383,9 +1383,6 @@ export default {
                                             helpers.copyObject(
                                                 vm.species_community
                                             );
-                                        vm.$router.push({
-                                            name: 'internal-species-communities-dash',
-                                        });
                                     },
                                     (err) => {
                                         swal.fire({
