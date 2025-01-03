@@ -340,7 +340,7 @@ USE_VITE_DEV_SERVER = RUNNING_DEVSERVER and EMAIL_INSTANCE == "DEV"
 
 DJANGO_VITE = {
     "default": {
-        "dev_mode": True,
+        "dev_mode": USE_VITE_DEV_SERVER,
         "dev_server_host": "localhost",  # Default host for vite (can change if needed)
         "dev_server_port": 5173,  # Default port for vite (can change if needed)
         "static_url_prefix": "/static/boranga_vue/",
