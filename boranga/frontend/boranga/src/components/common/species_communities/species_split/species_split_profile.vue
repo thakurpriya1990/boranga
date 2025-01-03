@@ -1595,6 +1595,7 @@
                         type="date"
                         class="form-control"
                         name="last_data_curation_date"
+                        :max="new Date().toISOString().split('T')[0]"
                         @change="checkDate()"
                     />
                 </div>
