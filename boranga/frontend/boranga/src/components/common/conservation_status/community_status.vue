@@ -636,6 +636,29 @@
                     </div>
                     <div class="row mb-3">
                         <label
+                            for="proposed_conservation_criteria"
+                            class="col-sm-5 col-form-label"
+                            >Conservation Criteria:</label
+                        >
+                        <div class="col-sm-7">
+                            <input
+                                id="proposed_conservation_criteria"
+                                v-model="
+                                    conservation_status_obj.conservation_criteria
+                                "
+                                :disabled="isReadOnly"
+                                type="text"
+                                class="form-control"
+                                :placeholder="
+                                    isReadOnly
+                                        ? 'N/A'
+                                        : 'Enter Conservation Criteria if Applicable'
+                                "
+                            />
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label
                             for="proposed_wa_priority_list"
                             class="col-sm-5 col-form-label fw-bold"
                             >WA Priority List
@@ -878,29 +901,6 @@
                     </div>
                     <div class="row mb-3">
                         <label
-                            for="proposed_conservation_criteria"
-                            class="col-sm-5 col-form-label"
-                            >Conservation Criteria:</label
-                        >
-                        <div class="col-sm-7">
-                            <input
-                                id="proposed_conservation_criteria"
-                                v-model="
-                                    conservation_status_obj.conservation_criteria
-                                "
-                                :disabled="isReadOnly"
-                                type="text"
-                                class="form-control"
-                                :placeholder="
-                                    isReadOnly
-                                        ? 'N/A'
-                                        : 'Enter Conservation Criteria if Applicable'
-                                "
-                            />
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <label
                             for="comment"
                             class="col-sm-5 col-form-label fw-bold"
                             >Comments <span class="text-danger">*</span></label
@@ -1107,6 +1107,32 @@
                     <div
                         v-if="
                             conservation_status_obj.current_conservation_status
+                                .conservation_criteria
+                        "
+                        class="row mb-3"
+                    >
+                        <label
+                            for="current_conservation_criteria"
+                            class="col-sm-5 col-form-label"
+                            >Conservation Criteria:</label
+                        >
+                        <div class="col-sm-7">
+                            <input
+                                id="current_conservation_criteria"
+                                v-model="
+                                    conservation_status_obj
+                                        .current_conservation_status
+                                        .conservation_criteria
+                                "
+                                :disabled="true"
+                                type="text"
+                                class="form-control"
+                            />
+                        </div>
+                    </div>
+                    <div
+                        v-if="
+                            conservation_status_obj.current_conservation_status
                                 .wa_priority_list_id
                         "
                         class="row mb-3"
@@ -1223,32 +1249,6 @@
                                     conservation_status_obj
                                         .current_conservation_status
                                         .other_conservation_assessment
-                                "
-                                :disabled="true"
-                                type="text"
-                                class="form-control"
-                            />
-                        </div>
-                    </div>
-                    <div
-                        v-if="
-                            conservation_status_obj.current_conservation_status
-                                .conservation_criteria
-                        "
-                        class="row mb-3"
-                    >
-                        <label
-                            for="current_conservation_criteria"
-                            class="col-sm-5 col-form-label"
-                            >Conservation Criteria:</label
-                        >
-                        <div class="col-sm-7">
-                            <input
-                                id="current_conservation_criteria"
-                                v-model="
-                                    conservation_status_obj
-                                        .current_conservation_status
-                                        .conservation_criteria
                                 "
                                 :disabled="true"
                                 type="text"
@@ -1614,20 +1614,6 @@ export default {
             }
 
             return true;
-        },
-        conservation_criteria_label: function () {
-            if (
-                this.conservation_status_obj.processing_status == 'Approved' ||
-                this.conservation_status_obj.processing_status == 'DeListed'
-            ) {
-                return 'Conservation Criteria';
-            } else {
-                if (this.conservation_status_obj.processing_status == 'Draft') {
-                    return 'Propose Conservation Criteria';
-                } else {
-                    return 'Proposed Conservation Criteria';
-                }
-            }
         },
         conservation_list_proposed: function () {
             return ![
