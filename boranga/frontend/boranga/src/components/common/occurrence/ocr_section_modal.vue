@@ -14,11 +14,15 @@
                         :label="sectionTypeDisplay"
                     >
                         <div class="card-body card-collapse">
-                            <div v-for="(value, index) in sectionObjExpanded">
+                            <div
+                                v-for="(value, index) in sectionObjExpanded"
+                                :key="index"
+                            >
                                 <div v-if="value && index != 'id'">
                                     <div v-if="typeof value == 'object'">
                                         <div
                                             v-for="(o_value, o_index) in value"
+                                            :key="o_index"
                                             class="row mb-3"
                                         >
                                             <label
@@ -48,8 +52,8 @@
                                                     :disabled="true"
                                                     type="text"
                                                     class="form-control"
-                                                    >{{ value }}</textarea
-                                                >
+                                                    v-bind:value="value"
+                                                ></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -76,14 +80,12 @@
 
 <script>
 import modal from '@vue-utils/bootstrap-modal.vue';
-import alert from '@vue-utils/alert.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
 import { api_endpoints } from '@/utils/hooks';
 export default {
     name: 'SectionModal',
     components: {
         modal,
-        alert,
         FormSection,
     },
     props: {

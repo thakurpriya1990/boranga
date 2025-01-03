@@ -206,6 +206,7 @@
                                             >
                                                 <div
                                                     v-for="current_impact in current_impact_list"
+                                                    :key="current_impact.id"
                                                     class="form-check form-check-inline"
                                                 >
                                                     <input
@@ -300,6 +301,7 @@
                                             >
                                                 <div
                                                     v-for="potential_impact in potential_impact_list"
+                                                    :key="potential_impact.id"
                                                     class="form-check form-check-inline"
                                                 >
                                                     <input
@@ -397,6 +399,9 @@
                                             >
                                                 <div
                                                     v-for="potential_threat_onset in potential_threat_onset_list"
+                                                    :key="
+                                                        potential_threat_onset.id
+                                                    "
                                                     class="form-check form-check-inline"
                                                 >
                                                     <input

@@ -80,14 +80,12 @@
 
 <script>
 import modal from '@vue-utils/bootstrap-modal.vue';
-import alert from '@vue-utils/alert.vue';
 
 import { helpers, api_endpoints } from '@/utils/hooks.js';
 export default {
     name: 'OcrApprove',
     components: {
         modal,
-        alert,
     },
     props: {
         occurrence_report_id: {

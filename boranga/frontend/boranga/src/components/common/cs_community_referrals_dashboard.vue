@@ -44,6 +44,7 @@
                             <option
                                 v-for="status in processing_statuses"
                                 :value="status.value"
+                                :key="status.value"
                             >
                                 {{ status.name }}
                             </option>
@@ -68,7 +69,6 @@
 import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
-import FormSection from '@/components/forms/section_toggle.vue';
 
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
 export default {
@@ -76,7 +76,6 @@ export default {
     components: {
         datatable,
         CollapsibleFilters,
-        FormSection,
     },
     props: {
         group_type_name: {

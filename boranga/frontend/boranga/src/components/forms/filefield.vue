@@ -13,7 +13,11 @@
                         class="input-group date"
                         style="width: 70%"
                     >
-                        <div v-for="v in uploaded_documents" class="row">
+                        <div
+                            v-for="v in uploaded_documents"
+                            :key="v.name"
+                            class="row"
+                        >
                             <span>
                                 <a :href="v._file" target="_blank">{{
                                     v.name
@@ -35,7 +39,7 @@
         <div>
             <div class="row">
                 <div class="col-sm-12">
-                    <div v-for="n in repeat">
+                    <div v-for="n in repeat" :key="n">
                         <div
                             v-if="
                                 isRepeatable ||
@@ -83,7 +87,11 @@
                     class="list-group"
                     :class="isRepeatable ? 'list-group-numbered' : ''"
                 >
-                    <li v-for="v in files" class="list-group-item">
+                    <li
+                        v-for="v in files"
+                        :key="v.name"
+                        class="list-group-item"
+                    >
                         <i
                             class="bi bi-file-earmark-text-fill text-secondary"
                         ></i>
@@ -114,7 +122,7 @@
 import { helpers } from '@/utils/hooks';
 
 export default {
-    components: {},
+    name: 'FileField',
     props: {
         proposal_id: null,
         required_doc_id: null,
@@ -179,12 +187,6 @@ export default {
         return {
             repeat: 1,
             files: [],
-            _files: [
-                {
-                    file: null,
-                    name: '',
-                },
-            ],
             showingComment: false,
             show_spinner: false,
             documents: [],

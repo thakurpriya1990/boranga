@@ -29,7 +29,6 @@
                         :href="'#' + documentBody"
                         role="tab"
                         :aria-selected="documentBody"
-                        aria-selected="false"
                         @click="tabClicked()"
                     >
                         Documents

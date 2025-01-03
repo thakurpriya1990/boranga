@@ -115,6 +115,7 @@
                                             <option
                                                 v-for="member in conservation_status_obj.allowed_assessors"
                                                 :value="member.id"
+                                                :key="member.id"
                                             >
                                                 {{ member.first_name }}
                                                 {{ member.last_name }}
@@ -152,6 +153,7 @@
                                             <option
                                                 v-for="member in conservation_status_obj.allowed_assessors"
                                                 :value="member.id"
+                                                :key="member.id"
                                             >
                                                 {{ member.first_name }}
                                                 {{ member.last_name }}
@@ -342,6 +344,7 @@
                                             <tbody>
                                                 <tr
                                                     v-for="r in conservation_status_obj.latest_referrals"
+                                                    :key="r.id"
                                                 >
                                                     <td class="truncate-name">
                                                         {{
@@ -990,7 +993,6 @@
     </div>
 </template>
 <script>
-import datatable from '@vue-utils/datatable.vue';
 import CommsLogs from '@common-utils/comms_logs.vue';
 import Submission from '@common-utils/submission.vue';
 import AmendmentRequest from './amendment_request.vue';
@@ -1008,7 +1010,6 @@ import { api_endpoints, constants, helpers } from '@/utils/hooks';
 export default {
     name: 'InternalConservationStatus',
     components: {
-        datatable,
         CommsLogs,
         Defer,
         Submission,
@@ -1125,20 +1126,6 @@ export default {
                 return this.conservation_status_obj.submitter.last_name;
             } else {
                 return '';
-            }
-        },
-        submitter_id: function () {
-            if (this.conservation_status_obj.submitter) {
-                return this.conservation_status_obj.submitter.id;
-            } else {
-                //eturn this.conservation_status_obj.applicant_obj.id
-            }
-        },
-        submitter_email: function () {
-            if (this.conservation_status_obj.submitter) {
-                return this.conservation_status_obj.submitter.email;
-            } else {
-                //return this.conservation_status_obj.applicant_obj.email
             }
         },
         canEditStatus: function () {

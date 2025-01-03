@@ -205,6 +205,7 @@ export default {
                     return this.group_types[i].id;
                 }
             }
+            return null;
         },
         showConservationStatusDatatables: function () {
             return (

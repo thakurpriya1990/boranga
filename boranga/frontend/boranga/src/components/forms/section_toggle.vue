@@ -73,7 +73,10 @@ export default {
         },
         Index: {},
         hideHeader: {},
-        customColor: '',
+        customColor: {
+            type: String,
+            default: 'black',
+        },
         formCollapse: {
             type: Boolean,
             default: false,

@@ -23,6 +23,7 @@
                                 <option
                                     v-for="option in related_type_filter_list"
                                     :value="option[0]"
+                                    :key="option[0]"
                                 >
                                     {{ option[1] }}
                                 </option>

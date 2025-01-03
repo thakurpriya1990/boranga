@@ -66,6 +66,7 @@
                             <option
                                 v-for="status in processing_statuses"
                                 :value="status.value"
+                                :key="status.value"
                             >
                                 {{ status.name }}
                             </option>

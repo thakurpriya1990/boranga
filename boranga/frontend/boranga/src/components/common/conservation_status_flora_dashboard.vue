@@ -76,6 +76,7 @@
                             <option
                                 v-for="change_code in change_codes"
                                 :value="change_code.id"
+                                :key="change_code.id"
                             >
                                 {{ change_code.code }}
                             </option>
@@ -96,6 +97,7 @@
                             <option
                                 v-for="list in wa_legislative_lists"
                                 :value="list.id"
+                                :key="list.id"
                             >
                                 {{ list.code }}
                             </option>
@@ -116,6 +118,7 @@
                             <option
                                 v-for="list in wa_legislative_categories"
                                 :value="list.id"
+                                :key="list.id"
                             >
                                 {{ list.code }}
                             </option>
@@ -136,6 +139,7 @@
                             <option
                                 v-for="list in wa_priority_categories"
                                 :value="list.id"
+                                :key="list.id"
                             >
                                 {{ list.code }}
                             </option>
@@ -192,6 +196,7 @@
                                 v-for="status in processing_statuses"
                                 :value="status.value"
                                 :class="status.className"
+                                :key="status.value"
                             >
                                 <template
                                     v-if="status.className == 'optionChild'"
@@ -237,6 +242,7 @@
                             <option
                                 v-for="submitter_category in submitter_categories"
                                 :value="submitter_category.id"
+                                :key="submitter_category.id"
                             >
                                 {{ submitter_category.name }}
                             </option>
@@ -355,7 +361,6 @@
 import { v4 as uuid } from 'uuid';
 import datatable from '@/utils/vue/datatable.vue';
 import CollapsibleFilters from '@/components/forms/collapsible_component.vue';
-import FormSection from '@/components/forms/section_toggle.vue';
 import SpeciesConservationStatusHistory from '../internal/conservation_status/species_conservation_status_history.vue';
 
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
@@ -364,7 +369,6 @@ export default {
     components: {
         datatable,
         CollapsibleFilters,
-        FormSection,
         SpeciesConservationStatusHistory,
     },
     props: {

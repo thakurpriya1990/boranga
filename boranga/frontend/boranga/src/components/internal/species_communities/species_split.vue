@@ -200,9 +200,7 @@
                                         <div class="border-bottom mb-3 pb-3">
                                             <ul class="mb-3">
                                                 <li
-                                                    v-for="(
-                                                        species, index
-                                                    ) in new_species_list"
+                                                    v-for="species in new_species_list"
                                                     :key="species.id"
                                                     class="text-secondary mb-3"
                                                 >
@@ -275,7 +273,6 @@
 import { v4 as uuid } from 'uuid';
 import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
-import FileField2 from '@/components/forms/filefield.vue';
 import SpeciesCommunitiesComponent from '@/components/form_species_communities.vue';
 import SpeciesSplitForm from '@/components/form_species_split.vue';
 import HelpText from '@/components/common/help_text.vue';
@@ -286,7 +283,6 @@ export default {
     components: {
         modal,
         alert,
-        FileField2,
         SpeciesCommunitiesComponent,
         SpeciesSplitForm,
         HelpText,

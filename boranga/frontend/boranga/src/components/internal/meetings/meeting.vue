@@ -273,7 +273,6 @@
     </div>
 </template>
 <script>
-import datatable from '@vue-utils/datatable.vue';
 import CommsLogs from '@common-utils/comms_logs.vue';
 import MeetingSidePanel from '@common-utils/meeting_side_panel.vue';
 import MeetingSection from './meeting_section.vue';
@@ -283,7 +282,6 @@ import { api_endpoints, helpers } from '@/utils/hooks';
 export default {
     name: 'InternalMeeting',
     components: {
-        datatable,
         CommsLogs,
         MeetingSidePanel,
         MeetingSection,
@@ -363,20 +361,6 @@ export default {
                 return this.meeting_obj.submitter.last_name;
             } else {
                 return '';
-            }
-        },
-        submitter_id: function () {
-            if (this.meeting_obj.submitter) {
-                return this.meeting_obj.submitter.id;
-            } else {
-                //eturn this.meeting_obj.applicant_obj.id
-            }
-        },
-        submitter_email: function () {
-            if (this.meeting_obj.submitter) {
-                return this.meeting_obj.submitter.email;
-            } else {
-                //return this.meeting_obj.applicant_obj.email
             }
         },
         canSeeSidePanel: function () {

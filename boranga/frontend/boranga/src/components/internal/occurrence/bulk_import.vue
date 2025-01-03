@@ -43,6 +43,7 @@
                                         <option
                                             v-for="schema_version in schema_versions"
                                             :value="schema_version"
+                                            :key="schema_version.id"
                                         >
                                             {{
                                                 getSchemaVersionText(
@@ -80,6 +81,7 @@
                                                 <tr>
                                                     <th
                                                         v-for="column in selected_schema_version.columns"
+                                                        :key="column.id"
                                                         scope="col"
                                                     >
                                                         {{
@@ -101,6 +103,7 @@
                                                 <tr>
                                                     <td
                                                         v-for="column in selected_schema_version.columns"
+                                                        :key="column.id"
                                                     >
                                                         <i
                                                             class="bi bi-info-circle-fill text-primary"
@@ -183,6 +186,7 @@
                                             <ul>
                                                 <li
                                                     v-for="error in importFileErrors"
+                                                    :key="error"
                                                 >
                                                     {{ error }}
                                                 </li>
@@ -242,7 +246,7 @@
                                     <tbody class="text-muted">
                                         <tr
                                             v-for="queuedImport in queuedImports"
-                                            class=""
+                                            :key="queuedImport.id"
                                         >
                                             <td>
                                                 {{
@@ -334,7 +338,7 @@
                                     <tbody>
                                         <tr
                                             v-for="currentlyRunningImport in currentlyRunningImports"
-                                            class=""
+                                            :key="currentlyRunningImport.id"
                                         >
                                             <td>
                                                 {{
@@ -412,7 +416,7 @@
                                         <tr
                                             v-for="failedImport in failedImports.results"
                                             :id="`failed-import-${failedImport.id}`"
-                                            class=""
+                                            :key="failedImport.id"
                                         >
                                             <td>
                                                 {{
@@ -560,7 +564,7 @@
                                     <tbody>
                                         <tr
                                             v-for="completedImport in completedImports.results"
-                                            class=""
+                                            :key="completedImport.id"
                                         >
                                             <td>
                                                 {{

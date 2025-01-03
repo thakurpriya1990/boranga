@@ -432,6 +432,7 @@
                                             <template v-if="selectedColumn.id">
                                                 <option
                                                     v-for="djangoContentType in djangoContentTypes"
+                                                    :key="djangoContentType.id"
                                                     :value="
                                                         djangoContentType.id
                                                     "
@@ -449,6 +450,7 @@
                                                     :value="
                                                         djangoContentType.id
                                                     "
+                                                    :key="djangoContentType.id"
                                                 >
                                                     {{
                                                         djangoContentType.model_verbose_name
@@ -537,6 +539,7 @@
                                                 <option
                                                     v-for="modelField in selectedContentType.model_fields"
                                                     :value="modelField.name"
+                                                    :key="modelField.name"
                                                 >
                                                     {{
                                                         modelField.display_name
@@ -554,6 +557,7 @@
                                                 <option
                                                     v-for="modelField in djangoImportFieldsFiltered"
                                                     :value="modelField.name"
+                                                    :key="modelField.name"
                                                 >
                                                     {{
                                                         modelField.display_name
@@ -627,6 +631,7 @@
                                                     <option
                                                         v-for="choice in defaultValueChoices"
                                                         :value="choice[0]"
+                                                        :key="choice[0]"
                                                     >
                                                         {{ choice[1] }}
                                                     </option>
@@ -882,6 +887,7 @@
                                                         <option
                                                             v-for="lookupField in selectedField.lookup_field_options"
                                                             :value="lookupField"
+                                                            :key="lookupField"
                                                         >
                                                             {{ lookupField }}
                                                         </option>
@@ -912,6 +918,7 @@
                                                     <option
                                                         v-for="lookupField in selectedField.lookup_field_options"
                                                         :value="lookupField"
+                                                        :key="lookupField"
                                                     >
                                                         {{ lookupField }}
                                                     </option>
@@ -977,6 +984,7 @@
                                                         v-for="(
                                                             lookupFilter, index
                                                         ) in selectedColumn.lookup_filters"
+                                                        :key="index"
                                                         class="input-group input-group-sm mb-2"
                                                     >
                                                         <select
@@ -1006,6 +1014,7 @@
                                                             <option
                                                                 v-for="field in selectedField.filter_field_options"
                                                                 :value="field"
+                                                                :key="field"
                                                             >
                                                                 {{ field }}
                                                             </option>
@@ -1022,6 +1031,9 @@
                                                             <option
                                                                 v-for="lookupFilter in lookupSchematypes"
                                                                 :value="
+                                                                    lookupFilter[0]
+                                                                "
+                                                                :key="
                                                                     lookupFilter[0]
                                                                 "
                                                             >
@@ -1273,7 +1285,7 @@
                                     <tbody>
                                         <tr
                                             v-for="choice in selectedField.choices"
-                                            class=""
+                                            :key="choice[0]"
                                         >
                                             <td>
                                                 <template

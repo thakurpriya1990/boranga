@@ -11,6 +11,7 @@
                     <th
                         v-for="(header, i) in dtHeaders"
                         :data-class="i == 0 ? 'expand' : null"
+                        :key="i"
                     >
                         {{ header }}
                     </th>

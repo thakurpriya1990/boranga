@@ -73,7 +73,10 @@
                     role="tabpanel"
                     aria-labelledby="pills-documents-tab"
                 >
-                    <div v-for="species in original_species_combine_list">
+                    <div
+                        v-for="species in original_species_combine_list"
+                        :key="species.id"
+                    >
                         <SpeciesDocuments
                             id="speciesDocuments"
                             :key="reloadcount"
@@ -91,7 +94,10 @@
                     role="tabpanel"
                     aria-labelledby="pills-threats-tab"
                 >
-                    <div v-for="species in original_species_combine_list">
+                    <div
+                        v-for="species in original_species_combine_list"
+                        :key="species.id"
+                    >
                         <SpeciesThreats
                             id="speciesThreats"
                             :key="reloadcount"

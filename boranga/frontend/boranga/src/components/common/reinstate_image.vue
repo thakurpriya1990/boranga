@@ -37,6 +37,7 @@
                     <tbody>
                         <tr
                             v-for="image in images"
+                            :key="image.id"
                             role="button"
                             :class="
                                 selected_image == image ? 'selected-row' : ''

@@ -1,6 +1,6 @@
 <template>
     <div
-        v-show="show"
+        v-show="showState"
         :class="{
             alert: true,
             'alert-success': type == 'success',
@@ -19,7 +19,7 @@
             v-show="dismissable"
             type="button"
             class="close"
-            @click="show = false"
+            @click="showState = false"
         >
             <span>&times;</span>
         </button>
@@ -29,6 +29,7 @@
 
 <script>
 export default {
+    name: 'AlertComponent',
     props: {
         type: {
             type: String,
@@ -52,15 +53,23 @@ export default {
             type: String,
         },
     },
+    data: function () {
+        return {
+            showState: true,
+        };
+    },
     watch: {
         show(val) {
             if (this._timeout) clearTimeout(this._timeout);
             if (val && Boolean(this.duration)) {
                 this._timeout = setTimeout(() => {
-                    this.show = false;
+                    this.showState = false;
                 }, this.duration);
             }
         },
+    },
+    created() {
+        this.showState = this.show;
     },
 };
 </script>

@@ -190,6 +190,7 @@
                             <div
                                 v-for="committee_member in committee_members"
                                 class="fs-6 mb-2"
+                                :key="committee_member.id"
                             >
                                 <input
                                     :id="'member-' + committee_member.id"
@@ -293,7 +294,6 @@
 </template>
 
 <script>
-import datatable from '@vue-utils/datatable.vue';
 import alert from '@vue-utils/alert.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
 
@@ -327,7 +327,6 @@ export default {
     name: 'MeetingSection',
     components: {
         FormSection,
-        datatable,
         alert,
     },
     props: {

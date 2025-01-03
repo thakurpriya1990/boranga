@@ -333,22 +333,25 @@ USE_X_FORWARDED_HOST = env("USE_X_FORWARDED_HOST", False)
 if USE_X_FORWARDED_HOST:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
+
+# Make sure this returns true when in local development
+# so you can use the vite dev server with hot module reloading
+USE_VITE_DEV_SERVER = RUNNING_DEVSERVER and EMAIL_INSTANCE == "DEV" and DEBUG is True
+
+STATIC_URL_PREFIX = "/static/boranga_vue/" if USE_VITE_DEV_SERVER else "boranga_vue/"
+
 DJANGO_VITE = {
     "default": {
-        "dev_mode": True,
+        "dev_mode": USE_VITE_DEV_SERVER,
         "dev_server_host": "localhost",  # Default host for vite (can change if needed)
         "dev_server_port": 5173,  # Default port for vite (can change if needed)
-        "static_url_prefix": "/static/boranga_vue/",
+        "static_url_prefix": STATIC_URL_PREFIX,
     }
 }
 VUE3_ENTRY_SCRIPT = env(
     "VUE3_ENTRY_SCRIPT",
     default="src/main.js",  # This path will be auto prefixed with the static_url_prefix from DJANGO_VITE above
 )  # Path of the vue3 entry point script served by vite
-
-# Make sure this returns true when in local development
-# so you can use the vite dev server with hot module reloading
-USE_VITE_DEV_SERVER = RUNNING_DEVSERVER and EMAIL_INSTANCE == "DEV"
 
 
 # ---------- Identifier fields for logging ----------

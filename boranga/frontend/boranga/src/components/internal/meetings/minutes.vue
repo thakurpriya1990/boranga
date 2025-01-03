@@ -54,7 +54,7 @@ import MinutesHistory from '../../internal/meetings/minutes_history.vue';
 import { constants, api_endpoints, helpers } from '@/utils/hooks';
 
 export default {
-    name: 'Minutes',
+    name: 'MinutesComponent',
     components: {
         FormSection,
         datatable,

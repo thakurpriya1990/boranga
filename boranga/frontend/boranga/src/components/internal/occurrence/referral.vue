@@ -163,14 +163,12 @@
     </div>
 </template>
 <script>
-import datatable from '@vue-utils/datatable.vue';
 import Submission from '@common-utils/submission.vue';
 import ProposalOccurrenceReport from '@/components/form_occurrence_report.vue';
 import { api_endpoints, helpers } from '@/utils/hooks';
 export default {
     name: 'OccurrenceReportReferral',
     components: {
-        datatable,
         Submission,
         ProposalOccurrenceReport,
     },

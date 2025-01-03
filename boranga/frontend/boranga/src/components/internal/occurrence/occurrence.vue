@@ -242,7 +242,6 @@
     </div>
 </template>
 <script>
-import datatable from '@vue-utils/datatable.vue';
 import CommsLogs from '@common-utils/comms_logs.vue';
 import Submission from '@common-utils/submission.vue';
 import ProposalOccurrence from '@/components/form_occurrence.vue';
@@ -255,7 +254,6 @@ import { api_endpoints, helpers } from '@/utils/hooks';
 export default {
     name: 'InternalOccurrenceDetail',
     components: {
-        datatable,
         CommsLogs,
         Submission,
         ProposalOccurrence,

@@ -109,6 +109,7 @@
                                         member.id ==
                                         occurrence_report.assigned_approver
                                     "
+                                    :key="member.id"
                                 >
                                     {{ member.first_name }}
                                     {{ member.last_name }}
@@ -142,6 +143,7 @@
                                         member.id ==
                                         occurrence_report.current_assessor.id
                                     "
+                                    :key="member.id"
                                 >
                                     {{ member.first_name }}
                                     {{ member.last_name }}
@@ -752,7 +754,6 @@
     </div>
 </template>
 <script>
-import datatable from '@vue-utils/datatable.vue';
 import CommsLogs from '@common-utils/comms_logs.vue';
 import Submission from '@common-utils/submission.vue';
 import ShowAllReferrals from '@common-utils/occurrence/ocr_more_referrals.vue';
@@ -769,7 +770,6 @@ import { api_endpoints, helpers } from '@/utils/hooks';
 export default {
     name: 'InternalOccurrenceReportDetail',
     components: {
-        datatable,
         CommsLogs,
         Submission,
         ShowAllReferrals,

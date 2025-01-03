@@ -981,7 +981,7 @@ import HelpText from '@/components/common/help_text.vue';
 
 import { api_endpoints, helpers } from '@/utils/hooks';
 export default {
-    name: 'Community',
+    name: 'CommunityProfile',
     components: {
         FormSection,
         BasicConservationStatus,

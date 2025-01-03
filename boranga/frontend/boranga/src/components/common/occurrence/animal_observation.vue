@@ -629,13 +629,8 @@
 </template>
 
 <script>
-import FormSection from '@/components/forms/section_toggle.vue';
 import { api_endpoints, helpers } from '@/utils/hooks';
 export default {
-    name: 'AnimalObservation',
-    components: {
-        FormSection,
-    },
     props: {
         animal_observation: {
             type: Object,

@@ -190,9 +190,7 @@
 
                                         <div class="mb-3">
                                             <li
-                                                v-for="(
-                                                    species, index
-                                                ) in original_species_combine_list"
+                                                v-for="species in original_species_combine_list"
                                                 :key="species.id"
                                                 class="text-secondary mb-3"
                                             >
@@ -283,7 +281,6 @@
 import { v4 as uuid } from 'uuid';
 import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
-import FileField2 from '@/components/forms/filefield.vue';
 import SpeciesCommunitiesComponent from '@/components/form_species_communities.vue';
 import SpeciesCombineForm from '@/components/form_species_combine.vue';
 import AddCombineSpecies from '@/components/common/species_communities/species_combine/add_combine_species.vue';
@@ -296,7 +293,6 @@ export default {
     components: {
         modal,
         alert,
-        FileField2,
         SpeciesCommunitiesComponent,
         SpeciesCombineForm,
         AddCombineSpecies,

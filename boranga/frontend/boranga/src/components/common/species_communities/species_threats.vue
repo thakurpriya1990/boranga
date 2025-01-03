@@ -19,6 +19,7 @@
                                 <option
                                     v-for="option in threat_category_filter_list"
                                     :value="option.id"
+                                    :key="option.id"
                                 >
                                     {{ option.name }}
                                 </option>
@@ -36,6 +37,7 @@
                                 <option
                                     v-for="option in threat_current_impact_filter_list"
                                     :value="option.id"
+                                    :key="option.id"
                                 >
                                     {{ option.name }}
                                 </option>
@@ -53,6 +55,7 @@
                                 <option
                                     v-for="option in threat_potential_impact_filter_list"
                                     :value="option.id"
+                                    :key="option.id"
                                 >
                                     {{ option.name }}
                                 </option>
@@ -70,6 +73,7 @@
                                 <option
                                     v-for="option in threat_status_filter_list"
                                     :value="option.id"
+                                    :key="option.id"
                                 >
                                     {{ option.name }}
                                 </option>
@@ -103,11 +107,11 @@
                 </div>
             </CollapsibleFilters>
             <form class="form-horizontal" action="index.html" method="post">
-                <div v-if="is_internal && !isReadOnly" class="col-sm-12">
+                <div v-if="is_internal && !is_readonly" class="col-sm-12">
                     <!--should we still show the add threat button if readonly, only disabled?-->
                     <div class="text-end">
                         <button
-                            :disabled="isReadOnly"
+                            :disabled="is_readonly"
                             type="button"
                             class="btn btn-primary mb-2"
                             @click.prevent="newThreat"
@@ -452,12 +456,6 @@ export default {
                 return 'Adding or updating a threat will set the Species record to Private.';
             else {
                 return null;
-            }
-        },
-        isReadOnly: function () {
-            // this prop (is_readonly = true) is only send from split/combine species form to make the original species readonly
-            if (this.is_readonly) {
-                return this.is_readonly;
             }
         },
         filterApplied: function () {
