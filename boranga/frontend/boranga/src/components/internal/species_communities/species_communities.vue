@@ -1145,7 +1145,11 @@ export default {
         },
         save: async function () {
             let vm = this;
-            var missing_data = vm.can_submit('');
+            let check_action =
+                this.species_community.processing_status === 'Active'
+                    ? 'submit'
+                    : '';
+            var missing_data = vm.can_submit(check_action);
             vm.isSaved = false;
             if (missing_data != true) {
                 swal.fire({
@@ -1210,7 +1214,11 @@ export default {
         },
         save_exit: async function () {
             let vm = this;
-            var missing_data = vm.can_submit('');
+            let check_action =
+                this.species_community.processing_status === 'Active'
+                    ? 'submit'
+                    : '';
+            var missing_data = vm.can_submit(check_action);
             if (missing_data != true) {
                 swal.fire({
                     title: 'Please fix following errors before saving',
