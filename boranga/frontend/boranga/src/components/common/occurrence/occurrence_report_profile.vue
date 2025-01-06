@@ -459,9 +459,6 @@ export default {
         });
     },
     methods: {
-        test: function () {
-            console.log('test');
-        },
         initialiseScientificNameLookup: function () {
             let vm = this;
             $(vm.$refs[vm.scientific_name_lookup])
@@ -652,11 +649,8 @@ export default {
             this.$emit('refreshOccurrenceReport');
         },
         saveOccurrenceReport: function (e) {
-            console.log(e.target.id);
-            if (
-                e.target.id != 'select_scientific_name' &&
-                e.target.id != 'select_community_name'
-            ) {
+            // For the select2 we emit after the select/unselect event as otherwise the value is not yet updated
+            if (!e.target.className.includes('select2-')) {
                 this.$emit('saveOccurrenceReport');
             }
         },
