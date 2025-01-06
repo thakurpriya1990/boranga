@@ -5,17 +5,15 @@
                 <label
                     for=""
                     class="col-sm-3 col-form-label"
-                    :class="rename_species || !isReadOnly ? 'fw-bold' : ''"
+                    :class="!scientificNameIsReadOnly ? 'fw-bold' : ''"
                     >Scientific Name:
-                    <span
-                        v-if="rename_species || !isReadOnly"
-                        class="text-danger"
+                    <span v-if="!scientificNameIsReadOnly" class="text-danger"
                         >*</span
                     ></label
                 >
                 <div :id="select_scientific_name" class="col-sm-9">
                     <select
-                        v-if="rename_species || !isReadOnly"
+                        v-if="!scientificNameIsReadOnly"
                         :id="scientific_name_lookup"
                         :ref="scientific_name_lookup"
                         :name="scientific_name_lookup"
@@ -1394,6 +1392,13 @@ export default {
                     return this.species_community.readonly;
                 }
             }
+        },
+        scientificNameIsReadOnly: function () {
+            return (
+                (this.isReadOnly ||
+                    this.species_community.processing_status === 'Active') &&
+                !this.rename_species
+            );
         },
         isActive: function () {
             return this.species_community.processing_status === 'Active'
