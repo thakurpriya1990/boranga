@@ -374,6 +374,7 @@
                                         species_community.processing_status ==
                                             'Discarded'
                                     "
+                                    :key="formKey"
                                 >
                                 </ProposalSpeciesCommunities>
                                 <input
@@ -655,6 +656,7 @@ export default {
             species_community: null,
             species_community_original: null,
             form: null,
+            formKey: 0,
             savingSpeciesCommunity: false,
             saveExitSpeciesCommunity: false,
             submitSpeciesCommunity: false,
@@ -1705,13 +1707,17 @@ export default {
             this.downloadingImage = false;
         },
         activateEditMode: function () {
-            this.$router.push({
-                name: 'internal-species-communities',
-                query: {
-                    group_type_name: this.$route.query.group_type_name,
-                    action: 'edit',
-                },
-            });
+            this.$router
+                .push({
+                    name: 'internal-species-communities',
+                    query: {
+                        group_type_name: this.$route.query.group_type_name,
+                        action: 'edit',
+                    },
+                })
+                .then(() => {
+                    this.formKey++;
+                });
         },
     },
 };
