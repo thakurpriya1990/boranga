@@ -49,6 +49,12 @@ class CommonwealthConservationListAdmin(ArchivableModelAdminMixin, AbstractListA
     pass
 
 
+class OtherConservationAssessmentListAdmin(
+    ArchivableModelAdminMixin, AbstractListAdmin
+):
+    pass
+
+
 class ConservationChangeCodeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ["code", "label"]
 
@@ -60,5 +66,8 @@ admin.site.register(models.WALegislativeCategory, WALegislativeCategoryAdmin)
 admin.site.register(models.IUCNVersion, IUCNVersionAdmin)
 admin.site.register(
     models.CommonwealthConservationList, CommonwealthConservationListAdmin
+)
+admin.site.register(
+    models.OtherConservationAssessmentList, OtherConservationAssessmentListAdmin
 )
 admin.site.register(models.ConservationChangeCode, ConservationChangeCodeAdmin)

@@ -66,24 +66,21 @@
                 </div>
                 <div v-show="map" class="optional-layers-wrapper">
                     <div style="position: relative">
-                        <transition>
-                            <div
-                                v-show="hover"
-                                class="optional-layers-button-wrapper"
-                                :title="`There are ${optionalLayers.length} optional layers available}`"
-                            >
-                                <!-- :class="
+                        <div
+                            class="optional-layers-button-wrapper"
+                            :title="`There are ${optionalLayers.length} optional layers available}`"
+                        >
+                            <!-- :class="
                                     optionalLayers.length ? '' : 'disabled'
                                 " -->
-                                <div
-                                    class="optional-layers-button btn"
-                                    :class="isEditingALayer ? 'btn-danger' : ''"
-                                    @mouseover="hover = true"
-                                >
-                                    <img src="../../assets/layers.svg" />
-                                </div>
+                            <div
+                                class="optional-layers-button btn"
+                                :class="isEditingALayer ? 'btn-danger' : ''"
+                                @mouseover="hover = true"
+                            >
+                                <img src="../../assets/layers.svg" />
                             </div>
-                        </transition>
+                        </div>
                         <transition>
                             <div
                                 v-show="hover"

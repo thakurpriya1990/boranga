@@ -196,7 +196,31 @@
                             </div>
                         </div>
                     </div>
-                    <div v-if="hasUserEditMode" class="card-body border-top">
+                    <div v-if="inViewMode" class="card-body border-top">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="row mb-2">
+                                    <div class="col-sm-12">
+                                        <strong>Action</strong><br />
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <button
+                                            class="btn btn-primary w-100"
+                                            @click.prevent="activateEditMode()"
+                                        >
+                                            Edit</button
+                                        ><br />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        v-else-if="hasUserEditMode"
+                        class="card-body border-top"
+                    >
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="row mb-2">
@@ -350,6 +374,8 @@
                                         species_community.processing_status ==
                                             'Discarded'
                                     "
+                                    @save-species-community="save_wo()"
+                                    :key="formKey"
                                 >
                                 </ProposalSpeciesCommunities>
                                 <input
@@ -631,6 +657,7 @@ export default {
             species_community: null,
             species_community_original: null,
             form: null,
+            formKey: 0,
             savingSpeciesCommunity: false,
             saveExitSpeciesCommunity: false,
             submitSpeciesCommunity: false,
@@ -783,6 +810,9 @@ export default {
             return this.species_community
                 ? `Reinstate Image for ${this.display_name}`
                 : '';
+        },
+        inViewMode: function () {
+            return this.$route.query.action === 'view';
         },
     },
     created: function () {
@@ -1116,7 +1146,11 @@ export default {
         },
         save: async function () {
             let vm = this;
-            var missing_data = vm.can_submit('');
+            let check_action =
+                this.species_community.processing_status === 'Active'
+                    ? 'submit'
+                    : '';
+            var missing_data = vm.can_submit(check_action);
             vm.isSaved = false;
             if (missing_data != true) {
                 swal.fire({
@@ -1181,7 +1215,11 @@ export default {
         },
         save_exit: async function () {
             let vm = this;
-            var missing_data = vm.can_submit('');
+            let check_action =
+                this.species_community.processing_status === 'Active'
+                    ? 'submit'
+                    : '';
+            var missing_data = vm.can_submit(check_action);
             if (missing_data != true) {
                 swal.fire({
                     title: 'Please fix following errors before saving',
@@ -1206,7 +1244,6 @@ export default {
             });
         },
         save_before_submit: async function () {
-            //console.log('save before submit');
             let vm = this;
             vm.saveError = false;
 
@@ -1257,7 +1294,6 @@ export default {
 
                 sc_no_ps.publishing_status = undefined;
                 sco_no_ps.publishing_status = undefined;
-
                 if (helpers.checkForChange(sco_no_ps, sc_no_ps)) {
                     return ['No changes made'];
                 }
@@ -1383,9 +1419,6 @@ export default {
                                             helpers.copyObject(
                                                 vm.species_community
                                             );
-                                        vm.$router.push({
-                                            name: 'internal-species-communities-dash',
-                                        });
                                     },
                                     (err) => {
                                         swal.fire({
@@ -1414,14 +1447,47 @@ export default {
         },
         save_wo: function () {
             let vm = this;
-            let formData = new FormData(vm.form);
-            fetch(vm.proposal_form_url, {
+            let check_action =
+                this.species_community.processing_status === 'Active'
+                    ? 'submit'
+                    : '';
+            var missing_data = vm.can_submit(check_action);
+            if (missing_data != true) {
+                swal.fire({
+                    title: 'Please fix following errors before saving',
+                    text: missing_data,
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+                //vm.paySubmitting=false;
+                return false;
+            }
+            fetch(vm.species_community_form_url, {
                 method: 'POST',
-                body: formData,
+                body: JSON.stringify(vm.species_community),
                 headers: {
                     'Content-Type': 'application/json',
                 },
-            });
+            }).then(
+                () => {
+                    vm.species_community_original = helpers.copyObject(
+                        vm.species_community
+                    ); //update original after save
+                },
+                (err) => {
+                    var errorText = helpers.apiVueResourceError(err);
+                    swal.fire({
+                        title: 'Save Error',
+                        text: errorText,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                }
+            );
         },
         refreshFromResponse: async function (response) {
             let vm = this;
@@ -1679,6 +1745,19 @@ export default {
         },
         onImageLoad: function () {
             this.downloadingImage = false;
+        },
+        activateEditMode: function () {
+            this.$router
+                .push({
+                    name: 'internal-species-communities',
+                    query: {
+                        group_type_name: this.$route.query.group_type_name,
+                        action: 'edit',
+                    },
+                })
+                .then(() => {
+                    this.formKey++;
+                });
         },
     },
 };

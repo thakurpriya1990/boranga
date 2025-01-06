@@ -326,6 +326,14 @@ class CommonwealthConservationList(AbstractConservationList):
         verbose_name = "Commonwealth Conservation Category"
 
 
+class OtherConservationAssessmentList(AbstractConservationList):
+
+    class Meta:
+        ordering = ["code"]
+        app_label = "boranga"
+        verbose_name = "Other Conservation Assessment"
+
+
 class ConservationChangeCode(ArchivableModel):
     """
     When the conservation status of a species/community is changed, it can be for a number of reasons.
@@ -577,8 +585,11 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         # Leave the following as _list otherwise django has remove the field and create a new one
         related_name="curr_commonwealth_conservation_list",
     )
-    other_conservation_assessment = models.CharField(
-        max_length=100, blank=True, null=True
+    other_conservation_assessment = models.ForeignKey(
+        OtherConservationAssessmentList,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
     )
     conservation_criteria = models.CharField(max_length=100, blank=True, null=True)
     cam_mou = models.BooleanField(null=True, blank=True)
@@ -600,7 +611,7 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         null=True,
     )
 
-    comment = models.CharField(max_length=512, blank=True, null=True)
+    comment = models.TextField(blank=True, null=True)
     review_due_date = models.DateField(null=True, blank=True)
     effective_from = models.DateField(null=True, blank=True)
     effective_to = models.DateField(null=True, blank=True)
