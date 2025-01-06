@@ -196,7 +196,31 @@
                             </div>
                         </div>
                     </div>
-                    <div v-if="hasUserEditMode" class="card-body border-top">
+                    <div v-if="inViewMode" class="card-body border-top">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="row mb-2">
+                                    <div class="col-sm-12">
+                                        <strong>Action</strong><br />
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <button
+                                            class="btn btn-primary w-100"
+                                            @click.prevent="activateEditMode()"
+                                        >
+                                            Edit</button
+                                        ><br />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        v-else-if="hasUserEditMode"
+                        class="card-body border-top"
+                    >
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="row mb-2">
@@ -783,6 +807,9 @@ export default {
             return this.species_community
                 ? `Reinstate Image for ${this.display_name}`
                 : '';
+        },
+        inViewMode: function () {
+            return this.$route.query.action === 'view';
         },
     },
     created: function () {
@@ -1676,6 +1703,15 @@ export default {
         },
         onImageLoad: function () {
             this.downloadingImage = false;
+        },
+        activateEditMode: function () {
+            this.$router.push({
+                name: 'internal-species-communities',
+                query: {
+                    group_type_name: this.$route.query.group_type_name,
+                    action: 'edit',
+                },
+            });
         },
     },
 };
