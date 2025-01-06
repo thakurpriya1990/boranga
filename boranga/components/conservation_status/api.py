@@ -36,6 +36,7 @@ from boranga.components.conservation_status.models import (
     ConservationStatusUserAction,
     CSExternalRefereeInvite,
     IUCNVersion,
+    OtherConservationAssessmentList,
     ProposalAmendmentReason,
     WALegislativeCategory,
     WALegislativeList,
@@ -174,6 +175,9 @@ class GetCSProfileDict(views.APIView):
             ),
             "iucn_versions": IUCNVersion.get_lists_dict(group_type, active_only=True),
             "commonwealth_conservation_categories": CommonwealthConservationList.get_lists_dict(
+                group_type, active_only=True
+            ),
+            "other_conservation_assessments": OtherConservationAssessmentList.get_lists_dict(
                 group_type, active_only=True
             ),
             "change_codes": ConservationChangeCode.get_filter_list(),
@@ -2010,6 +2014,9 @@ class ConservationStatusReferralViewSet(
             ),
             "iucn_versions": IUCNVersion.get_lists_dict(group_type),
             "commonwealth_conservation_categories": CommonwealthConservationList.get_lists_dict(
+                group_type
+            ),
+            "other_conservation_assessments": OtherConservationAssessmentList.get_lists_dict(
                 group_type
             ),
             "processing_status_list": processing_status_list,
