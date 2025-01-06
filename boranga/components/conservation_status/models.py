@@ -326,6 +326,14 @@ class CommonwealthConservationList(AbstractConservationList):
         verbose_name = "Commonwealth Conservation Category"
 
 
+class OtherConservationAssessmentList(AbstractConservationList):
+
+    class Meta:
+        ordering = ["code"]
+        app_label = "boranga"
+        verbose_name = "Other Conservation Assessment"
+
+
 class ConservationChangeCode(ArchivableModel):
     """
     When the conservation status of a species/community is changed, it can be for a number of reasons.
