@@ -79,6 +79,7 @@
                         :species_community="species_community"
                         :species_community_original="species_community_original"
                         :is_readonly="is_readonly"
+                        @save-species-community="saveSpeciesCommunity()"
                     >
                     </Community>
                     <Species
@@ -90,6 +91,7 @@
                         :species_community_original="species_community_original"
                         :is_readonly="is_readonly"
                         :rename_species="rename_species"
+                        @save-species-community="saveSpeciesCommunity()"
                     >
                     </Species>
                 </div>
@@ -216,6 +218,7 @@ export default {
             default: false,
         },
     },
+    emits: ['save-species-community'],
     data: function () {
         return {
             profileBody: 'profileBody' + uuid(),
@@ -280,6 +283,9 @@ export default {
         refreshSpeciesCommunity: function () {
             let vm = this;
             vm.$parent.refreshSpeciesCommunity();
+        },
+        saveSpeciesCommunity: function () {
+            this.$emit('save-species-community');
         },
     },
 };

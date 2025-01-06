@@ -374,6 +374,7 @@
                                         species_community.processing_status ==
                                             'Discarded'
                                     "
+                                    @save-species-community="save_wo()"
                                     :key="formKey"
                                 >
                                 </ProposalSpeciesCommunities>
@@ -1243,7 +1244,6 @@ export default {
             });
         },
         save_before_submit: async function () {
-            //console.log('save before submit');
             let vm = this;
             vm.saveError = false;
 
@@ -1294,7 +1294,6 @@ export default {
 
                 sc_no_ps.publishing_status = undefined;
                 sco_no_ps.publishing_status = undefined;
-
                 if (helpers.checkForChange(sco_no_ps, sc_no_ps)) {
                     return ['No changes made'];
                 }
@@ -1448,14 +1447,47 @@ export default {
         },
         save_wo: function () {
             let vm = this;
-            let formData = new FormData(vm.form);
-            fetch(vm.proposal_form_url, {
+            let check_action =
+                this.species_community.processing_status === 'Active'
+                    ? 'submit'
+                    : '';
+            var missing_data = vm.can_submit(check_action);
+            if (missing_data != true) {
+                swal.fire({
+                    title: 'Please fix following errors before saving',
+                    text: missing_data,
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+                //vm.paySubmitting=false;
+                return false;
+            }
+            fetch(vm.species_community_form_url, {
                 method: 'POST',
-                body: formData,
+                body: JSON.stringify(vm.species_community),
                 headers: {
                     'Content-Type': 'application/json',
                 },
-            });
+            }).then(
+                () => {
+                    vm.species_community_original = helpers.copyObject(
+                        vm.species_community
+                    ); //update original after save
+                },
+                (err) => {
+                    var errorText = helpers.apiVueResourceError(err);
+                    swal.fire({
+                        title: 'Save Error',
+                        text: errorText,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                }
+            );
         },
         refreshFromResponse: async function (response) {
             let vm = this;
