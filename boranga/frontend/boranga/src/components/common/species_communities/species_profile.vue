@@ -2131,7 +2131,15 @@ export default {
         chainedSelectDistricts: function (regions, action) {
             let vm = this;
             if (action != 'fetch') {
-                vm.species_community.districts = []; //-----to remove the previous selection
+                // Remove any districts that are not in the selected regions
+                var selected_districts = vm.species_community.districts;
+                for (let i = 0; i < selected_districts.length; i++) {
+                    var district = selected_districts[i];
+                    var region = vm.searchList(district, vm.region_list);
+                    if (region == []) {
+                        vm.species_community.districts.splice(i, 1);
+                    }
+                }
             }
             vm.district_list = [];
             if (regions) {
@@ -2141,7 +2149,7 @@ export default {
                         vm.region_list
                     ).districts;
                     if (api_districts.length > 0) {
-                        for (var i = 0; i < api_districts.length; i++) {
+                        for (let i = 0; i < api_districts.length; i++) {
                             this.district_list.push({
                                 text: api_districts[i].name,
                                 value: api_districts[i].id,
