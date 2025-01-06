@@ -880,23 +880,72 @@
                         <label
                             for="proposed_other_conservation_assessment"
                             class="col-sm-5 col-form-label"
-                            >Other Conservation Assessment:</label
+                            >Other Conservation Criteria:</label
                         >
                         <div class="col-sm-7">
-                            <input
-                                id="proposed_other_conservation_assessment"
-                                v-model="
-                                    conservation_status_obj.other_conservation_assessment
-                                "
-                                :disabled="isReadOnly"
-                                type="text"
-                                class="form-control"
-                                :placeholder="
-                                    isReadOnly
-                                        ? 'N/A'
-                                        : 'Enter Other Conservation Assessment Details if Applicable'
-                                "
-                            />
+                            <template v-if="!isReadOnly">
+                                <template
+                                    v-if="
+                                        other_conservation_assessments &&
+                                        other_conservation_assessments.length >
+                                            0 &&
+                                        conservation_status_obj.other_conservation_assessment_id &&
+                                        !other_conservation_assessments
+                                            .map((d) => d.id)
+                                            .includes(
+                                                conservation_status_obj.other_conservation_assessment_id
+                                            )
+                                    "
+                                >
+                                    <input
+                                        v-if="
+                                            conservation_status_obj.other_conservation_assessment
+                                        "
+                                        type="text"
+                                        class="form-control mb-3"
+                                        :value="
+                                            conservation_status_obj.other_conservation_assessment +
+                                            ' (Now Archived)'
+                                        "
+                                        disabled
+                                    />
+                                    <div class="mb-3 text-muted">
+                                        Change other conservation assessment to:
+                                    </div>
+                                </template>
+                                <select
+                                    id="proposed_other_conservation_assessment"
+                                    v-model="
+                                        conservation_status_obj.other_conservation_assessment_id
+                                    "
+                                    :disabled="isReadOnly"
+                                    class="form-select"
+                                >
+                                    <option :value="null" disabled>
+                                        Select the appropriate Other
+                                        Conservation Assessment
+                                    </option>
+                                    <option
+                                        v-for="option in other_conservation_assessments"
+                                        :key="option.id"
+                                        :value="option.id"
+                                    >
+                                        {{ option.code }} - {{ option.label }}
+                                    </option>
+                                </select>
+                            </template>
+                            <template v-else>
+                                <input
+                                    class="form-control"
+                                    type="text"
+                                    :disabled="true"
+                                    :value="
+                                        conservation_status_obj.other_conservation_assessment
+                                            ? conservation_status_obj.other_conservation_assessment
+                                            : 'N/A'
+                                    "
+                                />
+                            </template>
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -1685,6 +1734,8 @@ export default {
                     vm.cs_profile_dict.wa_priority_categories;
                 vm.commonwealth_conservation_categories =
                     vm.cs_profile_dict.commonwealth_conservation_categories;
+                vm.other_conservation_assessments =
+                    vm.cs_profile_dict.other_conservation_assessments;
                 vm.change_codes = vm.cs_profile_dict.active_change_codes;
                 this.getCommunityDisplay();
                 this.filterWALegislativeCategories();
