@@ -1,10 +1,10 @@
 <template lang="html">
-    <div id="DataTable">
+    <div id="DataTable" class="table-responsive">
         <table
             :id="id"
-            class="hover table border table-striped table-bordered dt-responsive nowrap"
+            class="hover table border table-striped table-bordered dt-responsive nowrap w-100"
             cellspacing="0"
-            width="100%"
+            style="width: 100%"
         >
             <thead>
                 <tr>
