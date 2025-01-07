@@ -271,7 +271,7 @@
                                         <div class="row mb-2">
                                             <div class="col-sm-12">
                                                 <button
-                                                    class="btn btn-primary"
+                                                    class="btn btn-primary w-100"
                                                     @click.prevent="
                                                         renameCommunity()
                                                     "
@@ -338,7 +338,7 @@
                                     <div class="row">
                                         <div class="col-sm-12">
                                             <button
-                                                class="btn btn-primary"
+                                                class="btn btn-primary w-100"
                                                 @click.prevent="reopen()"
                                             >
                                                 Reopen</button
