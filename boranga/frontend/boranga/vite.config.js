@@ -52,6 +52,10 @@ export default defineConfig({
             '@common-utils': path.resolve(__dirname, 'src/components/common/'),
         },
     },
+    esbuild: {
+        drop: ['console', 'debugger'],
+        minify: true,
+    },
     build: {
         manifest: 'manifest.json',
         filenameHashing: false,
@@ -62,7 +66,7 @@ export default defineConfig({
             `../../static/${applicationNameShort}_vue`
         ),
         publicPath: `/static/${applicationNameShort}_vue/`,
-        sourcemap: true,
+        sourcemap: false,
         rollupOptions: {
             input: {
                 main: path.resolve(__dirname, 'src/main.js'),
