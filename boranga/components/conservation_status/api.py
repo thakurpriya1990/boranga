@@ -2083,6 +2083,9 @@ class ConservationStatusReferralViewSet(
             "commonwealth_conservation_categories": CommonwealthConservationList.get_lists_dict(
                 group_type
             ),
+            "other_conservation_assessments": OtherConservationAssessmentList.get_lists_dict(
+                group_type
+            ),
             "processing_status_list": processing_status_list,
         }
         res_json = json.dumps(res_json)
