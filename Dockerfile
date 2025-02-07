@@ -16,7 +16,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     OSCAR_SHOP_NAME='Parks & Wildlife' \
     BPAY_ALLOWED=False \
     NODE_MAJOR=20 \
-    NODE_OPTIONS=--max_old_space_size=4096
+    NODE_OPTIONS=--max_old_space_size=4096 \
+    GDAL_VERSION=3.10.0
 
 FROM builder_base_boranga as apt_packages_boranga
 
@@ -30,25 +31,26 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     binutils \
     bzip2 \
     ca-certificates \
+    cmake \
     curl \
     g++ \
     gcc \
-    gdal-bin \
     git \
     graphviz \
     htop \
     ipython3 \
-    libgdal-dev \
+    libgeos-dev \
     libgraphviz-dev \
     libmagic-dev \
     libpq-dev \
     libproj-dev \
     libreoffice \
+    make \
     mtr \
     patch \
     postgresql-client \
     python3-dev \
-    python3-gdal \
+    python3-numpy \
     python3-pil \
     python3-pip \
     python3-setuptools \
@@ -57,6 +59,7 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     sqlite3 \
     ssh \
     sudo \
+    swig \
     systemd \
     tzdata \
     vim \
@@ -64,7 +67,21 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     update-ca-certificates
 
-FROM apt_packages_boranga as node_boranga
+FROM apt_packages_boranga as build_gdal_boranga
+
+# Build and install GDAL from source
+WORKDIR /tmp
+RUN curl -L -o gdal-$GDAL_VERSION.tar.gz "https://github.com/OSGeo/gdal/releases/download/v$GDAL_VERSION/gdal-$GDAL_VERSION.tar.gz"
+RUN tar -xvf gdal-$GDAL_VERSION.tar.gz
+WORKDIR /tmp/gdal-$GDAL_VERSION
+RUN cmake -DBUILD_PYTHON_BINDINGS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+RUN cmake --build .
+RUN cmake --build . --target install
+RUN ldconfig
+WORKDIR /
+
+
+FROM build_gdal_boranga as node_boranga
 
 # install node
 RUN mkdir -p /etc/apt/keyrings && \
