@@ -5,6 +5,7 @@ import sys
 
 import confy
 from confy import env
+from decouple import Csv, config
 
 logger = logging.getLogger(__name__)
 
@@ -521,4 +522,4 @@ OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT = env(
 
 OCR_BULK_IMPORT_M2M_DELIMITER = env("OCR_BULK_IMPORT_M2M_DELIMITER", "||")
 
-CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS", [])
+CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
