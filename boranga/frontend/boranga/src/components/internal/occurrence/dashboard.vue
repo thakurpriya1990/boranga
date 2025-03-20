@@ -53,6 +53,12 @@
                     :form-collapse="true"
                     label="Occurrences - Flora"
                     Index="occurrence-flora"
+                    @opened="
+                        reloadDatatable(
+                            'occ_flora_table',
+                            'flora_occ_datatable'
+                        )
+                    "
                 >
                     <OccurrenceFloraDashboard
                         v-if="isFlora"
@@ -69,6 +75,9 @@
                     :form-collapse="true"
                     label="Occurrence Report - Flora"
                     Index="occurrence-report-flora"
+                    @opened="
+                        reloadDatatable('flora_table', 'flora_ocr_datatable')
+                    "
                 >
                     <OccurrenceReportFloraDashTable
                         v-if="isFlora"
@@ -85,6 +94,12 @@
                     :form-collapse="true"
                     label="Occurrence Report - Flora Referred to Me"
                     Index="occurrence-report-flora-referred-to-me"
+                    @opened="
+                        reloadDatatable(
+                            'flora_referrals_table',
+                            'flora_ocr_referrals_datatable'
+                        )
+                    "
                 >
                     <OccurrenceReportReferredToMeDashTable
                         v-if="isFlora"
@@ -112,6 +127,12 @@
                     :form-collapse="true"
                     label="Occurrences - Fauna"
                     Index="occurrence-fauna"
+                    @opened="
+                        reloadDatatable(
+                            'occ_fauna_table',
+                            'fauna_occ_datatable'
+                        )
+                    "
                 >
                     <OccurrenceFaunaDashboard
                         v-if="isFauna"
@@ -128,6 +149,9 @@
                     :form-collapse="true"
                     label="Occurrence Report - Fauna"
                     Index="fauna"
+                    @opened="
+                        reloadDatatable('fauna_table', 'fauna_ocr_datatable')
+                    "
                 >
                     <OccurrenceReportFaunaDashTable
                         v-if="isFauna"
@@ -144,6 +168,12 @@
                     :form-collapse="true"
                     label="Occurrence Report - Fauna Referred to Me"
                     Index="occurrence-report-fauna-referred-to-me"
+                    @opened="
+                        reloadDatatable(
+                            'fauna_referrals_table',
+                            'fauna_ocr_referrals_datatable'
+                        )
+                    "
                 >
                     <OccurrenceReportReferredToMeDashTable
                         v-if="isFauna"
@@ -171,6 +201,12 @@
                     :form-collapse="true"
                     label="Occurrences - Community"
                     Index="occurrence-community"
+                    @opened="
+                        reloadDatatable(
+                            'occ_community_table',
+                            'community_occ_datatable'
+                        )
+                    "
                 >
                     <OccurrenceCommunityDashboard
                         v-if="isCommunity"
@@ -187,6 +223,12 @@
                     :form-collapse="true"
                     label="Occurrence Report - Community"
                     Index="community"
+                    @opened="
+                        reloadDatatable(
+                            'community_table',
+                            'community_ocr_datatable'
+                        )
+                    "
                 >
                     <OccurrenceReportCommunityDashTable
                         v-if="isCommunity"
@@ -203,6 +245,12 @@
                     :form-collapse="true"
                     label="Occurrence Report - Community Referred to Me"
                     Index="occurrence-report-community-referred-to-me"
+                    @opened="
+                        reloadDatatable(
+                            'community_referrals_table',
+                            'community_ocr_referrals_datatable'
+                        )
+                    "
                 >
                     <OccurrenceReportReferredToMeDashTable
                         v-if="isCommunity"
@@ -235,7 +283,7 @@ import OccurrenceReportReferredToMeDashTable from '@common-utils/ocr_referrals_d
 
 import FormSection from '@/components/forms/section_toggle.vue';
 
-import { api_endpoints, constants } from '@/utils/hooks';
+import { api_endpoints, constants, helpers } from '@/utils/hooks';
 export default {
     name: 'InternalOccurrenceDashboard',
     components: {
@@ -361,6 +409,12 @@ export default {
                 (error) => {
                     console.log(error);
                 }
+            );
+        },
+        reloadDatatable: function (dashRef, datatableRef) {
+            this.$refs[dashRef].$refs[datatableRef].vmDataTable.ajax.reload(
+                helpers.enablePopovers,
+                false
             );
         },
     },
