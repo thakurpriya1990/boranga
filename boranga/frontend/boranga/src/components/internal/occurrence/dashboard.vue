@@ -50,7 +50,7 @@
             >
                 <FormSection
                     v-if="show_occurrences"
-                    :form-collapse="false"
+                    :form-collapse="true"
                     label="Occurrences - Flora"
                     Index="occurrence-flora"
                 >
@@ -66,7 +66,7 @@
                 </FormSection>
                 <FormSection
                     v-if="show_occurrence_reports"
-                    :form-collapse="false"
+                    :form-collapse="true"
                     label="Occurrence Report - Flora"
                     Index="occurrence-report-flora"
                 >
@@ -82,7 +82,7 @@
                 </FormSection>
                 <FormSection
                     v-if="profile && profile.ocr_referral_count > 0"
-                    :form-collapse="false"
+                    :form-collapse="true"
                     label="Occurrence Report - Flora Referred to Me"
                     Index="occurrence-report-flora-referred-to-me"
                 >
@@ -109,7 +109,7 @@
             >
                 <FormSection
                     v-if="show_occurrences"
-                    :form-collapse="false"
+                    :form-collapse="true"
                     label="Occurrences - Fauna"
                     Index="occurrence-fauna"
                 >
@@ -125,7 +125,7 @@
                 </FormSection>
                 <FormSection
                     v-if="show_occurrence_reports"
-                    :form-collapse="false"
+                    :form-collapse="true"
                     label="Occurrence Report - Fauna"
                     Index="fauna"
                 >
@@ -141,7 +141,7 @@
                 </FormSection>
                 <FormSection
                     v-if="profile && profile.ocr_referral_count > 0"
-                    :form-collapse="false"
+                    :form-collapse="true"
                     label="Occurrence Report - Fauna Referred to Me"
                     Index="occurrence-report-fauna-referred-to-me"
                 >
@@ -168,7 +168,7 @@
             >
                 <FormSection
                     v-if="show_occurrences"
-                    :form-collapse="false"
+                    :form-collapse="true"
                     label="Occurrences - Community"
                     Index="occurrence-community"
                 >
@@ -184,7 +184,7 @@
                 </FormSection>
                 <FormSection
                     v-if="show_occurrence_reports"
-                    :form-collapse="false"
+                    :form-collapse="true"
                     label="Occurrence Report - Community"
                     Index="community"
                 >
@@ -200,7 +200,7 @@
                 </FormSection>
                 <FormSection
                     v-if="profile && profile.ocr_referral_count > 0"
-                    :form-collapse="false"
+                    :form-collapse="true"
                     label="Occurrence Report - Community Referred to Me"
                     Index="occurrence-report-community-referred-to-me"
                 >
