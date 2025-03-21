@@ -284,18 +284,24 @@
                         />
                     </div>
                 </div>
-                <ObserverDatatable
-                    ref="observer_datatable"
-                    :occurrence_report_obj="occurrence_report_obj"
-                    :is_external="is_external"
-                    :is-read-only="isReadOnly"
-                    :show_observer_contact_information="
-                        show_observer_contact_information
-                    "
-                    @refresh-occurrence-report="refreshOccurrenceReport()"
-                >
-                </ObserverDatatable>
             </fieldset>
+        </FormSection>
+        <FormSection
+            :form-collapse="false"
+            label="Observer Details"
+            Index="observer_details"
+        >
+            <ObserverDatatable
+                ref="observer_datatable"
+                :occurrence_report_obj="occurrence_report_obj"
+                :is_external="is_external"
+                :is-read-only="isReadOnly"
+                :show_observer_contact_information="
+                    show_observer_contact_information
+                "
+                @refresh-occurrence-report="refreshOccurrenceReport()"
+            >
+            </ObserverDatatable>
         </FormSection>
     </div>
 </template>

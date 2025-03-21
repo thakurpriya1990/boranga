@@ -1,10 +1,14 @@
 <template lang="html">
     <div id="observerTable">
         <div v-if="!isReadOnly" class="row mb-3">
-            <label for="" class="col-sm-3 control-label fw-bold"
-                >Observation Details: <span class="text-danger">*</span></label
+            <label for="" class="col-sm-6 control-label"
+                ><span class="text-danger fw-bold">*</span>
+                <span class="text-muted ms-1"
+                    >You must add at least one observer</span
+                ></label
             >
-            <div class="col-sm-9 text-end">
+
+            <div class="col-sm-6 text-end">
                 <button
                     :disabled="isReadOnly"
                     type="button"
