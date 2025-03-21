@@ -1665,7 +1665,10 @@ class OccurrenceReportViewSet(
             if serializer.is_valid():
                 serializer.save()
 
-        if proposal_data.get("plant_count"):
+        if (
+            instance.group_type.name == GroupType.GROUP_TYPE_FLORA
+            and proposal_data.get("plant_count")
+        ):
             plant_count_instance, created = OCRPlantCount.objects.get_or_create(
                 occurrence_report=instance
             )

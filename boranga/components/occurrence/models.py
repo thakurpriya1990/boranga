@@ -2774,7 +2774,11 @@ class OCRPlantCount(models.Model):
     )
     estimated_population_area = models.IntegerField(null=True, blank=True, default=0)
 
-    counted = models.BooleanField(default=True)
+    count_status = models.CharField(
+        choices=settings.COUNT_STATUS_CHOICES,
+        max_length=20,
+        default=settings.COUNT_STATUS_NOT_COUNTED,
+    )
 
     detailed_alive_mature = models.IntegerField(null=True, blank=True, default=0)
     detailed_dead_mature = models.IntegerField(null=True, blank=True, default=0)
@@ -2991,7 +2995,11 @@ class OCRAnimalObservation(models.Model):
         max_length=1000, null=True, blank=True
     )
 
-    counted = models.BooleanField(default=True)
+    count_status = models.CharField(
+        choices=settings.COUNT_STATUS_CHOICES,
+        max_length=20,
+        default=settings.COUNT_STATUS_NOT_COUNTED,
+    )
 
     alive_adult_male = models.IntegerField(null=True, blank=True, default=0)
     dead_adult_male = models.IntegerField(null=True, blank=True, default=0)
@@ -3013,6 +3021,10 @@ class OCRAnimalObservation(models.Model):
     dead_unsure_female = models.IntegerField(null=True, blank=True, default=0)
     alive_unsure_unknown = models.IntegerField(null=True, blank=True, default=0)
     dead_unsure_unknown = models.IntegerField(null=True, blank=True, default=0)
+
+    simple_alive = models.IntegerField(null=True, blank=True, default=0)
+    simple_dead = models.IntegerField(null=True, blank=True, default=0)
+
     count_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -4778,7 +4790,11 @@ class OCCPlantCount(models.Model):
     )
     estimated_population_area = models.IntegerField(null=True, blank=True, default=0)
 
-    counted = models.BooleanField(default=True)
+    count_status = models.CharField(
+        choices=settings.COUNT_STATUS_CHOICES,
+        max_length=20,
+        default=settings.COUNT_STATUS_NOT_COUNTED,
+    )
 
     detailed_alive_mature = models.IntegerField(null=True, blank=True, default=0)
     detailed_dead_mature = models.IntegerField(null=True, blank=True, default=0)
@@ -4864,7 +4880,11 @@ class OCCAnimalObservation(models.Model):
         max_length=1000, null=True, blank=True
     )
 
-    counted = models.BooleanField(default=True)
+    count_status = models.CharField(
+        choices=settings.COUNT_STATUS_CHOICES,
+        max_length=20,
+        default=settings.COUNT_STATUS_NOT_COUNTED,
+    )
 
     alive_adult_male = models.IntegerField(null=True, blank=True, default=0)
     dead_adult_male = models.IntegerField(null=True, blank=True, default=0)
@@ -4886,6 +4906,10 @@ class OCCAnimalObservation(models.Model):
     dead_unsure_female = models.IntegerField(null=True, blank=True, default=0)
     alive_unsure_unknown = models.IntegerField(null=True, blank=True, default=0)
     dead_unsure_unknown = models.IntegerField(null=True, blank=True, default=0)
+
+    simple_alive = models.IntegerField(null=True, blank=True, default=0)
+    simple_dead = models.IntegerField(null=True, blank=True, default=0)
+
     count_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
