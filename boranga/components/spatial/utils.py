@@ -129,6 +129,14 @@ def intersect_geometry_with_layer(
         basic_error_message = (
             f"Failed to intersect geometry with layer {intersect_layer_name}."
         )
+
+        if res.status_code == 401:
+            raise serializers.ValidationError(
+                f"Failed to intersect geometry with layer {intersect_layer_name}. "
+                f"{res.status_code} {res.reason} response from {geoserver_url.url}. "
+            )
+
+        logger.debug(f"Response content: {res.content}")
         root = ET.fromstring(res._content, ET.XMLParser(encoding="utf-8"))
         namespace = root.tag.split("}")[0] + "}"
         exception = root.find(f".//{namespace}Exception")
