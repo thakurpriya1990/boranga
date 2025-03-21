@@ -2626,6 +2626,7 @@ class OCRObservationDetail(models.Model):
     )
     area_surveyed = models.IntegerField(null=True, blank=True, default=0)
     survey_duration = models.IntegerField(null=True, blank=True, default=0)
+    comments = models.TextField(blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -4749,6 +4750,7 @@ class OCCObservationDetail(models.Model):
     )
     area_surveyed = models.IntegerField(null=True, blank=True, default=0)
     survey_duration = models.IntegerField(null=True, blank=True, default=0)
+    comments = models.TextField(blank=True)
 
     class Meta:
         app_label = "boranga"
