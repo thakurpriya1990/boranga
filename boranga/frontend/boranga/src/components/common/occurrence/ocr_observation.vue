@@ -73,7 +73,7 @@
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
-                    >Area Surveyed(m<sup>2</sup>) :</label
+                    >Area Surveyed(m<sup>2</sup>):</label
                 >
                 <div class="col-sm-6">
                     <input
@@ -92,7 +92,7 @@
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
-                    >Survey Duration(mins) :</label
+                    >Survey Duration(mins):</label
                 >
                 <div class="col-sm-6">
                     <input
@@ -106,6 +106,22 @@
                         class="form-control ocr_number"
                         placeholder=""
                         min="0"
+                    />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Comments:</label>
+                <div class="col-sm-9">
+                    <textarea
+                        id="survey_duration"
+                        v-model="
+                            occurrence_report_obj.observation_detail.comments
+                        "
+                        :disabled="isReadOnly"
+                        class="form-control"
+                        placeholder=""
+                        min="0"
+                        rows="6"
                     />
                 </div>
             </div>

@@ -108,6 +108,20 @@
                 </div>
             </div>
             <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Comments:</label>
+                <div class="col-sm-9">
+                    <textarea
+                        id="survey_duration"
+                        v-model="occurrence_obj.observation_detail.comments"
+                        :disabled="isReadOnly"
+                        class="form-control"
+                        placeholder=""
+                        min="0"
+                        rows="6"
+                    />
+                </div>
+            </div>
+            <div class="row mb-3">
                 <div class="col-sm-12">
                     <span
                         v-if="occurrence_obj.observation_detail.copied_ocr"

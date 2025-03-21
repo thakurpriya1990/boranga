@@ -603,6 +603,7 @@ class OCRObservationDetailSerializer(serializers.ModelSerializer):
             "observation_method",
             "area_surveyed",
             "survey_duration",
+            "comments",
         )
 
 
@@ -1762,6 +1763,7 @@ class SaveOCRObservationDetailSerializer(serializers.ModelSerializer):
             "observation_method_id",
             "area_surveyed",
             "survey_duration",
+            "comments",
         )
 
 
@@ -2732,6 +2734,7 @@ class OCCObservationDetailSerializer(serializers.ModelSerializer):
             "observation_method",
             "area_surveyed",
             "survey_duration",
+            "comments",
         )
 
     def get_copied_ocr(self, obj):
@@ -3057,6 +3060,7 @@ class SaveOCCObservationDetailSerializer(serializers.ModelSerializer):
             "observation_method_id",
             "area_surveyed",
             "survey_duration",
+            "comments",
         )
 
 
