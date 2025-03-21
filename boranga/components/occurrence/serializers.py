@@ -1155,6 +1155,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "number_of_observers",
             "has_main_observer",
             "is_submitter",
+            "comments",
         )
 
     def get_readonly(self, obj):
@@ -1449,6 +1450,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "is_submitter",
             "migrated_from_id",
             "user_is_assessor",
+            "comments",
         )
 
     def get_readonly(self, obj):
@@ -2069,6 +2071,7 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
             "observation_date",
             "ocr_for_occ_number",
             "ocr_for_occ_name",
+            "comments",
         )
         read_only_fields = ("id",)
 

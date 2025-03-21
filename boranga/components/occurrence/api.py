@@ -1718,11 +1718,9 @@ class OccurrenceReportViewSet(
         geometry_data = proposal_data.get("ocr_geometry", None)
         if geometry_data:
             save_geometry(request, instance, geometry_data, "occurrence_report")
-
         serializer = SaveOccurrenceReportSerializer(
             instance, data=proposal_data, partial=True
         )
-
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
             if (

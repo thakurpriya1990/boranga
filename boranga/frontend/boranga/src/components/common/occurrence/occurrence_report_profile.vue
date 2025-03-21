@@ -284,6 +284,20 @@
                         />
                     </div>
                 </div>
+                <div class="row mb-3">
+                    <label for="" class="col-sm-3 col-form-label"
+                        >Comments:
+                    </label>
+                    <div class="col-sm-9">
+                        <textarea
+                            v-model="occurrence_report_obj.comments"
+                            :disabled="isReadOnly"
+                            class="form-control"
+                            name="comments"
+                            rows="7"
+                        />
+                    </div>
+                </div>
             </fieldset>
         </FormSection>
         <FormSection
