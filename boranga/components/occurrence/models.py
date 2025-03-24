@@ -1169,6 +1169,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         ocr_copy.occurrence_report_number = ""
         ocr_copy.lodgement_date = None
         ocr_copy.observation_date = None
+        ocr_copy.comments = None
         ocr_copy.assigned_officer = None
         ocr_copy.assigned_approver = None
         ocr_copy.approved_by = None
@@ -4052,6 +4053,7 @@ class Occurrence(RevisionedMixin):
 
         occurrence.species = occurrence_report.species
         occurrence.community = occurrence_report.community
+        occurrence.comment = occurrence_report.comments
 
         occurrence.save(no_revision=True)
 
