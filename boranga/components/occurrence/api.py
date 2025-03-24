@@ -2989,10 +2989,14 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
                     )
                     .filter(display_name__icontains=search_term)
                     .distinct()
-                    .values("id", "display_name")[:10]
+                    .values("id", "display_name", "comment")[:10]
                 )
                 queryset = [
-                    {"id": occurrence["id"], "text": occurrence["display_name"]}
+                    {
+                        "id": occurrence["id"],
+                        "text": occurrence["display_name"],
+                        "occurrence_comment": occurrence["comment"],
+                    }
                     for occurrence in queryset
                 ]
             else:
