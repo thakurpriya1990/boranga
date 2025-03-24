@@ -261,6 +261,7 @@ export default {
                 cc_email: null,
             },
             occurrence_comment: '',
+            errorString: '',
         };
     },
     computed: {
@@ -341,6 +342,7 @@ export default {
                 occurrence_name: '',
                 create_new_occurrence: false,
                 new_occurrence_name: '',
+                copy_ocr_comments_to_occ_comments: true,
                 details: '',
             };
             $(this.$refs.occurrence_name_lookup_propose_approve)
@@ -387,6 +389,7 @@ export default {
                         async (response) => {
                             if (!response.ok) {
                                 vm.errorString = await response.json();
+                                console.log(vm.errorString);
                                 return;
                             }
                             swal.fire({

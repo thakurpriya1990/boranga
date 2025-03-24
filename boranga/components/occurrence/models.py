@@ -925,6 +925,9 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
                 "officer": request.user.id,
                 "occurrence": occurrence,
                 "new_occurrence_name": new_occurrence_name,
+                "copy_ocr_comments_to_occ_comments": validated_data.get(
+                    "copy_ocr_comments_to_occ_comments", True
+                ),
                 "details": details,
                 "cc_email": validated_data.get("cc_email", None),
             },
@@ -983,6 +986,13 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
                 )
             occurrence = Occurrence.clone_from_occurrence_report(self)
             occurrence.occurrence_name = self.approval_details.new_occurrence_name
+            occurrence.save(version_user=request.user)
+
+        if self.approval_details.copy_ocr_comments_to_occ_comments:
+            if not occurrence.comment:
+                occurrence.comment = self.comments
+            else:
+                occurrence.comment = occurrence.comment + "\n\n" + self.comments
             occurrence.save(version_user=request.user)
 
         self.occurrence = occurrence
@@ -1335,6 +1345,7 @@ class OccurrenceReportApprovalDetails(models.Model):
     )  # If being added to an existing occurrence
     new_occurrence_name = models.CharField(max_length=200, null=True, blank=True)
     officer = models.IntegerField()  # EmailUserRO
+    copy_ocr_comments_to_occ_comments = models.BooleanField(default=True)
     details = models.TextField(blank=True)
     cc_email = models.TextField(null=True)
 
