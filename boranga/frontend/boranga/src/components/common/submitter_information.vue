@@ -101,7 +101,10 @@
                                 'contact_details'
                             )
                         "
-                        class="row mb-3 pb-3 border-bottom"
+                        class="row mb-3 pb-3"
+                        :class="
+                            show_organisation_section ? 'border-bottom' : ''
+                        "
                     >
                         <label
                             for="contact_details"
@@ -118,6 +121,7 @@
                         </div>
                     </div>
                     <div
+                        v-if="show_organisation_section"
                         class="row"
                         :class="show_organisation_information ? 'mb-3' : ''"
                     >
@@ -225,6 +229,10 @@ export default {
             default: false,
         },
         show_submitter_contact_details: {
+            type: Boolean,
+            default: true,
+        },
+        show_organisation_section: {
             type: Boolean,
             default: true,
         },
