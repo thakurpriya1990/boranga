@@ -2163,11 +2163,15 @@ class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry):
 
 
 class ObserverRole(AbstractOrderedList):
-    pass
+    class Meta:
+        ordering = ["order"]
+        app_label = "boranga"
 
 
 class ObserverCategory(AbstractOrderedList):
-    pass
+    class Meta:
+        ordering = ["order"]
+        app_label = "boranga"
 
 
 class OCRObserverDetail(RevisionedMixin):
