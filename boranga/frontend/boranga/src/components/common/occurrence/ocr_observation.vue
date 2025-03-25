@@ -211,8 +211,23 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"
-                    >Identification Certainty:</label
+                <label
+                    for=""
+                    class="col-sm-3 control-label"
+                    :class="
+                        occurrence_report_obj.processing_status ==
+                        constants.PROPOSAL_STATUS.WITH_ASSESSOR.TEXT
+                            ? 'fw-bold'
+                            : ''
+                    "
+                    >Identification Certainty:<span
+                        v-if="
+                            occurrence_report_obj.processing_status ==
+                            constants.PROPOSAL_STATUS.WITH_ASSESSOR.TEXT
+                        "
+                        class="text-danger ms-1"
+                        >*</span
+                    ></label
                 >
                 <div class="col-sm-9">
                     <template v-if="!isReadOnly">
@@ -573,7 +588,7 @@ import { v4 as uuid } from 'uuid';
 import FormSection from '@/components/forms/section_toggle.vue';
 import PlantCount from './plant_count.vue';
 import AnimalObservation from './animal_observation.vue';
-import { api_endpoints, helpers } from '@/utils/hooks';
+import { api_endpoints, constants, helpers } from '@/utils/hooks';
 export default {
     name: 'OCRObservation',
     components: {
@@ -599,6 +614,7 @@ export default {
     data: function () {
         let vm = this;
         return {
+            constants: constants,
             observationDetailBody: 'observationDetailBody' + uuid(),
             plantCountBody: 'plantCountBody' + uuid(),
             animalObsBody: 'animalObsBody' + uuid(),

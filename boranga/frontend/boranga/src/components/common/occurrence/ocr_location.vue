@@ -308,8 +308,23 @@
                 </div>
             </div>-->
             <div v-if="canAssess" class="row mb-3">
-                <label for="" class="col-sm-3 control-label"
-                    >Location Accuracy:</label
+                <label
+                    for=""
+                    class="col-sm-3 control-label"
+                    :class="
+                        occurrence_report_obj.processing_status ==
+                        constants.PROPOSAL_STATUS.WITH_ASSESSOR.TEXT
+                            ? 'fw-bold'
+                            : ''
+                    "
+                    >Location Accuracy:<span
+                        v-if="
+                            occurrence_report_obj.processing_status ==
+                            constants.PROPOSAL_STATUS.WITH_ASSESSOR.TEXT
+                        "
+                        class="text-danger ms-1"
+                        >*</span
+                    ></label
                 >
                 <div class="col-sm-9">
                     <template v-if="!isReadOnly">
@@ -405,7 +420,7 @@ import { v4 as uuid } from 'uuid';
 import FormSection from '@/components/forms/section_toggle.vue';
 //import ObserverDatatable from './observer_datatable.vue';
 import MapComponent from '../component_map.vue';
-import { api_endpoints, helpers } from '@/utils/hooks';
+import { api_endpoints, constants, helpers } from '@/utils/hooks';
 // require("select2/dist/css/select2.min.css");
 // require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
 // import { VueSelect } from 'vue-select';
@@ -447,6 +462,7 @@ export default {
         let vm = this;
         return {
             uuid: null,
+            constants: constants,
             isShowComment: false,
             //---to show fields related to Fauna
             isFauna:
