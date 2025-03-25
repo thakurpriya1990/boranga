@@ -2189,7 +2189,12 @@ class OCRObserverDetail(RevisionedMixin):
         related_name="observer_detail",
     )
     observer_name = models.CharField(max_length=250, blank=True, null=True)
-    role = models.CharField(max_length=250, blank=True, null=True)
+    # role = models.ForeignKey(
+    #     ObserverRole, on_delete=models.PROTECT, null=True, blank=True
+    # )
+    category = models.ForeignKey(
+        ObserverCategory, on_delete=models.PROTECT, null=True, blank=True
+    )
     contact = models.TextField(max_length=250, blank=True, null=True)
     organisation = models.CharField(max_length=250, blank=True, null=True)
     main_observer = models.BooleanField(null=True, blank=True)
