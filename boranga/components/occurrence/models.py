@@ -2172,6 +2172,7 @@ class ObserverCategory(AbstractOrderedList):
     class Meta:
         ordering = ["order"]
         app_label = "boranga"
+        verbose_name_plural = "Observer Categories"
 
 
 class OCRObserverDetail(RevisionedMixin):
