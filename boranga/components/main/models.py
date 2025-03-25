@@ -346,7 +346,7 @@ class HelpTextEntry(ArchivableModel):
         return self.section_id
 
 
-class AbstractOrderedList(ArchivableModel, OrderedModel):
+class AbstractOrderedList(OrderedModel, ArchivableModel):
     objects = OrderedModelManager()
 
     item = models.CharField(max_length=100)
@@ -356,7 +356,7 @@ class AbstractOrderedList(ArchivableModel, OrderedModel):
         app_label = "boranga"
 
     def __str__(self):
-        return str(self.code)
+        return str(self.item)
 
     def get_lists_dict(
         cls: models.base.ModelBase,
