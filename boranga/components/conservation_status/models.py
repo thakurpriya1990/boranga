@@ -324,6 +324,7 @@ class CommonwealthConservationList(AbstractConservationList):
         ordering = ["code"]
         app_label = "boranga"
         verbose_name = "Commonwealth Conservation Category"
+        verbose_name_plural = "Commonwealth Conservation Categories"
 
 
 class OtherConservationAssessmentList(AbstractConservationList):
