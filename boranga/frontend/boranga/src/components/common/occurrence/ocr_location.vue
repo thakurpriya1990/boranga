@@ -107,9 +107,10 @@
             <!-- -------------------------------- -->
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label fw-bold"
-                    >Location Description:
-                    <span class="text-danger">*</span></label
-                >
+                    >Location Description: <span class="text-danger">*</span>
+                    <HelpText
+                        section_id="occurrence_report_location_description"
+                /></label>
                 <div class="col-sm-9">
                     <textarea
                         id="loc_description"
@@ -125,8 +126,10 @@
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
-                    >Boundary Description:</label
-                >
+                    >Boundary Description:
+                    <HelpText
+                        section_id="occurrence_report_boundary_description"
+                /></label>
                 <div class="col-sm-9">
                     <textarea
                         id="boundary_descr"
@@ -420,6 +423,7 @@ import { v4 as uuid } from 'uuid';
 import FormSection from '@/components/forms/section_toggle.vue';
 //import ObserverDatatable from './observer_datatable.vue';
 import MapComponent from '../component_map.vue';
+import HelpText from '@/components/common/help_text.vue';
 import { api_endpoints, constants, helpers } from '@/utils/hooks';
 // require("select2/dist/css/select2.min.css");
 // require("select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css")
@@ -429,6 +433,7 @@ export default {
     name: 'OCRLocation',
     components: {
         FormSection,
+        HelpText,
         MapComponent,
         // VueSelect,
     },
