@@ -57,6 +57,7 @@ from taggit.managers import TaggableManager
 from boranga import exceptions
 from boranga.components.conservation_status.models import ProposalAmendmentReason
 from boranga.components.main.models import (
+    AbstractOrderedList,
     ArchivableModel,
     CommunicationsLogEntry,
     Document,
@@ -2159,6 +2160,14 @@ class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry):
             raise ValidationError("Fauna occurrence reports cannot have polygons")
 
         super().save(*args, **kwargs)
+
+
+class ObserverRole(AbstractOrderedList):
+    pass
+
+
+class ObserverCategory(AbstractOrderedList):
+    pass
 
 
 class OCRObserverDetail(RevisionedMixin):
