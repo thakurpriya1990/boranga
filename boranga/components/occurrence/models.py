@@ -979,6 +979,14 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         if self.approval_details.occurrence:
             occurrence = self.approval_details.occurrence
+
+            if self.approval_details.copy_ocr_comments_to_occ_comments:
+                if not occurrence.comment:
+                    occurrence.comment = self.comments
+                else:
+                    occurrence.comment = occurrence.comment + "\n\n" + self.comments
+                occurrence.save(version_user=request.user)
+
         else:
             if not self.approval_details.new_occurrence_name:
                 raise ValidationError(
@@ -986,13 +994,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
                 )
             occurrence = Occurrence.clone_from_occurrence_report(self)
             occurrence.occurrence_name = self.approval_details.new_occurrence_name
-            occurrence.save(version_user=request.user)
-
-        if self.approval_details.copy_ocr_comments_to_occ_comments:
-            if not occurrence.comment:
-                occurrence.comment = self.comments
-            else:
-                occurrence.comment = occurrence.comment + "\n\n" + self.comments
             occurrence.save(version_user=request.user)
 
         self.occurrence = occurrence
