@@ -5,7 +5,7 @@
             transition="modal fade"
             :title="title"
             large
-            @ok="ok()"
+            @ok="validateForm()"
             @cancel="close()"
         >
             <div class="container-fluid">
@@ -13,6 +13,7 @@
                     <form
                         class="form-horizontal needs-validation"
                         name="observerDetailForm"
+                        id="observerDetailForm"
                         novalidate
                     >
                         <alert v-if="errorString" type="danger"
@@ -78,9 +79,10 @@
                                                 id="role"
                                                 v-model="observerObj.role_id"
                                                 :disabled="isReadOnly"
+                                                required
                                                 class="form-select"
                                             >
-                                                <option :value="null" disabled>
+                                                <option value="" disabled>
                                                     Select the appropriate Role
                                                 </option>
                                                 <option
@@ -149,9 +151,10 @@
                                                     observerObj.category_id
                                                 "
                                                 :disabled="isReadOnly"
+                                                required
                                                 class="form-select"
                                             >
-                                                <option :value="null" disabled>
+                                                <option value="" disabled>
                                                     Select the appropriate
                                                     Observer Category
                                                 </option>
@@ -319,7 +322,7 @@
                                     type="button"
                                     disabled
                                     class="btn btn-primary"
-                                    @click="ok"
+                                    @click="validateForm"
                                 >
                                     Updating
                                     <span
@@ -335,7 +338,7 @@
                                     v-else
                                     type="button"
                                     class="btn btn-primary"
-                                    @click="ok"
+                                    @click="validateForm"
                                 >
                                     Update Observer
                                 </button>
@@ -346,7 +349,7 @@
                                     type="button"
                                     disabled
                                     class="btn btn-primary"
-                                    @click="ok"
+                                    @click="validateForm"
                                 >
                                     Adding
                                     <span
@@ -362,7 +365,7 @@
                                     v-else
                                     type="button"
                                     class="btn btn-primary"
-                                    @click="ok"
+                                    @click="validateForm"
                                 >
                                     Add Observer
                                 </button>
@@ -432,9 +435,9 @@ export default {
                 contact: '',
                 organisation: '',
                 role: '',
-                role_id: null,
+                role_id: '',
                 category: '',
-                category_id: null,
+                category_id: '',
             };
         },
     },
@@ -458,10 +461,7 @@ export default {
     },
     methods: {
         ok: function () {
-            let vm = this;
-            if ($(document.forms.observerDetailForm).valid()) {
-                vm.sendData();
-            }
+            this.validateForm();
         },
         close: function () {
             this.isModalOpen = false;
@@ -469,12 +469,23 @@ export default {
             this.errorString = '';
             $('.has-error').removeClass('has-error');
         },
+        validateForm: function () {
+            let vm = this;
+            var form = document.getElementById('observerDetailForm');
+            if (form.checkValidity()) {
+                console.log('valid');
+                vm.sendData();
+            } else {
+                form.classList.add('was-validated');
+                $('#observerDetailForm').find(':invalid').first().focus();
+            }
+            return false;
+        },
         sendData: function () {
             let vm = this;
             vm.errorString = '';
             let observerObj = JSON.parse(JSON.stringify(vm.observerObj));
             let formData = new FormData();
-            console.log(observerObj);
             if (vm.observerObj.id) {
                 vm.updatingObserver = true;
                 formData.append('data', JSON.stringify(observerObj));
@@ -523,12 +534,11 @@ export default {
                 contact: '',
                 organisation: '',
                 role: '',
-                role_id: null,
+                role_id: '',
                 category: '',
-                category_id: null,
+                category_id: '',
             };
             observerObj = { ...observerObj, ...this.observerObj };
-            console.log(this.occurrence_report.submitter_information);
             observerObj.observer_name =
                 this.occurrence_report.submitter_information.name;
             observerObj.contact =
@@ -550,9 +560,9 @@ export default {
                 main_observer: true,
                 contact: '',
                 role: '',
-                role_id: null,
+                role_id: '',
                 category: '',
-                category_id: null,
+                category_id: '',
                 organisation: '',
             };
             this.$refs.observer_name.focus();
