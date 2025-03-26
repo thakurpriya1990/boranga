@@ -316,6 +316,10 @@ export default {
         `/api/content_types/fields_by_model_name/?model_name=${model_name}`;
     },
 
+    list_items: function (model_name) {
+        return `/api/get_list_items/${model_name}/`;
+    },
+
     group_type_community: group_type_community,
     group_type_fauna: group_type_fauna,
     group_type_flora: group_type_flora,
