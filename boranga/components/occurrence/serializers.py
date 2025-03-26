@@ -1951,6 +1951,12 @@ class SaveOCRLocationSerializer(serializers.ModelSerializer):
 
 
 class OCRObserverDetailSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(source="role.item", allow_null=True, read_only=True)
+    role_id = serializers.IntegerField(allow_null=False, required=True)
+    category = serializers.CharField(
+        source="category.item", allow_null=True, read_only=True
+    )
+    category_id = serializers.IntegerField(allow_null=False, required=True)
     can_action = serializers.SerializerMethodField()
 
     class Meta:
@@ -1960,14 +1966,17 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
             "occurrence_report",
             "observer_name",
             "role",
+            "role_id",
+            "category",
+            "category_id",
             "contact",
             "organisation",
             "main_observer",
             "visible",
             "can_action",
         )
-        read_only_fields = (id,)
-        datatables_always_serialize = ("id", "can_action")
+        read_only_fields = ("id", "role", "category", "can_action")
+        datatables_always_serialize = ("id", "role", "category", "can_action")
 
     def get_can_action(self, obj):
         request = self.context["request"]
@@ -1997,6 +2006,7 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
                     and field_name not in self.Meta.read_only_fields
                 ):
                     setattr(instance, field_name, validated_data[field_name])
+            logger.debug(f"instance: {instance.__dict__}")
             instance.save(*args, **kwargs)
             return instance
 
@@ -2011,6 +2021,9 @@ class OCRObserverDetailLimitedSerializer(OCRObserverDetailSerializer):
             "occurrence_report",
             "observer_name",
             "role",
+            "role_id",
+            "category",
+            "category_id",
             "organisation",
             "main_observer",
             "visible",
