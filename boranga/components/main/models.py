@@ -346,8 +346,16 @@ class HelpTextEntry(ArchivableModel):
         return self.section_id
 
 
+class AbstractOrderedListManager(OrderedModelManager):
+    def active(self):
+        return super().get_queryset().filter(archived=False)
+
+    def archived(self):
+        return super().get_queryset().filter(archived=True)
+
+
 class AbstractOrderedList(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = AbstractOrderedListManager()
 
     item = models.CharField(max_length=100)
 
