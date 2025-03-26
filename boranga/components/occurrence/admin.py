@@ -488,11 +488,11 @@ class OccurrenceReportBulkImportSchemaAdmin(DeleteProtectedModelAdmin):
 
 
 class ObserverRoleAdmin(OrderedModelAdmin):
-    list_display = ["item", "move_up_down_links"]
+    list_display = ["item", "move_up_down_links", "archived"]
 
 
 class ObserverCategoryAdmin(OrderedModelAdmin):
-    list_display = ["item", "move_up_down_links"]
+    list_display = ["item", "move_up_down_links", "archived"]
 
 
 # Each of the following models will be available to Django Admin.
