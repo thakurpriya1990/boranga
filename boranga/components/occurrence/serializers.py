@@ -2010,6 +2010,17 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
             instance.save(*args, **kwargs)
             return instance
 
+    def to_representation(self, instance):
+        my_fields = {"role_id", "category_id"}
+        data = super().to_representation(instance)
+        for field in my_fields:
+            try:
+                if not data[field]:
+                    data[field] = ""
+            except KeyError:
+                pass
+        return data
+
 
 class OCRObserverDetailLimitedSerializer(OCRObserverDetailSerializer):
     # contact fields removed as it contains personally identifiable information
