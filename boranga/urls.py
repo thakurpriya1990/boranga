@@ -349,6 +349,11 @@ api_patterns = [
         history_api.GetRevisionVersionsView.as_view(),
         name="get-revision",
     ),
+    re_path(
+        r"^api/get_list_items/(?P<model_name>[\w-]+)/$",
+        main_api.GetListItems.as_view(),
+        name="get-list-items",
+    ),
 ]
 
 # URL Patterns
