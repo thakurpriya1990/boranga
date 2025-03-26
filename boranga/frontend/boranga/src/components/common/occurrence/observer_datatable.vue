@@ -101,6 +101,11 @@ export default {
                 searchable: true,
             },
             {
+                data: 'category',
+                orderable: true,
+                searchable: true,
+            },
+            {
                 data: 'organisation',
                 orderable: true,
                 searchable: true,
@@ -145,6 +150,7 @@ export default {
                       'Contact Name',
                       'Contact Detail',
                       'Observer Role',
+                      'Observer Category',
                       'Organisation',
                       'Main Observer',
                       'Action',
@@ -152,6 +158,7 @@ export default {
                 : [
                       'Contact Name',
                       'Observer Role',
+                      'Observer Category',
                       'Organisation',
                       'Main Observer',
                       'Action',
@@ -306,18 +313,6 @@ export default {
             }
         },
         newObserverDetail: function () {
-            let vm = this;
-            //----for adding new observer
-            var new_observer_detail = {
-                id: null,
-                occurrence_report: vm.occurrence_report_obj.id,
-                observer_name: '',
-                role: '',
-                contact: '',
-                organisation: '',
-                main_observer: false,
-            };
-            this.$refs.observer_detail.observerObj = new_observer_detail;
             this.$refs.observer_detail.observer_detail_action = 'add';
             this.$refs.observer_detail.isModalOpen = true;
         },
