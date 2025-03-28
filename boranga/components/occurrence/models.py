@@ -2488,41 +2488,71 @@ class OCRHabitatCondition(models.Model):
         null=True,
         related_name="habitat_condition",
     )
-    pristine = models.IntegerField(
+    pristine = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    excellent = models.IntegerField(
+    excellent = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    very_good = models.IntegerField(
+    very_good = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    good = models.IntegerField(
+    good = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    degraded = models.IntegerField(
+    degraded = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    completely_degraded = models.IntegerField(
+    completely_degraded = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
     count_date = models.DateTimeField(null=True, blank=True)
 
@@ -4664,41 +4694,71 @@ class OCCHabitatCondition(models.Model):
     copied_ocr_habitat_condition = models.ForeignKey(
         OCRHabitatCondition, on_delete=models.SET_NULL, null=True, blank=True
     )
-    pristine = models.IntegerField(
+    pristine = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    excellent = models.IntegerField(
+    excellent = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    very_good = models.IntegerField(
+    very_good = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    good = models.IntegerField(
+    good = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    degraded = models.IntegerField(
+    degraded = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    completely_degraded = models.IntegerField(
+    completely_degraded = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
     count_date = models.DateTimeField(null=True, blank=True)
 
