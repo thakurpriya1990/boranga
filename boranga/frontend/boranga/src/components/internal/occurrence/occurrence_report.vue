@@ -85,11 +85,7 @@
                     class="mb-3"
                 />
                 <div
-                    v-if="
-                        profile &&
-                        (occurrence_report.submitter.id == profile.id ||
-                            profile.groups.includes('Occurrence Approvers'))
-                    "
+                    v-if="show_reassign_draft_panel"
                     class="card card-default mb-3"
                 >
                     <div class="card-header">Reassign Draft</div>
@@ -585,10 +581,7 @@
                                     Return to Dashboard
                                 </button>
                                 <div
-                                    v-if="
-                                        occurrence_report.internal_application &&
-                                        occurrence_report.can_user_edit
-                                    "
+                                    v-if="show_save_buttons"
                                     class="col-md-6 text-end"
                                 >
                                     <button
@@ -648,69 +641,36 @@
                                     >
                                         Save and Exit
                                     </button>
-
-                                    <button
-                                        v-if="submitOccurrenceReport"
-                                        class="btn btn-primary"
-                                        style="margin-top: 5px"
-                                        disabled
-                                    >
-                                        Submit&nbsp;
-                                        <span
-                                            class="spinner-border spinner-border-sm"
-                                            role="status"
-                                            aria-hidden="true"
-                                        ></span>
-                                        <span class="visually-hidden"
-                                            >Loading...</span
+                                    <span v-if="show_submit_button">
+                                        <button
+                                            v-if="submitOccurrenceReport"
+                                            class="btn btn-primary"
+                                            style="margin-top: 5px"
+                                            disabled
                                         >
-                                    </button>
-                                    <button
-                                        v-else
-                                        class="btn btn-primary"
-                                        style="margin-top: 5px"
-                                        :disabled="
-                                            saveExitOccurrenceReport ||
-                                            savingOccurrenceReport
-                                        "
-                                        @click.prevent="submit()"
-                                    >
-                                        Submit
-                                    </button>
-                                </div>
-                                <div
-                                    v-else-if="
-                                        occurrence_report.assessor_mode
-                                            .has_assessor_mode ||
-                                        occurrence_report.assessor_mode
-                                            .has_unlocked_mode
-                                    "
-                                    class="col-md-6 text-end"
-                                >
-                                    <button
-                                        v-if="savingOccurrenceReport"
-                                        class="btn btn-primary"
-                                        style="margin-top: 5px"
-                                        disabled
-                                    >
-                                        Save Changes
-                                        <span
-                                            class="spinner-border spinner-border-sm"
-                                            role="status"
-                                            aria-hidden="true"
-                                        ></span>
-                                        <span class="visually-hidden"
-                                            >Loading...</span
+                                            Submit&nbsp;
+                                            <span
+                                                class="spinner-border spinner-border-sm"
+                                                role="status"
+                                                aria-hidden="true"
+                                            ></span>
+                                            <span class="visually-hidden"
+                                                >Loading...</span
+                                            >
+                                        </button>
+                                        <button
+                                            v-else
+                                            class="btn btn-primary"
+                                            style="margin-top: 5px"
+                                            :disabled="
+                                                saveExitOccurrenceReport ||
+                                                savingOccurrenceReport
+                                            "
+                                            @click.prevent="submit()"
                                         >
-                                    </button>
-                                    <button
-                                        v-else
-                                        class="btn btn-primary"
-                                        style="margin-top: 5px"
-                                        @click.prevent="save()"
-                                    >
-                                        Save Changes
-                                    </button>
+                                            Submit
+                                        </button>
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -1000,6 +960,30 @@ export default {
                 ? api_endpoints.occurrence_report +
                       `/${this.occurrence_report.id}/referrals/`
                 : '';
+        },
+        show_save_buttons: function () {
+            return (
+                this.occurrence_report &&
+                (this.show_submit_button ||
+                    this.occurrence_report.assessor_mode.has_assessor_mode ||
+                    this.occurrence_report.assessor_mode.has_unlocked_mode)
+            );
+        },
+        show_submit_button: function () {
+            return (
+                this.occurrence_report &&
+                this.occurrence_report.internal_application &&
+                this.occurrence_report.can_user_edit
+            );
+        },
+        show_reassign_draft_panel: function () {
+            return (
+                this.occurrence_report &&
+                this.occurrence_report.processing_status == 'Draft' &&
+                this.profile &&
+                (this.occurrence_report.submitter.id == this.profile.id ||
+                    this.profile.groups.includes('Occurrence Approvers'))
+            );
         },
     },
     created: function () {
