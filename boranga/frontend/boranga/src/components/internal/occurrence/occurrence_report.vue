@@ -84,6 +84,38 @@
                     :is_new_contributor="occurrence_report.is_new_contributor"
                     class="mb-3"
                 />
+                <div
+                    v-if="
+                        profile &&
+                        (occurrence_report.submitter.id == profile.id ||
+                            profile.groups.includes('Occurrence Approvers'))
+                    "
+                    class="card card-default mb-3"
+                >
+                    <div class="card-header">Reassign Draft</div>
+                    <div class="card-body">
+                        <div>
+                            <select
+                                ref="contributors"
+                                class="form-select form-select-sm"
+                            ></select>
+                        </div>
+                        <button
+                            v-if="
+                                profile &&
+                                profile.groups.includes(
+                                    'Internal Contributors'
+                                ) &&
+                                occurrence_report.submitter.id != profile.id
+                            "
+                            class="btn btn-primary btn-sm float-end mt-2"
+                            role="button"
+                            @click.prevent="reassignDraftToUser(profile.id)"
+                        >
+                            Reassign draft to me
+                        </button>
+                    </div>
+                </div>
 
                 <div class="card card-default sticky-top">
                     <div class="card-header">Workflow</div>
@@ -801,6 +833,7 @@ export default {
     },
     data: function () {
         return {
+            profile: null,
             occurrence_report: null,
             original_occurrence_report: null,
             referrals_api_endpoint: api_endpoints.ocr_referrals,
@@ -816,7 +849,9 @@ export default {
             isSaved: false,
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             department_users: null,
+            contributors: null,
             external_referee_email: '',
+            selectedReassignUser: null,
         };
     },
     computed: {
@@ -973,8 +1008,11 @@ export default {
         }
     },
     mounted: function () {
-        let vm = this;
-        vm.fetchDeparmentUsers();
+        this.fetchProfile();
+        this.fetchDeparmentUsers();
+        this.$nextTick(() => {
+            this.initialiseContributorsSelect();
+        });
     },
     updated: function () {
         let vm = this;
@@ -1488,6 +1526,7 @@ export default {
             vm.$nextTick(() => {
                 vm.initialiseAssignedOfficerSelect(true);
                 vm.updateAssignedOfficerSelect();
+                vm.initialiseContributorsSelect();
             });
         },
         initialiseSelects: function () {
@@ -1497,6 +1536,7 @@ export default {
                 vm.initialiseAssignedOfficerSelect();
                 vm.initialisedSelects = true;
             }
+            vm.initialiseContributorsSelect();
         },
         sendReferral: function () {
             let vm = this;
@@ -1671,6 +1711,36 @@ export default {
                     console.log(error);
                 }
             );
+        },
+        initialiseContributorsSelect: function () {
+            let vm = this;
+            $(vm.$refs.contributors)
+                .select2({
+                    minimumInputLength: 2,
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: 'Search for Contributor',
+                    ajax: {
+                        url: api_endpoints.users_api + '/get_contributors/',
+                        dataType: 'json',
+                        data: function (params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                            };
+                            return query;
+                        },
+                    },
+                })
+                .on('select2:select', function (e) {
+                    let data = e.params.data.id;
+                    vm.selectedReassignUser = e.params.data.text;
+                    vm.reassignDraftToUser(data);
+                })
+                .on('select2:unselect', function () {
+                    vm.selectedReassignUser = null;
+                    $(vm.$refs.contributors).val(null).trigger('change');
+                });
         },
         initialiseReferreeSelect: function () {
             let vm = this;
@@ -1963,6 +2033,63 @@ export default {
                 );
             }
         },
+        reassignDraftToUser: function (emailuser_id) {
+            let vm = this;
+            let endPointAction = '/reassign_draft_to_user';
+            let reassignUser = vm.selectedReassignUser;
+            if (vm.profile.id == emailuser_id) {
+                reassignUser = 'yourself';
+                endPointAction = '/reassign_draft_to_request_user';
+            }
+            swal.fire({
+                title: 'Reassign Draft',
+                text: `Are you sure you want to reassign this draft to ${reassignUser}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Reassign Draft',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    fetch(
+                        helpers.add_endpoint_json(
+                            api_endpoints.occurrence_report,
+                            vm.occurrence_report.id + endPointAction
+                        ),
+                        {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ user_id: emailuser_id }),
+                        }
+                    ).then(
+                        async (response) => {
+                            const data = await response.json();
+                            vm.occurrence_report = data;
+                            $(vm.$refs.contributors)
+                                .val(null)
+                                .trigger('change');
+                        },
+                        (error) => {
+                            swal.fire({
+                                title: 'Application Error',
+                                text: helpers.apiVueResourceError(error),
+                                icon: 'error',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                        }
+                    );
+                } else {
+                    $(vm.$refs.contributors).val(null).trigger('change');
+                }
+            });
+        },
         assignRequestUser: function () {
             let vm = this;
             fetch(
@@ -2021,6 +2148,22 @@ export default {
                 },
                 (err) => {
                     console.log(err);
+                }
+            );
+        },
+        fetchProfile: function () {
+            let vm = this;
+            fetch(api_endpoints.profile, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(
+                async (response) => {
+                    vm.profile = await response.json();
+                },
+                (error) => {
+                    console.log(error);
                 }
             );
         },
