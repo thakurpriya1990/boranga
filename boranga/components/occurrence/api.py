@@ -120,6 +120,7 @@ from boranga.components.occurrence.permissions import (
     OccurrenceReportCopyPermission,
     OccurrenceReportObjectPermission,
     OccurrenceReportPermission,
+    OccurrenceReportReassignDraftPermission,
 )
 from boranga.components.occurrence.serializers import (
     BackToAssessorSerializer,
@@ -2172,6 +2173,37 @@ class OccurrenceReportViewSet(
         )
 
         serializer = self.get_serializer(ocr_copy)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+        permission_classes=[OccurrenceReportReassignDraftPermission],
+    )
+    @renderer_classes((JSONRenderer,))
+    def reassign_draft_to_request_user(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.reassign_draft_to_user(request, request.user.id)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+        permission_classes=[OccurrenceReportReassignDraftPermission],
+    )
+    @renderer_classes((JSONRenderer,))
+    def reassign_draft_to_user(self, request, *args, **kwargs):
+        instance = self.get_object()
+        user_id = request.data.get("user_id", None)
+        if not user_id:
+            raise serializers.ValidationError("A user id is required")
+        instance.reassign_draft_to_user(request, user_id)
+        serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
 
