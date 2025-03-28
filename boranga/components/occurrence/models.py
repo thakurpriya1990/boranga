@@ -416,7 +416,6 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     def log_user_action(self, action, request):
         return OccurrenceReportUserAction.log_action(self, action, request.user.id)
 
-    @property
     def can_user_edit(self, request):
         """
         :return: True if the occurrence report is in one of the editable status.
