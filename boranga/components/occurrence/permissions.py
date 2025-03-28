@@ -426,6 +426,17 @@ class OccurrenceReportCopyPermission(BasePermission):
         return obj.submitter == request.user.id or is_occurrence_assessor(request)
 
 
+class OccurrenceReportReassignDraftPermission(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
+        return obj.submitter == request.user.id or is_occurrence_approver(request)
+
+
 class OccurrenceReportBulkImportPermission(BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
