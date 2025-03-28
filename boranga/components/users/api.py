@@ -7,6 +7,7 @@ from django.db.models.functions import Concat
 from django.shortcuts import get_object_or_404
 from django_countries import countries
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from ledger_api_client.managed_models import SystemGroupPermission
 from rest_framework import mixins, views, viewsets
 from rest_framework.decorators import action as detail_route
 from rest_framework.decorators import action as list_route
@@ -355,3 +356,42 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             document.save()
 
         return Response(serializer.data)
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+    )
+    def get_contributors(self, request, *args, **kwargs):
+        search_term = request.GET.get("term", "")
+        contributor_ids = list(
+            SystemGroupPermission.objects.filter(
+                system_group__name__icontains="contributor"
+            ).values_list("emailuser", flat=True)
+        )
+
+        # Allow for search of first name, last name and concatenation of both
+        users = EmailUser.objects.filter(id__in=contributor_ids).annotate(
+            search_term=Concat(
+                "first_name",
+                Value(" "),
+                "last_name",
+                Value(" "),
+                "email",
+                output_field=CharField(),
+            )
+        )
+
+        users = users.filter(search_term__icontains=search_term).values(
+            "id", "email", "first_name", "last_name"
+        )[:10]
+
+        data_transform = [
+            {
+                "id": person["id"],
+                "text": f"{person['first_name']} {person['last_name']} ({person['email']})",
+            }
+            for person in users
+        ]
+        return Response({"results": data_transform})
