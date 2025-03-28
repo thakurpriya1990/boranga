@@ -342,6 +342,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     main_observer = serializers.SerializerMethodField()
     copied_to_occurrence = serializers.SerializerMethodField()
     geometry_show_on_map = serializers.SerializerMethodField()
+    can_user_edit = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -445,6 +446,10 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             and obj.processing_status
             == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
         )
+
+    def get_can_user_edit(self, obj):
+        request = self.context["request"]
+        return obj.can_user_edit(request)
 
     def get_is_new_contributor(self, obj):
         return is_new_external_contributor(obj.submitter)
