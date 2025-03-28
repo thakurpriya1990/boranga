@@ -256,6 +256,7 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
         format="%Y-%m-%d %H:%M:%S", allow_null=True
     )
     main_observer = serializers.SerializerMethodField()
+    can_user_edit = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -309,6 +310,10 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
             return obj.observer_detail.filter(main_observer=True).first().observer_name
         else:
             return ""
+
+    def get_can_user_edit(self, obj):
+        request = self.context["request"]
+        return obj.can_user_edit(request)
 
 
 class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
@@ -413,14 +418,14 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     def get_assessor_edit(self, obj):
         request = self.context["request"]
         user = request.user
-        if obj.can_user_edit:
+        if obj.can_user_edit(request):
             if user in obj.allowed_assessors:
                 return True
         return False
 
     def get_internal_user_edit(self, obj):
         request = self.context["request"]
-        if obj.can_user_edit:
+        if obj.can_user_edit(request):
             if obj.internal_application is True and obj.submitter == request.user.id:
                 return True
         else:
@@ -1106,6 +1111,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     number_of_observers = serializers.IntegerField(read_only=True)
     has_main_observer = serializers.BooleanField(read_only=True)
     is_submitter = serializers.SerializerMethodField()
+    can_user_edit = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -1249,6 +1255,10 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     def get_is_submitter(self, obj):
         request = self.context["request"]
         return request.user.id == obj.submitter
+
+    def get_can_user_edit(self, obj):
+        request = self.context["request"]
+        return obj.can_user_edit(request)
 
 
 class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
