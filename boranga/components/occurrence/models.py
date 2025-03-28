@@ -52,6 +52,7 @@ from openpyxl.styles.fonts import Font
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 from ordered_model.models import OrderedModel, OrderedModelManager
+from rest_framework import serializers
 from taggit.managers import TaggableManager
 
 from boranga import exceptions
@@ -661,6 +662,39 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         request.user.log_user_action(
             OccurrenceReportUserAction.ACTION_REINSTATE_PROPOSAL.format(
                 self.occurrence_report_number
+            ),
+            request,
+        )
+
+    @transaction.atomic
+    def reassign_draft_to_user(self, request, user_id):
+        if not self.processing_status == OccurrenceReport.PROCESSING_STATUS_DRAFT:
+            raise exceptions.OccurrenceReportNotAuthorized()
+
+        try:
+            new_submitter = EmailUser.objects.get(id=user_id)
+        except EmailUser.DoesNotExist:
+            raise serializers.ValidationError(
+                f"EmailUserRO with id {user_id} does not exist"
+            )
+
+        previous_submitter = EmailUser.objects.get(id=self.submitter)
+        self.submitter = new_submitter.id
+        self.save(version_user=request.user)
+
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_REASSIGN_DRAFT_TO_USER.format(
+                self.occurrence_report_number,
+                previous_submitter.get_full_name(),
+                new_submitter.get_full_name(),
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_REASSIGN_DRAFT_TO_USER.format(
+                self.occurrence_report_number,
+                previous_submitter.get_full_name(),
+                new_submitter.get_full_name(),
             ),
             request,
         )
@@ -1427,6 +1461,9 @@ class OccurrenceReportUserAction(UserAction):
     ACTION_UPDATE_OBSERVER_DETAIL = "Update Observer {} on occurrence report {}"
     ACTION_COPY = "Created occurrence report {} from a copy of occurrence report {}"
     ACTION_COPY_TO = "Copy occurrence report to {}"
+    ACTION_REASSIGN_DRAFT_TO_USER = (
+        "Occurrence Report {} (draft) reassigned from {} to {}"
+    )
 
     # Amendment
     ACTION_ID_REQUEST_AMENDMENTS = "Request amendments"
