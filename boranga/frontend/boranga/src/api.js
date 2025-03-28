@@ -12,6 +12,7 @@ export default {
     conservation_status_documents: '/api/conservation_status_documents.json',
     conservation_status: '/api/conservation_status',
     content_types: '/api/content_types/',
+    contributors: '/api/contributors',
     countries: '/api/countries',
     cs_external_referee_invites: '/api/cs_external_referee_invites',
     cs_referrals: '/api/cs_referrals.json',
