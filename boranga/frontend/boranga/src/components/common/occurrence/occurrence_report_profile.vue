@@ -224,50 +224,46 @@
                         />
                     </div>
                 </div>
-                <template v-if="!is_external">
-                    <div class="row mb-3">
-                        <label
-                            for="occurrence_report_is_for_occurrence_number"
-                            class="col-sm-3 col-form-label"
-                            >OCR is for OCC Number:
-                            <HelpText
-                                section_id="occurrence_report_is_for_occurrence_number"
-                            />
-                        </label>
-                        <div class="col-sm-9">
-                            <input
-                                id="occurrence_report_is_for_occurrence_number"
-                                v-model="
-                                    occurrence_report_obj.ocr_for_occ_number
-                                "
-                                type="text"
-                                :disabled="isReadOnly"
-                                class="form-control"
-                                autocomplete="new-password"
-                            />
-                        </div>
+                <div class="row mb-3">
+                    <label
+                        for="occurrence_report_is_for_occurrence_number"
+                        class="col-sm-3 col-form-label"
+                        >OCR is for OCC Number:
+                        <HelpText
+                            section_id="occurrence_report_is_for_occurrence_number"
+                        />
+                    </label>
+                    <div class="col-sm-9">
+                        <input
+                            id="occurrence_report_is_for_occurrence_number"
+                            v-model="occurrence_report_obj.ocr_for_occ_number"
+                            type="text"
+                            :disabled="isReadOnly"
+                            class="form-control"
+                            autocomplete="new-password"
+                        />
                     </div>
-                    <div class="row mb-3">
-                        <label
-                            for="occurrence_report_for_occurrence_name"
-                            class="col-sm-3 col-form-label"
-                            >Occurrence Name:
-                            <HelpText
-                                section_id="occurrence_report_for_occurrence_name"
-                            />
-                        </label>
-                        <div class="col-sm-9">
-                            <input
-                                id="occurrence_report_for_occurrence_name"
-                                v-model="occurrence_report_obj.ocr_for_occ_name"
-                                type="text"
-                                :disabled="isReadOnly"
-                                class="form-control"
-                                autocomplete="new-password"
-                            />
-                        </div>
+                </div>
+                <div class="row mb-3">
+                    <label
+                        for="occurrence_report_for_occurrence_name"
+                        class="col-sm-3 col-form-label"
+                        >Occurrence Name:
+                        <HelpText
+                            section_id="occurrence_report_for_occurrence_name"
+                        />
+                    </label>
+                    <div class="col-sm-9">
+                        <input
+                            id="occurrence_report_for_occurrence_name"
+                            v-model="occurrence_report_obj.ocr_for_occ_name"
+                            type="text"
+                            :disabled="isReadOnly"
+                            class="form-control"
+                            autocomplete="new-password"
+                        />
                     </div>
-                </template>
+                </div>
                 <div class="row mb-3">
                     <label for="" class="col-sm-3 col-form-label fw-bold"
                         >Observation Date:
