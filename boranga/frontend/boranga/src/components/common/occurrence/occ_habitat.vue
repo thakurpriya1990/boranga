@@ -591,6 +591,11 @@
                             readonly
                             type="number"
                             class="form-control"
+                            :class="
+                                keigheryScaleTotal == 100.0
+                                    ? 'border-success border-2'
+                                    : 'border-danger border-2'
+                            "
                             placeholder=""
                         />
                         <span class="input-group-text">%</span>
@@ -1159,38 +1164,57 @@ export default {
                         'Content-Type': 'application/json',
                     },
                 }
-            ).then(
-                async (response) => {
-                    vm.updatingHabitatCompositionDetails = false;
-                    vm.occurrence_obj.habitat_composition =
-                        await response.json();
-                    swal.fire({
-                        title: 'Saved',
-                        text: 'Habitat Composition details have been saved',
-                        icon: 'success',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    });
-                },
-                (error) => {
-                    var text = helpers.apiVueResourceError(error);
+            ).then(async (response) => {
+                let data = await response.json();
+                if (!response.ok) {
                     swal.fire({
                         title: 'Error',
                         text:
                             'Habitat Composition details cannot be saved because of the following error: ' +
-                            text,
+                            JSON.stringify(data),
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
                     });
                     vm.updatingHabitatCompositionDetails = false;
+                    return;
                 }
-            );
+                vm.updatingHabitatCompositionDetails = false;
+                vm.occurrence_obj.habitat_composition = data;
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Habitat Composition details have been saved',
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+            });
+        },
+        validateKeigheryScaleTotal: function () {
+            let vm = this;
+            if (vm.keigheryScaleTotal != (100.0).toFixed(2)) {
+                swal.fire({
+                    title: 'Keighery Scale Total Error',
+                    text:
+                        'Keighery Scale total should be 100%. Currently the total is ' +
+                        vm.keigheryScaleTotal +
+                        '%.',
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+                return false;
+            }
+            return true;
         },
         updateHabitatConditionDetails: function () {
             let vm = this;
+            if (!vm.validateKeigheryScaleTotal()) {
+                return;
+            }
             vm.updatingHabitatConditionDetails = true;
             fetch(
                 helpers.add_endpoint_json(
@@ -1204,34 +1228,33 @@ export default {
                     },
                     body: JSON.stringify(vm.occurrence_obj.habitat_condition),
                 }
-            ).then(
-                async (response) => {
-                    vm.updatingHabitatConditionDetails = false;
-                    vm.occurrence_obj.habitat_condition = await response.json();
-                    swal.fire({
-                        title: 'Saved',
-                        text: 'Habitat Condition details have been saved',
-                        icon: 'success',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    });
-                },
-                (error) => {
-                    var text = helpers.apiVueResourceError(error);
+            ).then(async (response) => {
+                let data = await response.json();
+                if (!response.ok) {
                     swal.fire({
                         title: 'Error',
                         text:
                             'Habitat Condition details cannot be saved because of the following error: ' +
-                            text,
+                            JSON.stringify(data),
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
                     });
                     vm.updatingHabitatConditionDetails = false;
+                    return;
                 }
-            );
+                vm.updatingHabitatConditionDetails = false;
+                vm.occurrence_obj.habitat_condition = data;
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Habitat Condition details have been saved',
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+            });
         },
         updateVegetationStructure: function () {
             let vm = this;
