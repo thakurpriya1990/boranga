@@ -240,6 +240,7 @@
                             type="text"
                             :disabled="isReadOnly"
                             class="form-control"
+                            maxlength="9"
                             autocomplete="new-password"
                         />
                     </div>
