@@ -1278,22 +1278,25 @@ export default {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-            }).then(
-                async () => {},
-                (err) => {
-                    var errorText = helpers.apiVueResourceError(err);
+            }).then(async (response) => {
+                let data = await response.json();
+                if (!response.ok) {
                     swal.fire({
-                        title: 'Submit Error',
-                        text: errorText,
+                        title: 'Save Error',
+                        text: JSON.stringify(data),
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
                     });
-                    vm.submitOccurrenceReport = false;
-                    vm.saveError = true;
+                    vm.savingOccurrenceReport = false;
+                    vm.isSaved = false;
+                    vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
+                        false
+                    );
+                    return;
                 }
-            );
+            });
             return result;
         },
         can_submit: async function (check_action) {
