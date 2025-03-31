@@ -598,6 +598,11 @@
                             type="number"
                             class="form-control"
                             placeholder=""
+                            :class="
+                                keigheryScaleTotal == 100.0
+                                    ? 'border-success border-2'
+                                    : 'border-danger border-2'
+                            "
                         />
                         <span class="input-group-text">%</span>
                     </div>
@@ -1124,45 +1129,63 @@ export default {
                         vm.occurrence_report_obj.habitat_composition
                     ),
                 }
-            ).then(
-                async (response) => {
-                    vm.updatingHabitatCompositionDetails = false;
-                    vm.occurrence_report_obj.habitat_composition =
-                        await response.json();
-                    swal.fire({
-                        title: 'Saved',
-                        text: 'Habitat Composition details have been saved',
-                        icon: 'success',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    }).then(() => {
-                        if (
-                            vm.occurrence_report_obj.processing_status ==
-                            'Unlocked'
-                        ) {
-                            vm.$router.go();
-                        }
-                    });
-                },
-                (error) => {
-                    var text = helpers.apiVueResourceError(error);
+            ).then(async (response) => {
+                let data = await response.json();
+                if (!response.ok) {
                     swal.fire({
                         title: 'Error',
                         text:
                             'Habitat Composition details cannot be saved because of the following error: ' +
-                            text,
+                            JSON.stringify(data),
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
                     });
                     vm.updatingHabitatCompositionDetails = false;
+                    return;
                 }
-            );
+                vm.updatingHabitatCompositionDetails = false;
+                vm.occurrence_report_obj.habitat_composition = data;
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Habitat Composition details have been saved',
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                }).then(() => {
+                    if (
+                        vm.occurrence_report_obj.processing_status == 'Unlocked'
+                    ) {
+                        vm.$router.go();
+                    }
+                });
+            });
+        },
+        validateKeigheryScaleTotal: function () {
+            let vm = this;
+            if (vm.keigheryScaleTotal != (100.0).toFixed(2)) {
+                swal.fire({
+                    title: 'Keighery Scale Total Error',
+                    text:
+                        'Keighery Scale total should be 100%. Currently the total is ' +
+                        vm.keigheryScaleTotal +
+                        '%.',
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+                return false;
+            }
+            return true;
         },
         updateHabitatConditionDetails: function () {
             let vm = this;
+            if (!vm.validateKeigheryScaleTotal()) {
+                return;
+            }
             vm.updatingHabitatConditionDetails = true;
             fetch(
                 helpers.add_endpoint_json(
@@ -1179,34 +1202,14 @@ export default {
                         vm.occurrence_report_obj.habitat_condition
                     ),
                 }
-            ).then(
-                async (response) => {
-                    vm.updatingHabitatConditionDetails = false;
-                    vm.occurrence_report_obj.habitat_condition =
-                        await response.json();
-                    swal.fire({
-                        title: 'Saved',
-                        text: 'Habitat Condition details have been saved',
-                        icon: 'success',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    }).then(() => {
-                        if (
-                            vm.occurrence_report_obj.processing_status ==
-                            'Unlocked'
-                        ) {
-                            vm.$router.go();
-                        }
-                    });
-                },
-                (error) => {
-                    var text = helpers.apiVueResourceError(error);
+            ).then(async (response) => {
+                let data = await response.json();
+                if (!response.ok) {
                     swal.fire({
                         title: 'Error',
                         text:
                             'Habitat Condition details cannot be saved because of the following error: ' +
-                            text,
+                            JSON.stringify(data),
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
@@ -1221,7 +1224,24 @@ export default {
                     });
                     vm.updatingHabitatConditionDetails = false;
                 }
-            );
+                vm.updatingHabitatConditionDetails = false;
+                vm.occurrence_report_obj.habitat_condition =
+                    await response.json();
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Habitat Condition details have been saved',
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                }).then(() => {
+                    if (
+                        vm.occurrence_report_obj.processing_status == 'Unlocked'
+                    ) {
+                        vm.$router.go();
+                    }
+                });
+            });
         },
         updateVegetationStructure: function () {
             let vm = this;
