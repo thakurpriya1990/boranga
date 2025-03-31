@@ -1,8 +1,10 @@
 import hashlib
 import logging
+from decimal import Decimal
 
 from django.db import models, transaction
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from taggit.serializers import TaggitSerializer, TagListSerializerField
@@ -1717,6 +1719,38 @@ class SaveOCRHabitatConditionSerializer(serializers.ModelSerializer):
             "completely_degraded",
             "count_date",
         )
+
+    def validate(self, attrs):
+        count_date = attrs.get("count_date")
+        if count_date:
+            try:
+                # Check if the date is in the future
+                if count_date > timezone.now():
+                    raise serializers.ValidationError(
+                        "Count date cannot be in the future."
+                    )
+            except ValueError:
+                raise serializers.ValidationError("Invalid date format.")
+
+        # Make sure the total of pristine, excellent, very_good, good, degraded, and completely_degraded is 100
+        habitat_conditions_fields = [
+            "pristine",
+            "excellent",
+            "very_good",
+            "good",
+            "degraded",
+            "completely_degraded",
+        ]
+        total = Decimal("0.00")
+        for field in habitat_conditions_fields:
+            total += Decimal(attrs.get(field, Decimal("0.00")))
+        total = total.quantize(Decimal("0.00"))
+        if total != Decimal("100.00"):
+            raise serializers.ValidationError(
+                "The sum of habitat conditions must equal 100. Currently they equal %s."
+                % total
+            )
+        return attrs
 
 
 class SaveOCRVegetationStructureSerializer(serializers.ModelSerializer):
