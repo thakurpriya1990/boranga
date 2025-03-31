@@ -786,6 +786,7 @@
                         type="month"
                         class="form-control"
                         name="last_fire_date"
+                        :max="new Date().toISOString().slice(0, 7)"
                         @change="checkDate()"
                     />
                 </div>
@@ -1108,12 +1109,35 @@ export default {
                 });
         },
         checkDate: function () {
-            let vm = this;
-            if (vm.$refs.last_fire_date.value) {
-                vm.occurrence_obj.fire_history.last_fire_estimate =
-                    vm.$refs.last_fire_date.value;
-            } else {
-                vm.occurrence_obj.fire_history.last_fire_estimate = null;
+            if (
+                isNaN(
+                    new Date(
+                        this.occurrence_obj.fire_history.last_fire_estimate +
+                            '-01'
+                    )
+                )
+            ) {
+                return;
+            }
+            if (
+                new Date(
+                    this.occurrence_obj.fire_history.last_fire_estimate + '-01'
+                ) > new Date()
+            ) {
+                this.occurrence_obj.fire_history.last_fire_estimate = new Date()
+                    .toISOString()
+                    .slice(0, 7);
+                this.$nextTick(() => {
+                    this.$refs.last_fire_date.focus();
+                });
+                swal.fire({
+                    title: 'Error',
+                    text: 'Last fire estimate cannot be in the future',
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
             }
         },
         relatedSpeciesTextChanged: function (new_text) {
