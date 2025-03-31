@@ -162,6 +162,7 @@ from boranga.components.occurrence.serializers import (
     OCRObserverDetailSerializer,
     ProposeApproveSerializer,
     ProposeDeclineSerializer,
+    SaveBeforeSubmitOCRHabitatConditionSerializer,
     SaveOCCAnimalObservationSerializer,
     SaveOCCAssociatedSpeciesSerializer,
     SaveOCCConservationThreatSerializer,
@@ -1740,9 +1741,15 @@ class OccurrenceReportViewSet(
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
     def submit(self, request, *args, **kwargs):
-
         instance = self.get_object()
-        # instance.submit(request,self)
+
+        # This will validate the keighery scale percentages
+        habitat_condition_instance = instance.habitat_condition
+        serializer = SaveBeforeSubmitOCRHabitatConditionSerializer(
+            data=habitat_condition_instance.__dict__
+        )
+        serializer.is_valid(raise_exception=True)
+
         ocr_proposal_submit(instance, request)
         instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
