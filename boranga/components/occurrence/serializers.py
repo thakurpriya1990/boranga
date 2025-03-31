@@ -1169,6 +1169,8 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "has_main_observer",
             "is_submitter",
             "comments",
+            "ocr_for_occ_number",
+            "ocr_for_occ_name",
         )
 
     def get_readonly(self, obj):
@@ -1719,6 +1721,9 @@ class SaveOCRHabitatConditionSerializer(serializers.ModelSerializer):
             "completely_degraded",
             "count_date",
         )
+
+
+class SaveBeforeSubmitOCRHabitatConditionSerializer(SaveOCRHabitatConditionSerializer):
 
     def validate(self, attrs):
         count_date = attrs.get("count_date")
