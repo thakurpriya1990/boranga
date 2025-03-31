@@ -23,8 +23,8 @@
                     :is_external="false"
                     :point-features-supported="true"
                     :polygon-features-supported="true"
-                    :drawable="true"
-                    :editable="true"
+                    :drawable="!isReadOnly"
+                    :editable="!isReadOnly"
                     :file-upload-disabled="true"
                     level="internal"
                     style-by="model"
@@ -461,7 +461,6 @@ import {
     intersects,
     intersectedArea,
 } from '@/components/common/map_functions.js';
-
 export default {
     name: 'OCClocations',
     components: {
@@ -613,7 +612,7 @@ export default {
             return api_endpoints.occurrence + 'buffer_geometries/';
         },
         isReadOnly: function () {
-            return this.occurrence_obj.readonly;
+            return !this.occurrence_obj.can_user_edit;
         },
         csrf_token: function () {
             return helpers.getCookie('csrftoken');
