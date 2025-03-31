@@ -1199,28 +1199,12 @@ export default {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-            }).then(
-                async (response) => {
-                    swal.fire({
-                        title: 'Saved',
-                        text: 'Your changes have been saved',
-                        icon: 'success',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    });
-                    vm.savingOccurrenceReport = false;
-                    vm.isSaved = true;
-                    vm.occurrence_report = await response.json();
-                    vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
-                        false
-                    );
-                },
-                (err) => {
-                    var errorText = helpers.apiVueResourceError(err);
+            }).then(async (response) => {
+                let data = await response.json();
+                if (!response.ok) {
                     swal.fire({
                         title: 'Save Error',
-                        text: errorText,
+                        text: JSON.stringify(data),
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
@@ -1231,8 +1215,23 @@ export default {
                     vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
                         false
                     );
+                    return;
                 }
-            );
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Your changes have been saved',
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+                vm.savingOccurrenceReport = false;
+                vm.isSaved = true;
+                vm.occurrence_report = await response.json();
+                vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
+                    false
+                );
+            });
         },
         save_exit: async function () {
             let vm = this;
