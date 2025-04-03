@@ -9,7 +9,6 @@ django-colorfield~=0.11.0
 django-confy==1.0.4
 django-countries~=7.5
 django-crispy-forms==2.0 # Last version to support Django 3.2
-django-cron==0.6.0 # This project is no longer maintained
 django-datatables-view~=1.20
 django-debug-toolbar~=4.3
 django-dirtyfields~=1.9
@@ -25,12 +24,12 @@ django-phonenumber-field~=7.3
 django-reset-migrations~=0.4
 django-reversion-compare~=0.17
 django-reversion~=5.0
-django-taggit==4.0.0
+django-taggit==6.1.0
 django-treebeard~=4.7
 django-utils-six==2.0
 django-vite~=3.0.5
 django-widget-tweaks~=1.5
-Django==5.0.13
+Django==5.2
 djangorestframework-csv~=3.0
 djangorestframework-datatables~=0.7
 djangorestframework-gis~=1.0
@@ -44,6 +43,7 @@ git+https://github.com/dbca-wa/django5-utils-six.git#egg=django5_six
 git+https://github.com/dbca-wa/ledger_api_client.git#egg=ledger_api_client
 git+https://github.com/dbca-wa/wagov_utils
 git+https://github.com/dbca-wa/webtemplate2.git#egg=webtemplate_dbca
+git+https://github.com/jorenham/django-cron.git@cec74656a6cada4c40fec43f46594bf332268ab1
 git+https://github.com/goinnn/django-multiselectfield.git#egg=django-multiselectfield
 git+https://github.com/xzzy/django-preserialize.git#egg=django-preserialize
 gunicorn~=23.0
