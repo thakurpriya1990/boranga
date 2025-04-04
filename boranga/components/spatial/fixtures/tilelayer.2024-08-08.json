@@ -66,7 +66,7 @@
       "min_zoom": 0,
       "max_zoom": 21,
       "is_tenure_intersects_query_layer": false,
-      "invert_xy": false,
+      "invert_xy": true,
       "matrix_set": "",
       "tile_pixel_size": 256
     }
@@ -90,7 +90,7 @@
       "min_zoom": 0,
       "max_zoom": 21,
       "is_tenure_intersects_query_layer": false,
-      "invert_xy": false,
+      "invert_xy": true,
       "matrix_set": "",
       "tile_pixel_size": 256
     }
