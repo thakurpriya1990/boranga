@@ -1769,6 +1769,18 @@ export default {
                         propertyName: 'SHAPE', // Default to query for feature geometries only
                         geometry: 'SHAPE', // Geometry name (not `the_geom`)
                     },
+                    'kaartdijin-boodja-public:CPT_DBCA_REGIONS': {
+                        version: '2.0.0', // WFS version
+                        srsName: 'EPSG:4326',
+                        propertyName: 'SHAPE', // Default to query for feature geometries only
+                        geometry: 'SHAPE', // Geometry name (not `the_geom`)
+                    },
+                    'kaartdijin-boodja-public:CPT_DBCA_DISTRICTS': {
+                        version: '2.0.0', // WFS version
+                        srsName: 'EPSG:4326',
+                        propertyName: 'SHAPE', // Default to query for feature geometries only
+                        geometry: 'SHAPE', // Geometry name (not `the_geom`)
+                    },
                 };
             },
         },
