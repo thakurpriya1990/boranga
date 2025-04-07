@@ -58,6 +58,7 @@ export default {
     approvals_paginated_external:
         '/api/approval_paginated/approvals_external/?format=datatables',
     common_name_lookup: '/api/common_name_lookup',
+    common_name_lookup_ocr_select: '/api/common_name_lookup_ocr_select',
     communities_lookup: '/api/communities_lookup',
     communities_paginated_external:
         '/api/communities_paginated/communities_external/?format=datatables',

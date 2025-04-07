@@ -265,6 +265,11 @@ api_patterns = [
         name="get-scientific-name",
     ),
     re_path(
+        r"^api/common_name_lookup_ocr_select$",
+        species_communities_api.GetCommonNameOCRSelect.as_view(),
+        name="get-common-name-ocr-select",
+    ),
+    re_path(
         r"^api/scientific_name_lookup_by_groupname$",
         species_communities_api.GetScientificNameByGroup.as_view(),
         name="get-scientific-name-by-groupname",
