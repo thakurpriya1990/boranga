@@ -1193,7 +1193,7 @@ export default {
             }
 
             let payload = { proposal: vm.occurrence_report };
-            await fetch(vm.occurrence_report_form_url, {
+            fetch(vm.occurrence_report_form_url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1227,7 +1227,7 @@ export default {
                 });
                 vm.savingOccurrenceReport = false;
                 vm.isSaved = true;
-                vm.occurrence_report = await response.json();
+                vm.occurrence_report = data;
                 vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
                     false
                 );
