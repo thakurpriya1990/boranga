@@ -1400,6 +1400,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     )
     observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    common_names = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceReport
@@ -1470,6 +1471,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "migrated_from_id",
             "user_is_assessor",
             "comments",
+            "common_names",
         )
 
     def get_readonly(self, obj):
@@ -1561,6 +1563,14 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
 
     def get_is_new_contributor(self, obj):
         return is_new_external_contributor(obj.submitter)
+
+    def get_common_names(self, obj):
+        if not obj.species:
+            return []
+
+        return obj.species.taxonomy.vernaculars.values_list(
+            "vernacular_name", flat=True
+        )
 
 
 class DTOccurrenceReportReferralSerializer(serializers.ModelSerializer):
