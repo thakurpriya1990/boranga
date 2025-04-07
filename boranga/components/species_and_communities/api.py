@@ -75,6 +75,7 @@ from boranga.components.species_and_communities.permissions import (
     SpeciesCommunitiesPermission,
 )
 from boranga.components.species_and_communities.serializers import (
+    CommonNameTaxonomySerializer,
     CommunityDistributionSerializer,
     CommunityDocumentSerializer,
     CommunityLogEntrySerializer,
@@ -269,6 +270,48 @@ class GetCommonName(views.APIView):
             ]
             return Response({"results": data_transform})
         return Response()
+
+
+class GetCommonNameOCRSelect(views.APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, format=None):
+        search_term = request.GET.get("term", "")
+        group_type_id = request.GET.get("group_type_id", "")
+        has_species = request.GET.get("has_species", False)
+
+        if not search_term:
+            return Response({"results": []})
+
+        taxonomy_vernaculars = TaxonVernacular.objects.all()
+
+        if has_species:
+            taxonomy_vernaculars = taxonomy_vernaculars.exclude(taxonomy__species=None)
+
+        taxonomy_vernaculars = taxonomy_vernaculars.filter(
+            taxonomy__species__processing_status=Species.PROCESSING_STATUS_ACTIVE
+        )
+        taxonomy_vernaculars = taxonomy_vernaculars.filter(
+            vernacular_name__icontains=search_term,
+        )
+
+        if group_type_id:
+            logger.debug(f"filtering by group_type_id: {group_type_id}")
+            taxonomy_vernaculars = taxonomy_vernaculars.filter(
+                taxonomy__kingdom_fk__grouptype_id=group_type_id
+            )
+
+        taxonomy_ids = taxonomy_vernaculars.distinct().values_list(
+            "taxonomy_id", flat=True
+        )
+        taxonomies = Taxonomy.objects.filter(
+            id__in=taxonomy_ids,
+        )
+
+        serializer = CommonNameTaxonomySerializer(
+            taxonomies[:10], context={"request": request}, many=True
+        )
+        return Response({"results": serializer.data})
 
 
 class GetFamily(views.APIView):
