@@ -43,7 +43,7 @@ git+https://github.com/dbca-wa/django5-utils-six.git#egg=django5_six
 git+https://github.com/dbca-wa/ledger_api_client.git#egg=ledger_api_client
 git+https://github.com/dbca-wa/wagov_utils
 git+https://github.com/dbca-wa/webtemplate2.git#egg=webtemplate_dbca
-git+https://github.com/jorenham/django-cron.git@cec74656a6cada4c40fec43f46594bf332268ab1
+git+https://github.com/dbca-wa/django-cron.git@60d2002e58ac99a06ed66633ed76d8cf3380a762
 git+https://github.com/goinnn/django-multiselectfield.git#egg=django-multiselectfield
 git+https://github.com/xzzy/django-preserialize.git#egg=django-preserialize
 gunicorn~=23.0
