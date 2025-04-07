@@ -148,6 +148,51 @@
                             />
                         </div>
                     </div>
+                    <div
+                        v-if="
+                            !occurrence_report_obj.species_id ||
+                            (occurrence_report_obj.common_names &&
+                                occurrence_report_obj.common_names.length > 0)
+                        "
+                        class="row mb-3"
+                    >
+                        <label for="" class="col-sm-3 col-form-label fw-bold"
+                            >Common Name<template
+                                v-if="occurrence_report_obj.species_id"
+                                >(s)</template
+                            ><template v-else> Lookup</template>:</label
+                        >
+                        <div :id="select_common_name" class="col-sm-9">
+                            <template v-if="!occurrence_report_obj.species_id">
+                                <select
+                                    :id="common_name_lookup"
+                                    :ref="common_name_lookup"
+                                    :disabled="isReadOnly"
+                                    :name="common_name_lookup"
+                                    class="form-control"
+                                />
+                            </template>
+                            <template
+                                v-else-if="
+                                    occurrence_report_obj.common_names &&
+                                    occurrence_report_obj.common_names.length >
+                                        0
+                                "
+                            >
+                                <template
+                                    v-for="commonName in occurrence_report_obj.common_names"
+                                    :key="commonName"
+                                >
+                                    <h5 class="d-inline">
+                                        <span class="badge bg-primary me-2">{{
+                                            commonName
+                                        }}</span>
+                                    </h5></template
+                                >
+                            </template>
+                        </div>
+                    </div>
+
                     <div class="row mb-3">
                         <label for="" class="col-sm-3 col-form-label"
                             >Previous Name:</label
@@ -359,8 +404,10 @@ export default {
             uuid: null,
             scientific_name_lookup: 'scientific_name_lookup' + uuid(),
             select_scientific_name: 'select_scientific_name' + uuid(),
+            common_name_lookup: 'common_name_lookup' + uuid(),
             community_name_lookup: 'community_name_lookup' + uuid(),
             select_community_name: 'select_community_name' + uuid(),
+            select_common_name: 'select_common_name' + uuid(),
             isFauna:
                 vm.occurrence_report_obj.group_type === 'fauna' ? true : false,
             isCommunity:
@@ -473,6 +520,7 @@ export default {
         this.$nextTick(() => {
             vm.initialiseScientificNameLookup();
             vm.initialiseCommunityNameLookup();
+            vm.initialiseCommonNameLookup();
         });
     },
     methods: {
@@ -518,12 +566,82 @@ export default {
                     vm.species_display = '';
                     vm.taxon_previous_name = '';
                     vm.$emit('saveOccurrenceReport');
+                    vm.$nextTick(() => {
+                        vm.initialiseCommonNameLookup();
+                    });
                 })
                 // eslint-disable-next-line no-unused-vars
                 .on('select2:open', function (e) {
                     const searchField = $(
                         '[aria-controls="select2-' +
                             vm.scientific_name_lookup +
+                            '-results"]'
+                    );
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
+        initialiseCommonNameLookup: function () {
+            let vm = this;
+            $(vm.$refs[vm.common_name_lookup])
+                .select2({
+                    minimumInputLength: 2,
+                    dropdownParent: $('#' + vm.select_common_name),
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: 'Select Common Name',
+                    ajax: {
+                        url: api_endpoints.common_name_lookup_ocr_select,
+                        dataType: 'json',
+                        data: function (params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id:
+                                    vm.occurrence_report_obj.group_type_id,
+                                has_species: true,
+                            };
+                            return query;
+                        },
+                    },
+                })
+                .on('select2:select', function (e) {
+                    vm.occurrence_report_obj.species_id =
+                        e.params.data.species_id;
+                    vm.occurrence_report_obj.species_taxonomy_id =
+                        e.params.data.id;
+                    vm.occurrence_report_obj.common_names =
+                        e.params.data.common_names_list;
+                    // Unfortunate to call this twice but the change event on the fieldset fires before
+                    // the select2:select event
+                    vm.$emit('saveOccurrenceReport');
+                    var newOption = new Option(
+                        e.params.data.scientific_name,
+                        e.params.data.id,
+                        false,
+                        true
+                    );
+                    $('#' + vm.scientific_name_lookup)
+                        .append(newOption)
+                        .trigger('change');
+
+                    vm.species_display = e.params.data.scientific_name;
+                    vm.taxon_previous_name = e.params.data.taxon_previous_name;
+                    $(vm.$refs[vm.common_name_lookup]).select2('destroy');
+                })
+                .on('select2:unselect', function (e) {
+                    // eslint-disable-next-line no-unused-vars
+                    var selected = $(e.currentTarget);
+                    vm.occurrence_report_obj.species_id = null;
+                    vm.species_display = '';
+                    vm.taxon_previous_name = '';
+                    vm.$emit('saveOccurrenceReport');
+                })
+                // eslint-disable-next-line no-unused-vars
+                .on('select2:open', function (e) {
+                    const searchField = $(
+                        '[aria-controls="select2-' +
+                            vm.common_name_lookup +
                             '-results"]'
                     );
                     // move focus to select2 field
