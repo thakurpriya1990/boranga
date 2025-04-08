@@ -3517,9 +3517,7 @@ class Occurrence(RevisionedMixin):
         max_length=50, blank=True, null=True, unique=True
     )
 
-    occurrence_name = models.CharField(
-        max_length=250, blank=True, null=True, unique=True
-    )
+    occurrence_name = models.CharField(max_length=250, blank=True, null=True)
     group_type = models.ForeignKey(
         GroupType, on_delete=models.PROTECT, null=True, blank=True
     )
@@ -3597,6 +3595,11 @@ class Occurrence(RevisionedMixin):
             models.Index(fields=["species"]),
             models.Index(fields=["community"]),
         ]
+        unique_together = (
+            ("occurrence_name", "species"),
+            ("occurrence_name", "community"),
+        )
+
         app_label = "boranga"
 
     def save(self, *args, **kwargs):
