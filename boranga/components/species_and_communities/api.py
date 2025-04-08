@@ -400,12 +400,19 @@ class GetCommunityId(views.APIView):
     def get(self, request, format=None):
         search_term = request.GET.get("term", "")
         if search_term:
-            data = CommunityTaxonomy.objects.filter(
+            community_taxonomies = CommunityTaxonomy.objects.filter(
                 community_migrated_id__icontains=search_term
-            ).values("id", "community_migrated_id")[:10]
+            ).values("id", "community_migrated_id", "community_id", "community_name")[
+                :10
+            ]
             data_transform = [
-                {"id": community["id"], "text": community["community_migrated_id"]}
-                for community in data
+                {
+                    "id": community_taxonomy["id"],
+                    "text": community_taxonomy["community_migrated_id"],
+                    "community_id": community_taxonomy["community_id"],
+                    "community_name": community_taxonomy["community_name"],
+                }
+                for community_taxonomy in community_taxonomies
             ]
             return Response({"results": data_transform})
         return Response()
@@ -425,15 +432,23 @@ class GetCommunityName(views.APIView):
                     & Q(community_name__icontains=search_term)
                 )[:10]
                 data_transform = [
-                    {"id": community.community.id, "text": community.community_name}
+                    {
+                        "id": community.community.id,
+                        "text": community.community_name,
+                        "community_migrated_id": community.community_migrated_id,
+                    }
                     for community in data
                 ]
             else:
                 data = CommunityTaxonomy.objects.filter(
                     community_name__icontains=search_term
-                ).values("id", "community_name")[:10]
+                ).values("id", "community_name", "community_migrated_id")[:10]
                 data_transform = [
-                    {"id": taxon["id"], "text": taxon["community_name"]}
+                    {
+                        "id": taxon["id"],
+                        "text": taxon["community_name"],
+                        "community_migrated_id": taxon["community_migrated_id"],
+                    }
                     for taxon in data
                 ]
             return Response({"results": data_transform})
