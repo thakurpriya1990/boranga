@@ -158,9 +158,18 @@
                     >
                         <label for="" class="col-sm-3 col-form-label fw-bold"
                             >Common Name<template
-                                v-if="occurrence_report_obj.species_id"
+                                v-if="
+                                    occurrence_report_obj.species_id &&
+                                    occurrence_report_obj.common_names &&
+                                    occurrence_report_obj.common_names.length >
+                                        1
+                                "
                                 >(s)</template
-                            ><template v-else> Lookup</template>:</label
+                            ><template
+                                v-else-if="!occurrence_report_obj.species_id"
+                            >
+                                Lookup</template
+                            >:</label
                         >
                         <div :id="select_common_name" class="col-sm-9">
                             <template v-if="!occurrence_report_obj.species_id">
@@ -192,7 +201,6 @@
                             </template>
                         </div>
                     </div>
-
                     <div class="row mb-3">
                         <label for="" class="col-sm-3 col-form-label"
                             >Previous Name:</label
@@ -234,6 +242,49 @@
                                 class="form-control"
                                 rows="2"
                             />
+                        </div>
+                    </div>
+                    <div
+                        v-if="
+                            !occurrence_report_obj.community_id ||
+                            occurrence_report_obj.community_migrated_id
+                        "
+                        class="row mb-3"
+                    >
+                        <label for="" class="col-sm-3 col-form-label"
+                            >Community ID<template
+                                v-if="!occurrence_report_obj.community_id"
+                            >
+                                Lookup</template
+                            >:</label
+                        >
+                        <div :id="select_community_id" class="col-sm-9">
+                            <template
+                                v-if="!occurrence_report_obj.community_id"
+                            >
+                                <select
+                                    :id="community_id_lookup"
+                                    :ref="community_id_lookup"
+                                    :disabled="isReadOnly"
+                                    :name="community_id_lookup"
+                                    class="form-control"
+                                />
+                            </template>
+                            <template
+                                v-else-if="
+                                    occurrence_report_obj.community_migrated_id
+                                "
+                            >
+                                <input
+                                    id="community_migrated_id"
+                                    :value="
+                                        occurrence_report_obj.community_migrated_id
+                                    "
+                                    disabled
+                                    type="text"
+                                    class="form-control"
+                                />
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -406,8 +457,10 @@ export default {
             select_scientific_name: 'select_scientific_name' + uuid(),
             common_name_lookup: 'common_name_lookup' + uuid(),
             community_name_lookup: 'community_name_lookup' + uuid(),
+            community_id_lookup: 'community_id_lookup' + uuid(),
             select_community_name: 'select_community_name' + uuid(),
             select_common_name: 'select_common_name' + uuid(),
+            select_community_id: 'select_community_id' + uuid(),
             isFauna:
                 vm.occurrence_report_obj.group_type === 'fauna' ? true : false,
             isCommunity:
@@ -521,6 +574,7 @@ export default {
             vm.initialiseScientificNameLookup();
             vm.initialiseCommunityNameLookup();
             vm.initialiseCommonNameLookup();
+            vm.initialiseCommunityIDLookup();
         });
     },
     methods: {
@@ -554,10 +608,13 @@ export default {
                     vm.occurrence_report_obj.species_id =
                         e.params.data.species_id;
                     vm.species_display = e.params.data.text;
+                    vm.occurrence_report_obj.common_names =
+                        e.params.data.common_names_list;
                     vm.taxon_previous_name = e.params.data.taxon_previous_name;
                     // Unfortunate to call this twice but the change event on the fieldset fires before
                     // the select2:select event
                     vm.$emit('saveOccurrenceReport');
+                    $(vm.$refs[vm.common_name_lookup]).select2('destroy');
                 })
                 .on('select2:unselect', function (e) {
                     // eslint-disable-next-line no-unused-vars
@@ -648,6 +705,72 @@ export default {
                     searchField[0].focus();
                 });
         },
+        initialiseCommunityIDLookup: function () {
+            let vm = this;
+            $(vm.$refs[vm.community_id_lookup])
+                .select2({
+                    minimumInputLength: 2,
+                    dropdownParent: $('#' + vm.select_community_id),
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: 'Select Community ID',
+                    ajax: {
+                        url: api_endpoints.community_id_lookup,
+                        dataType: 'json',
+                        data: function (params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id:
+                                    vm.occurrence_report_obj.group_type_id,
+                                has_species: true,
+                            };
+                            return query;
+                        },
+                    },
+                })
+                .on('select2:select', function (e) {
+                    vm.occurrence_report_obj.community_id =
+                        e.params.data.community_id;
+                    vm.occurrence_report_obj.community_name =
+                        e.params.data.community_name;
+                    vm.occurrence_report_obj.community_migrated_id =
+                        e.params.data.text;
+                    vm.community_display = e.params.data.community_name;
+                    // the select2:select event // Unfortunate to call this twice but the change event on the fieldset fires before
+                    vm.$emit('saveOccurrenceReport');
+                    var newOption = new Option(
+                        vm.occurrence_report_obj.community_name,
+                        vm.occurrence_report_obj.community_id,
+                        false,
+                        true
+                    );
+                    $('#' + vm.community_name_lookup)
+                        .append(newOption)
+                        .trigger('change');
+
+                    $(vm.$refs[vm.community_id_lookup]).select2('destroy');
+                })
+                .on('select2:unselect', function (e) {
+                    // eslint-disable-next-line no-unused-vars
+                    var selected = $(e.currentTarget);
+                    vm.occurrence_report_obj.community_id = null;
+                    vm.occurrence_report_obj.community_name = null;
+                    vm.occurrence_report_obj.community_migrated_id = null;
+                    vm.community_display = '';
+                    vm.$emit('saveOccurrenceReport');
+                })
+                // eslint-disable-next-line no-unused-vars
+                .on('select2:open', function (e) {
+                    const searchField = $(
+                        '[aria-controls="select2-' +
+                            vm.community_id_lookup +
+                            '-results"]'
+                    );
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
         getSpeciesDisplay: function () {
             let vm = this;
             if (vm.occurrence_report_obj.species_taxonomy_id != null) {
@@ -687,18 +810,21 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    // eslint-disable-next-line no-unused-vars
-                    var selected = $(e.currentTarget);
-                    let data = e.params.data.id;
-                    vm.occurrence_report_obj.community_id = data;
+                    vm.occurrence_report_obj.community_id = e.params.data.id;
+                    vm.occurrence_report_obj.community_migrated_id =
+                        e.params.data.community_migrated_id;
                     vm.community_display = e.params.data.text;
                     vm.$emit('saveOccurrenceReport');
+                    $(vm.$refs[vm.community_id_lookup]).select2('destroy');
                 })
-                .on('select2:unselect', function (e) {
-                    // eslint-disable-next-line no-unused-vars
-                    var selected = $(e.currentTarget);
+                .on('select2:unselect', function () {
                     vm.occurrence_report_obj.community_id = null;
+                    vm.occurrence_report_obj.community_name = null;
+                    vm.occurrence_report_obj.community_migrated_id = null;
                     vm.community_display = '';
+                    vm.$nextTick(() => {
+                        vm.initialiseCommunityIDLookup();
+                    });
                     vm.$emit('saveOccurrenceReport');
                 })
                 // eslint-disable-next-line no-unused-vars
