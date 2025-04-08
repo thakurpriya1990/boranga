@@ -1401,6 +1401,9 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     common_names = serializers.SerializerMethodField(read_only=True)
+    community_migrated_id = serializers.CharField(
+        source="community.taxonomy.community_migrated_id", allow_null=True
+    )
 
     class Meta:
         model = OccurrenceReport
@@ -1413,6 +1416,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "species_number",
             "community_number",
             "community_id",
+            "community_migrated_id",
             "occurrence_report_number",
             "reported_date",
             "lodgement_date",
