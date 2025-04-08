@@ -2622,6 +2622,13 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
             "review_due_date",
         )
         read_only_fields = ("id", "group_type")
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=model.objects.all(),
+                fields=("occurrence_name", "species", "community"),
+                message="An occurrence with this name already exists for this species or community.",
+            )
+        ]
 
     def validate(self, data):
         obj = self.instance
