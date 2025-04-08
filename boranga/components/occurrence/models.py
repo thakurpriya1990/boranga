@@ -3595,10 +3595,7 @@ class Occurrence(RevisionedMixin):
             models.Index(fields=["species"]),
             models.Index(fields=["community"]),
         ]
-        unique_together = (
-            ("occurrence_name", "species"),
-            ("occurrence_name", "community"),
-        )
+        unique_together = (("occurrence_name", "species", "community"),)
 
         app_label = "boranga"
 
