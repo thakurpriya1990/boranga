@@ -1205,7 +1205,6 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         publishing_status_instance, created = (
             SpeciesPublishingStatus.objects.get_or_create(species=instance)
         )
-        publishing_status_instance.species_public = False
         publishing_status_instance.save()
         serializer = SaveSpeciesSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -2037,7 +2036,6 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         publishing_status_instance, created = (
             CommunityPublishingStatus.objects.get_or_create(community=instance)
         )
-        publishing_status_instance.community_public = False
         publishing_status_instance.save()
 
         serializer = SaveCommunitySerializer(instance, data=request_data)
@@ -2861,7 +2859,6 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 SpeciesPublishingStatus.objects.get_or_create(species=instance.species)
             )
             if publishing_status_instance.threats_public:
-                publishing_status_instance.species_public = False
                 publishing_status_instance.save()
         elif instance.community:
             publishing_status_instance, created = (
@@ -2870,7 +2867,6 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 )
             )
             if publishing_status_instance.threats_public:
-                publishing_status_instance.community_public = False
                 publishing_status_instance.save()
 
     # used for Threat Form dropdown lists
@@ -3132,7 +3128,6 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 SpeciesPublishingStatus.objects.get_or_create(species=instance.species)
             )
             if publishing_status_instance.threats_public:
-                publishing_status_instance.species_public = False
                 publishing_status_instance.save()
         elif instance.community:
             instance.community.log_user_action(
@@ -3153,7 +3148,6 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 )
             )
             if publishing_status_instance.threats_public:
-                publishing_status_instance.community_public = False
                 publishing_status_instance.save()
 
         serializer = self.get_serializer(instance)
