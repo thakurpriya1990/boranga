@@ -164,8 +164,7 @@
                     <label for="newOccurrenceNo">No</label>
                 </div>
             </div>-->
-
-            <div class="row mb-3">
+            <div v-if="canAssess" class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
                     >Map Data Type</label
                 >
