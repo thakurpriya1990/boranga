@@ -143,7 +143,6 @@
         <ThreatDetail
             ref="threat_detail"
             :url="threat_url"
-            :change_warning="changeWarning"
             @refresh-from-response="refreshFromResponse"
         >
         </ThreatDetail>
@@ -448,16 +447,6 @@ export default {
         };
     },
     computed: {
-        changeWarning: function () {
-            if (
-                this.species_community.publishing_status.species_public &&
-                this.species_community.publishing_status.threats_public
-            )
-                return 'Adding or updating a threat will set the Species record to Private.';
-            else {
-                return null;
-            }
-        },
         filterApplied: function () {
             if (
                 this.filterThreatCategory === 'all' &&
