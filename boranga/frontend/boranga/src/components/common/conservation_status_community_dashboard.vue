@@ -747,7 +747,7 @@ export default {
                 'WA Legislative List',
                 'WA Legislative Category',
                 'Commonwealth Conservation Category',
-                'International Conservation',
+                'Other Conservation Assessment',
                 'Conservation Criteria',
                 'Submitter Name',
                 'Submitter Category',

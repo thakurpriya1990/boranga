@@ -602,7 +602,7 @@ export default {
                     'WA Legislative List',
                     'WA Legislative Category',
                     'Commonwealth Conservation Category',
-                    'International Conservation',
+                    'Other Conservation Assessment',
                     'Conservation Criteria',
                     'Action',
                 ];
@@ -621,7 +621,7 @@ export default {
                     'WA Legislative List',
                     'WA Legislative Category',
                     'Commonwealth Conservation Category',
-                    'International Conservation',
+                    'Other Conservation Assessment',
                     'Conservation Criteria',
                     'Status',
                     'Action',

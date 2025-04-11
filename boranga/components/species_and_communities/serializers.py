@@ -209,7 +209,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
     def get_other_conservation_assessment(self, obj):
         conservation_status = obj.approved_conservation_status
         if conservation_status and conservation_status.other_conservation_assessment:
-            return conservation_status.other_conservation_assessment
+            return conservation_status.other_conservation_assessment.code
         return ""
 
     def get_conservation_criteria(self, obj):
