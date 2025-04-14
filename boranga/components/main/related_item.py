@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from boranga.helpers import is_internal
+
 
 class RelatedItem:
     def __init__(
@@ -39,3 +41,13 @@ class RelatedItemsSerializer(serializers.Serializer):
     descriptor = serializers.CharField()
     status = serializers.CharField()
     action_url = serializers.CharField(allow_blank=True)
+
+    def to_representation(self, instance):
+        # Am using to modify the action urls for external users so they only
+        # see links to species / communities profile but don't see links to OCC/OCR etc
+        request = self.context.get("request")
+        if not is_internal(request):
+            # If the request is not internal, remove the action_url field
+            instance.action_url = None
+
+        return super().to_representation(instance)
