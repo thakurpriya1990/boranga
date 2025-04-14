@@ -1512,6 +1512,10 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         new_rename_instance.lodgement_date = None
         new_rename_instance.save(version_user=request.user)
 
+        # Copy the regions an districts
+        new_rename_instance.regions.add(*instance.regions.all())
+        new_rename_instance.districts.add(*instance.districts.all())
+
         # Log action
         new_rename_instance.log_user_action(
             SpeciesUserAction.ACTION_COPY_SPECIES_FROM.format(
@@ -1793,7 +1797,9 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         related_filter_type = request.GET.get("related_filter_type")
         related_items = instance.get_related_items(related_filter_type)
-        serializer = RelatedItemsSerializer(related_items, many=True)
+        serializer = RelatedItemsSerializer(
+            related_items, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     @detail_route(
@@ -2205,7 +2211,9 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         related_filter_type = request.GET.get("related_filter_type")
         related_items = instance.get_related_items(related_filter_type)
-        serializer = RelatedItemsSerializer(related_items, many=True)
+        serializer = RelatedItemsSerializer(
+            related_items, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     @detail_route(
