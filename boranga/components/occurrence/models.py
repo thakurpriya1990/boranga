@@ -1105,6 +1105,8 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             and self.processing_status == OccurrenceReport.PROCESSING_STATUS_APPROVED
         ):
             self.processing_status = OccurrenceReport.PROCESSING_STATUS_UNLOCKED
+            if self.assigned_officer != request.user.id:
+                self.assigned_officer = request.user.id
             self.save(version_user=request.user)
 
     @property
