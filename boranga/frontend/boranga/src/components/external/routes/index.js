@@ -50,7 +50,7 @@ export default {
                     name: 'draft_ocr_proposal',
                 },
                 {
-                    path: '/submit',
+                    path: 'submit',
                     component: OCRProposalSubmit,
                     name: 'submit_ocr_proposal',
                 },
