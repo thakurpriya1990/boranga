@@ -407,7 +407,7 @@ class TaxonomySerializer(serializers.ModelSerializer):
         return ", ".join(str(vn.vernacular_name) for vn in obj.vernaculars.all())
 
     def get_common_names_list(self, obj):
-        if not obj.species:
+        if not hasattr(obj, "species") or not obj.species:
             return []
 
         return obj.species.taxonomy.vernaculars.values_list(
