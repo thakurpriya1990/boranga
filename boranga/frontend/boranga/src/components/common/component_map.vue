@@ -3295,9 +3295,13 @@ export default {
             });
 
             // Add a button to show/hide the layers
-            const button = $('<div title="show/hide" style="cursor: pointer;">')
-                .text('Show/hide all')
-                .click(() => {
+            const button = $(
+                '<button id="global-layer-visibilty-toggle" class="btn btn-primary btn-sm mb-2"></button>'
+            )
+                .text('Show/Hide All Layers')
+                .click((e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     const a = this.map
                         .getLayers()
                         .getArray()
@@ -3312,7 +3316,13 @@ export default {
                         a[i].setVisible(b);
                     }
                 });
-            this.layerSwitcher.setHeader($('<div>').append(button).get(0));
+            this.layerSwitcher.setHeader(
+                $(
+                    '<div class="d-flex justify-content-center border-bottom mb-3">'
+                )
+                    .append(button)
+                    .get(0)
+            );
 
             this.map.addControl(this.layerSwitcher);
         },
