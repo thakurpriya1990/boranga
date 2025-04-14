@@ -3330,7 +3330,9 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         instance = self.get_object()
         related_filter_type = request.GET.get("related_filter_type")
         related_items = instance.get_related_items(related_filter_type)
-        serializer = RelatedItemsSerializer(related_items, many=True)
+        serializer = RelatedItemsSerializer(
+            related_items, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     @list_route(
@@ -4154,7 +4156,9 @@ class OccurrenceViewSet(
         instance = self.get_object()
         related_filter_type = request.GET.get("related_filter_type")
         related_items = instance.get_related_items(related_filter_type)
-        serializer = RelatedItemsSerializer(related_items, many=True)
+        serializer = RelatedItemsSerializer(
+            related_items, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     @list_route(
