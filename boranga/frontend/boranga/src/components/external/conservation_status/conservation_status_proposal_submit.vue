@@ -46,7 +46,7 @@
                         </p>
 
                         <router-link
-                            :to="{ name: 'external-conservation_status-dash' }"
+                            :to="{ name: 'external-conservation-status-dash' }"
                             style="margin-top: 15px"
                             class="btn btn-primary"
                             >Return to Conservation Status
@@ -60,7 +60,7 @@
                             currently in your session.</strong
                         >
                         <br /><router-link
-                            :to="{ name: 'external-conservation_status-dash' }"
+                            :to="{ name: 'external-conservation-status-dash' }"
                             style="margin-top: 15px"
                             class="btn btn-primary"
                             >Return to Conservation Status
@@ -98,6 +98,12 @@ export default {
         },
     },
     created: function () {
+        if (!window.history.state.conservation_status_obj) {
+            this.$router.push({
+                name: 'external-conservation-status-dash',
+            });
+            return;
+        }
         Object.assign(
             this.conservation_status_obj,
             JSON.parse(window.history.state.conservation_status_obj)

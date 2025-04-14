@@ -64,7 +64,7 @@ export default {
         {
             path: 'conservation-status',
             component: ExternalConservationStatusDash,
-            name: 'external-conservation_status-dash',
+            name: 'external-conservation-status-dash',
         },
         {
             path: 'conservation-status',

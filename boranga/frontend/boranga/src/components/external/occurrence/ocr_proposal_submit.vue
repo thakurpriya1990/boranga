@@ -92,6 +92,12 @@ export default {
         },
     },
     created: function () {
+        if (!window.history.state.occurrence_report_obj) {
+            this.$router.push({
+                name: 'external-occurrence-report-dash',
+            });
+            return;
+        }
         Object.assign(
             this.occurrence_report_obj,
             JSON.parse(window.history.state.occurrence_report_obj)
