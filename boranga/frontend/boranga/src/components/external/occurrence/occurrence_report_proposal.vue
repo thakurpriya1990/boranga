@@ -851,9 +851,10 @@ export default {
                                 vm.occurrence_report_obj = data;
                                 vm.$router.push({
                                     name: 'submit_ocr_proposal',
-                                    params: {
-                                        occurrence_report_obj:
-                                            vm.occurrence_report_obj,
+                                    state: {
+                                        occurrence_report_obj: JSON.stringify(
+                                            vm.occurrence_report_obj
+                                        ),
                                     },
                                 });
                             });
