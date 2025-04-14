@@ -53,10 +53,8 @@
                             Dashboard</router-link
                         >
                     </div>
-                    <div
-                        v-else
-                        class="col-sm-offset-3 col-sm-6 borderDecoration"
-                    >
+                    <div v-else class="col-9 p-3 border rounded">
+                        >
                         <strong
                             >Sorry it looks like there isn't any application
                             currently in your session.</strong
@@ -65,7 +63,7 @@
                             :to="{ name: 'external-conservation_status-dash' }"
                             style="margin-top: 15px"
                             class="btn btn-primary"
-                            >Reutrn to Conservation Status
+                            >Return to Conservation Status
                             Dashboard</router-link
                         >
                     </div>
@@ -77,14 +75,6 @@
 <script>
 import { api_endpoints } from '@/utils/hooks';
 export default {
-    // beforeRouteEnter: function (to, from, next) {
-    //     next((vm) => {
-    //         vm.conservation_status_obj = JSON.parse(
-    //             JSON.stringify(window.history.state.conservation_status_obj)
-    //         );
-    //         console.log(vm.conservation_status_obj);
-    //     });
-    // },
     data: function () {
         return {
             conservation_status_obj: {},
