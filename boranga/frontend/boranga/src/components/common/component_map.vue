@@ -4481,7 +4481,7 @@ export default {
             const label = properties.label || context.label || 'Draw';
 
             // Apply the passed in properties to the feature, but overwrite where necessary (nullish coalescing operator ??=)
-            const featureProperties = structuredClone(properties);
+            const featureProperties = structuredClone(toRaw(properties));
             featureProperties['can_hide_geometries'] =
                 context['can_hide_geometries'] || false;
             // Make sure all features have an id under the same key
