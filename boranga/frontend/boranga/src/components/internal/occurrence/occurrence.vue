@@ -470,7 +470,12 @@ export default {
                 });
                 vm.savingOccurrence = false;
                 vm.isSaved = true;
-                vm.refreshFromResponse(data);
+
+                // Update the occurrence object with the response data
+                vm.original_occurrence = helpers.copyObject(data);
+                vm.occurrence = helpers.copyObject(data);
+                vm.combine_key++;
+
                 vm.$refs.occurrence.$refs.occ_location.$refs.component_map.setLoadingMap(
                     false
                 );
