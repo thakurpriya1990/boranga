@@ -3937,7 +3937,7 @@ export default {
             let vm = this;
 
             const transform = new Transform({
-                features: vm.editableFeatureCollection,
+                features: toRaw(vm.editableFeatureCollection),
                 hitTolerance: vm.hitTolerance,
             });
 
