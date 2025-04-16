@@ -5417,14 +5417,14 @@ export default {
 
             if (coordsChanged || sridChanged) {
                 // Update the undo-redo stack for user input geodata
-                const clone = structuredClone(geometry);
+                const clone = structuredClone(toRaw(geometry));
                 clone['ol_uid'] = feature.ol_uid;
                 const before = [...this.userInputGeometryStack];
                 this.userInputGeometryStack.push(clone);
 
                 this.undoredo.push('update user input geodata', {
                     before: before,
-                    after: structuredClone(this.userInputGeometryStack),
+                    after: structuredClone(toRaw(this.userInputGeometryStack)),
                 });
             }
 
