@@ -3389,6 +3389,10 @@ class OccurrenceReportShapefileDocument(Document):
     def get_parent_instance(self) -> models.Model:
         return self.occurrence_report
 
+    def delete(self, *args, **kwargs):
+        # By pass the custom delete method in super and just do a regular delete
+        models.Model.delete(self, *args, **kwargs)
+
 
 class OCRConservationThreat(RevisionedMixin):
     BULK_IMPORT_ABBREVIATION = "ocrthr"
