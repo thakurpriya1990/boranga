@@ -54,6 +54,21 @@
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label class="control-label pull-left"
+                                            >Organisation</label
+                                        >
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <input
+                                            v-model="contactObj.organisation"
+                                            type="text"
+                                            class="form-control"
+                                            :disabled="isReadOnly"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <label class="control-label pull-left"
                                             >Contact Details</label
                                         >
                                     </div>
@@ -67,22 +82,6 @@
                                         />
                                     </div>
                                 </div>
-                                <div class="row mb-3">
-                                    <div class="col-sm-3">
-                                        <label class="control-label pull-left"
-                                            >Organisation</label
-                                        >
-                                    </div>
-                                    <div class="col-sm-9">
-                                        <input
-                                            v-model="contactObj.organisation"
-                                            type="text"
-                                            class="form-control"
-                                            :disabled="isReadOnly"
-                                        />
-                                    </div>
-                                </div>
-
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
                                         <label class="control-label pull-left"

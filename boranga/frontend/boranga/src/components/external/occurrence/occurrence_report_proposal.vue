@@ -434,39 +434,12 @@ export default {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-            }).then(
-                async (response) => {
-                    const data = await response.json();
-
-                    let swalHtml =
-                        '<p>Your occurrence report has been saved as a draft.</p>';
-                    if (vm.saveExitOCRProposal) {
-                        swalHtml +=
-                            '<p>It has <span class="fw-bold">NOT</span> been submitted.</p><p>You can find the draft on the occurrence report dashboard to continue working on the report later.</p>';
-                    }
-
-                    swal.fire({
-                        title: 'Occurrence Report Saved',
-                        html: swalHtml,
-                        icon: 'success',
-                        buttonsStyling: false,
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    });
-                    vm.savingOCRProposal = false;
-                    this.occurrence_report_obj = Object.assign({}, data);
-                    this.$nextTick(async () => {
-                        this.$refs.occurrence_report.$refs.ocr_location.incrementComponentMapKey();
-                    });
-                    vm.isSaved = true;
-                    return data;
-                },
-                (err) => {
-                    var errorText = helpers.apiVueResourceError(err);
+            }).then(async (response) => {
+                const data = await response.json();
+                if (!response.ok) {
                     swal.fire({
                         title: 'Save Error',
-                        text: errorText,
+                        text: JSON.stringify(data),
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
@@ -474,8 +447,33 @@ export default {
                     });
                     vm.savingOCRProposal = false;
                     vm.isSaved = false;
+                    return;
                 }
-            );
+
+                let swalHtml =
+                    '<p>Your occurrence report has been saved as a draft.</p>';
+                if (vm.saveExitOCRProposal) {
+                    swalHtml +=
+                        '<p>It has <span class="fw-bold">NOT</span> been submitted.</p><p>You can find the draft on the occurrence report dashboard to continue working on the report later.</p>';
+                }
+
+                swal.fire({
+                    title: 'Occurrence Report Saved',
+                    html: swalHtml,
+                    icon: 'success',
+                    buttonsStyling: false,
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+                vm.savingOCRProposal = false;
+                this.occurrence_report_obj = Object.assign({}, data);
+                this.$nextTick(async () => {
+                    this.$refs.occurrence_report.$refs.ocr_location.incrementComponentMapKey();
+                });
+                vm.isSaved = true;
+                return data;
+            });
         },
         save_exit: async function () {
             let vm = this;
@@ -566,24 +564,23 @@ export default {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-            }).then(
-                async () => {
-                    console.log('saved before submit');
-                },
-                (err) => {
-                    var errorText = helpers.apiVueResourceError(err);
+            }).then(async (response) => {
+                let data = await response.json();
+                if (!response.ok) {
+                    vm.submitting = false;
+                    vm.saveError = true;
                     swal.fire({
-                        title: 'Submit Error',
-                        text: errorText,
+                        title: 'Save Error',
+                        text: JSON.stringify(data),
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
                     });
-                    vm.submitting = false;
-                    vm.saveError = true;
+                    return;
                 }
-            );
+                console.log('saved before submit');
+            });
             return result;
         },
         setdata: function (readonly) {
@@ -837,29 +834,30 @@ export default {
                                     },
                                     body: JSON.stringify(payload),
                                 }
-                            ).then(
-                                async (response) => {
-                                    vm.occurrence_report_obj =
-                                        await response.json();
-                                    vm.$router.push({
-                                        name: 'submit_ocr_proposal',
-                                        params: {
-                                            occurrence_report_obj:
-                                                vm.occurrence_report_obj,
-                                        },
-                                    });
-                                },
-                                (err) => {
+                            ).then(async (response) => {
+                                let data = await response.json();
+                                if (!response.ok) {
+                                    vm.submitting = false;
                                     swal.fire({
                                         title: 'Submit Error',
-                                        text: helpers.apiVueResourceError(err),
+                                        text: JSON.stringify(data),
                                         icon: 'error',
                                         customClass: {
                                             confirmButton: 'btn btn-primary',
                                         },
                                     });
+                                    return;
                                 }
-                            );
+                                vm.occurrence_report_obj = data;
+                                vm.$router.push({
+                                    name: 'submit_ocr_proposal',
+                                    state: {
+                                        occurrence_report_obj: JSON.stringify(
+                                            vm.occurrence_report_obj
+                                        ),
+                                    },
+                                });
+                            });
                         }
                     }
                     vm.submitting = false;

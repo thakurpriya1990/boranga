@@ -156,8 +156,9 @@ class OccurrenceReportPermission(BasePermission):
     def is_authorised_to_update_show_on_map(self, request, obj):
         if not obj.occurrence:
             return False
+        logger.debug(f"obj.processing_status: {obj.processing_status}, ")
         return (
-            (is_occurrence_approver(request) or request.user.is_superuser)
+            is_occurrence_approver(request)
             and obj.processing_status
             in [
                 OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
@@ -424,6 +425,17 @@ class OccurrenceReportCopyPermission(BasePermission):
             return True
 
         return obj.submitter == request.user.id or is_occurrence_assessor(request)
+
+
+class OccurrenceReportReassignDraftPermission(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if not request.user.is_authenticated:
+            return False
+
+        if request.user.is_superuser:
+            return True
+
+        return obj.submitter == request.user.id or is_occurrence_approver(request)
 
 
 class OccurrenceReportBulkImportPermission(BasePermission):

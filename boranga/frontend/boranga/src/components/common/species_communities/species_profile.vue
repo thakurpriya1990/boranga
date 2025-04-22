@@ -1851,12 +1851,29 @@ export default {
             });
         },
         checkDate: function () {
-            let vm = this;
-            if (vm.$refs.last_data_curation_date.value) {
-                vm.species_community.last_data_curation_date =
-                    vm.$refs.last_data_curation_date.value;
-            } else {
-                vm.species_community.last_data_curation_date = null;
+            if (
+                isNaN(new Date(this.species_community.last_data_curation_date))
+            ) {
+                return;
+            }
+            if (
+                new Date(this.species_community.last_data_curation_date) >
+                new Date()
+            ) {
+                this.species_community.last_data_curation_date = new Date()
+                    .toISOString()
+                    .split('T')[0];
+                this.$nextTick(() => {
+                    this.$refs.last_data_curation_date.focus();
+                });
+                swal.fire({
+                    title: 'Error',
+                    text: 'Last data curation date cannot be in the future',
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
             }
         },
         initialiseScientificNameLookup: function () {

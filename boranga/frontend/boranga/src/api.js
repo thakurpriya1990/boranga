@@ -12,6 +12,7 @@ export default {
     conservation_status_documents: '/api/conservation_status_documents.json',
     conservation_status: '/api/conservation_status',
     content_types: '/api/content_types/',
+    contributors: '/api/contributors',
     countries: '/api/countries',
     cs_external_referee_invites: '/api/cs_external_referee_invites',
     cs_referrals: '/api/cs_referrals.json',
@@ -57,6 +58,7 @@ export default {
     approvals_paginated_external:
         '/api/approval_paginated/approvals_external/?format=datatables',
     common_name_lookup: '/api/common_name_lookup',
+    common_name_lookup_ocr_select: '/api/common_name_lookup_ocr_select',
     communities_lookup: '/api/communities_lookup',
     communities_paginated_external:
         '/api/communities_paginated/communities_external/?format=datatables',
@@ -314,6 +316,10 @@ export default {
 
     fields_by_model_name: function (model_name) {
         `/api/content_types/fields_by_model_name/?model_name=${model_name}`;
+    },
+
+    list_items: function (model_name) {
+        return `/api/get_list_items/${model_name}/`;
     },
 
     group_type_community: group_type_community,

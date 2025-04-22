@@ -1,0 +1,22 @@
+[
+  {
+    "model": "boranga.observerrole",
+    "pk": 2,
+    "fields": { "order": 0, "archived": false, "item": "Role 1" }
+  },
+  {
+    "model": "boranga.observerrole",
+    "pk": 3,
+    "fields": { "order": 1, "archived": false, "item": "Role 2" }
+  },
+  {
+    "model": "boranga.observerrole",
+    "pk": 4,
+    "fields": { "order": 2, "archived": false, "item": "Role 3" }
+  },
+  {
+    "model": "boranga.observerrole",
+    "pk": 5,
+    "fields": { "order": 3, "archived": false, "item": "Role 4" }
+  }
+]

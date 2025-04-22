@@ -1,5 +1,6 @@
 import nested_admin
 from django.contrib.gis import admin, forms
+from ordered_model.admin import OrderedModelAdmin
 
 from boranga.admin import ArchivableModelAdminMixin, DeleteProtectedModelAdmin
 from boranga.components.occurrence.models import (
@@ -15,6 +16,8 @@ from boranga.components.occurrence.models import (
     LandForm,
     LocationAccuracy,
     ObservationMethod,
+    ObserverCategory,
+    ObserverRole,
     OccurrenceGeometry,
     OccurrenceReportBulkImportSchema,
     OccurrenceReportBulkImportSchemaColumn,
@@ -484,6 +487,14 @@ class OccurrenceReportBulkImportSchemaAdmin(DeleteProtectedModelAdmin):
     ordering = ["group_type", "version"]
 
 
+class ObserverRoleAdmin(OrderedModelAdmin):
+    list_display = ["item", "move_up_down_links", "archived"]
+
+
+class ObserverCategoryAdmin(OrderedModelAdmin):
+    list_display = ["item", "move_up_down_links", "archived"]
+
+
 # Each of the following models will be available to Django Admin.
 admin.site.register(LandForm, LandFormAdmin)
 admin.site.register(RockType, RockTypeAdmin)
@@ -493,6 +504,8 @@ admin.site.register(SoilColour, SoilColourAdmin)
 admin.site.register(SoilCondition, SoilConditionAdmin)
 admin.site.register(Drainage, DrainageAdmin)
 admin.site.register(Intensity, IntensityAdmin)
+admin.site.register(ObserverRole, ObserverRoleAdmin)
+admin.site.register(ObserverCategory, ObserverCategoryAdmin)
 admin.site.register(ObservationMethod, ObservationMethodAdmin)
 admin.site.register(PlantCountMethod, PlantCountMethodAdmin)
 admin.site.register(PlantCountAccuracy, PlantCountAccuracyAdmin)

@@ -52,11 +52,13 @@ from openpyxl.styles.fonts import Font
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 from ordered_model.models import OrderedModel, OrderedModelManager
+from rest_framework import serializers
 from taggit.managers import TaggableManager
 
 from boranga import exceptions
 from boranga.components.conservation_status.models import ProposalAmendmentReason
 from boranga.components.main.models import (
+    AbstractOrderedList,
     ArchivableModel,
     CommunicationsLogEntry,
     Document,
@@ -325,6 +327,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     approver_comment = models.TextField(blank=True)
     internal_application = models.BooleanField(default=False)
     site = models.TextField(null=True, blank=True)
+    comments = models.TextField(null=True, blank=True)
     # Allows the OCR submitter to hint the assessor to which occurrence to assign to
     # without forcefully linking the occurrence to the OCR
     ocr_for_occ_number = models.CharField(max_length=9, blank=True, default="")
@@ -413,12 +416,17 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     def log_user_action(self, action, request):
         return OccurrenceReportUserAction.log_action(self, action, request.user.id)
 
-    @property
-    def can_user_edit(self):
+    def can_user_edit(self, request):
         """
         :return: True if the occurrence report is in one of the editable status.
         """
-        return self.customer_status in self.CUSTOMER_EDITABLE_STATE
+        if self.customer_status not in self.CUSTOMER_EDITABLE_STATE:
+            return False
+
+        if not request.user.id == self.submitter:
+            return False
+
+        return True
 
     @property
     def can_user_view(self):
@@ -659,6 +667,39 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         request.user.log_user_action(
             OccurrenceReportUserAction.ACTION_REINSTATE_PROPOSAL.format(
                 self.occurrence_report_number
+            ),
+            request,
+        )
+
+    @transaction.atomic
+    def reassign_draft_to_user(self, request, user_id):
+        if not self.processing_status == OccurrenceReport.PROCESSING_STATUS_DRAFT:
+            raise exceptions.OccurrenceReportNotAuthorized()
+
+        try:
+            new_submitter = EmailUser.objects.get(id=user_id)
+        except EmailUser.DoesNotExist:
+            raise serializers.ValidationError(
+                f"EmailUserRO with id {user_id} does not exist"
+            )
+
+        previous_submitter = EmailUser.objects.get(id=self.submitter)
+        self.submitter = new_submitter.id
+        self.save(version_user=request.user)
+
+        self.log_user_action(
+            OccurrenceReportUserAction.ACTION_REASSIGN_DRAFT_TO_USER.format(
+                self.occurrence_report_number,
+                previous_submitter.get_full_name(),
+                new_submitter.get_full_name(),
+            ),
+            request,
+        )
+        request.user.log_user_action(
+            OccurrenceReportUserAction.ACTION_REASSIGN_DRAFT_TO_USER.format(
+                self.occurrence_report_number,
+                previous_submitter.get_full_name(),
+                new_submitter.get_full_name(),
             ),
             request,
         )
@@ -924,6 +965,9 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
                 "officer": request.user.id,
                 "occurrence": occurrence,
                 "new_occurrence_name": new_occurrence_name,
+                "copy_ocr_comments_to_occ_comments": validated_data.get(
+                    "copy_ocr_comments_to_occ_comments", True
+                ),
                 "details": details,
                 "cc_email": validated_data.get("cc_email", None),
             },
@@ -975,6 +1019,14 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
 
         if self.approval_details.occurrence:
             occurrence = self.approval_details.occurrence
+
+            if self.approval_details.copy_ocr_comments_to_occ_comments:
+                if not occurrence.comment:
+                    occurrence.comment = self.comments
+                else:
+                    occurrence.comment = occurrence.comment + "\n\n" + self.comments
+                occurrence.save(version_user=request.user)
+
         else:
             if not self.approval_details.new_occurrence_name:
                 raise ValidationError(
@@ -1053,6 +1105,8 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             and self.processing_status == OccurrenceReport.PROCESSING_STATUS_APPROVED
         ):
             self.processing_status = OccurrenceReport.PROCESSING_STATUS_UNLOCKED
+            if self.assigned_officer != request.user.id:
+                self.assigned_officer = request.user.id
             self.save(version_user=request.user)
 
     @property
@@ -1168,6 +1222,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         ocr_copy.occurrence_report_number = ""
         ocr_copy.lodgement_date = None
         ocr_copy.observation_date = None
+        ocr_copy.comments = None
         ocr_copy.assigned_officer = None
         ocr_copy.assigned_approver = None
         ocr_copy.approved_by = None
@@ -1333,6 +1388,7 @@ class OccurrenceReportApprovalDetails(models.Model):
     )  # If being added to an existing occurrence
     new_occurrence_name = models.CharField(max_length=200, null=True, blank=True)
     officer = models.IntegerField()  # EmailUserRO
+    copy_ocr_comments_to_occ_comments = models.BooleanField(default=True)
     details = models.TextField(blank=True)
     cc_email = models.TextField(null=True)
 
@@ -1412,6 +1468,9 @@ class OccurrenceReportUserAction(UserAction):
     ACTION_UPDATE_OBSERVER_DETAIL = "Update Observer {} on occurrence report {}"
     ACTION_COPY = "Created occurrence report {} from a copy of occurrence report {}"
     ACTION_COPY_TO = "Copy occurrence report to {}"
+    ACTION_REASSIGN_DRAFT_TO_USER = (
+        "Occurrence Report {} (draft) reassigned from {} to {}"
+    )
 
     # Amendment
     ACTION_ID_REQUEST_AMENDMENTS = "Request amendments"
@@ -2147,6 +2206,19 @@ class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry):
         super().save(*args, **kwargs)
 
 
+class ObserverRole(AbstractOrderedList):
+    class Meta:
+        ordering = ["order"]
+        app_label = "boranga"
+
+
+class ObserverCategory(AbstractOrderedList):
+    class Meta:
+        ordering = ["order"]
+        app_label = "boranga"
+        verbose_name_plural = "Observer Categories"
+
+
 class OCRObserverDetail(RevisionedMixin):
     BULK_IMPORT_ABBREVIATION = "ocrcon"
 
@@ -2166,7 +2238,12 @@ class OCRObserverDetail(RevisionedMixin):
         related_name="observer_detail",
     )
     observer_name = models.CharField(max_length=250, blank=True, null=True)
-    role = models.CharField(max_length=250, blank=True, null=True)
+    role = models.ForeignKey(
+        ObserverRole, on_delete=models.PROTECT, null=True, blank=True
+    )
+    category = models.ForeignKey(
+        ObserverCategory, on_delete=models.PROTECT, null=True, blank=True
+    )
     contact = models.TextField(max_length=250, blank=True, null=True)
     organisation = models.CharField(max_length=250, blank=True, null=True)
     main_observer = models.BooleanField(null=True, blank=True)
@@ -2413,41 +2490,71 @@ class OCRHabitatCondition(models.Model):
         null=True,
         related_name="habitat_condition",
     )
-    pristine = models.IntegerField(
+    pristine = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    excellent = models.IntegerField(
+    excellent = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    very_good = models.IntegerField(
+    very_good = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    good = models.IntegerField(
+    good = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    degraded = models.IntegerField(
+    degraded = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    completely_degraded = models.IntegerField(
+    completely_degraded = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
     count_date = models.DateTimeField(null=True, blank=True)
 
@@ -2626,6 +2733,7 @@ class OCRObservationDetail(models.Model):
     )
     area_surveyed = models.IntegerField(null=True, blank=True, default=0)
     survey_duration = models.IntegerField(null=True, blank=True, default=0)
+    comments = models.TextField(blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -2774,7 +2882,11 @@ class OCRPlantCount(models.Model):
     )
     estimated_population_area = models.IntegerField(null=True, blank=True, default=0)
 
-    counted = models.BooleanField(default=True)
+    count_status = models.CharField(
+        choices=settings.COUNT_STATUS_CHOICES,
+        max_length=20,
+        default=settings.COUNT_STATUS_NOT_COUNTED,
+    )
 
     detailed_alive_mature = models.IntegerField(null=True, blank=True, default=0)
     detailed_dead_mature = models.IntegerField(null=True, blank=True, default=0)
@@ -2991,7 +3103,11 @@ class OCRAnimalObservation(models.Model):
         max_length=1000, null=True, blank=True
     )
 
-    counted = models.BooleanField(default=True)
+    count_status = models.CharField(
+        choices=settings.COUNT_STATUS_CHOICES,
+        max_length=20,
+        default=settings.COUNT_STATUS_NOT_COUNTED,
+    )
 
     alive_adult_male = models.IntegerField(null=True, blank=True, default=0)
     dead_adult_male = models.IntegerField(null=True, blank=True, default=0)
@@ -3013,6 +3129,10 @@ class OCRAnimalObservation(models.Model):
     dead_unsure_female = models.IntegerField(null=True, blank=True, default=0)
     alive_unsure_unknown = models.IntegerField(null=True, blank=True, default=0)
     dead_unsure_unknown = models.IntegerField(null=True, blank=True, default=0)
+
+    simple_alive = models.IntegerField(null=True, blank=True, default=0)
+    simple_dead = models.IntegerField(null=True, blank=True, default=0)
+
     count_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -3269,6 +3389,10 @@ class OccurrenceReportShapefileDocument(Document):
     def get_parent_instance(self) -> models.Model:
         return self.occurrence_report
 
+    def delete(self, *args, **kwargs):
+        # By pass the custom delete method in super and just do a regular delete
+        models.Model.delete(self, *args, **kwargs)
+
 
 class OCRConservationThreat(RevisionedMixin):
     BULK_IMPORT_ABBREVIATION = "ocrthr"
@@ -3399,9 +3523,7 @@ class Occurrence(RevisionedMixin):
         max_length=50, blank=True, null=True, unique=True
     )
 
-    occurrence_name = models.CharField(
-        max_length=250, blank=True, null=True, unique=True
-    )
+    occurrence_name = models.CharField(max_length=250, blank=True, null=True)
     group_type = models.ForeignKey(
         GroupType, on_delete=models.PROTECT, null=True, blank=True
     )
@@ -3479,6 +3601,8 @@ class Occurrence(RevisionedMixin):
             models.Index(fields=["species"]),
             models.Index(fields=["community"]),
         ]
+        unique_together = (("occurrence_name", "species", "community"),)
+
         app_label = "boranga"
 
     def save(self, *args, **kwargs):
@@ -4038,6 +4162,7 @@ class Occurrence(RevisionedMixin):
 
         occurrence.species = occurrence_report.species
         occurrence.community = occurrence_report.community
+        occurrence.comment = occurrence_report.comments
 
         occurrence.save(no_revision=True)
 
@@ -4575,41 +4700,71 @@ class OCCHabitatCondition(models.Model):
     copied_ocr_habitat_condition = models.ForeignKey(
         OCRHabitatCondition, on_delete=models.SET_NULL, null=True, blank=True
     )
-    pristine = models.IntegerField(
+    pristine = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    excellent = models.IntegerField(
+    excellent = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    very_good = models.IntegerField(
+    very_good = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    good = models.IntegerField(
+    good = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    degraded = models.IntegerField(
+    degraded = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
-    completely_degraded = models.IntegerField(
+    completely_degraded = models.DecimalField(
         null=True,
         blank=True,
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[
+            MinValueValidator(Decimal("0.00")),
+            MaxValueValidator(Decimal("100.00")),
+        ],
     )
     count_date = models.DateTimeField(null=True, blank=True)
 
@@ -4737,6 +4892,7 @@ class OCCObservationDetail(models.Model):
     )
     area_surveyed = models.IntegerField(null=True, blank=True, default=0)
     survey_duration = models.IntegerField(null=True, blank=True, default=0)
+    comments = models.TextField(blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -4778,7 +4934,11 @@ class OCCPlantCount(models.Model):
     )
     estimated_population_area = models.IntegerField(null=True, blank=True, default=0)
 
-    counted = models.BooleanField(default=True)
+    count_status = models.CharField(
+        choices=settings.COUNT_STATUS_CHOICES,
+        max_length=20,
+        default=settings.COUNT_STATUS_NOT_COUNTED,
+    )
 
     detailed_alive_mature = models.IntegerField(null=True, blank=True, default=0)
     detailed_dead_mature = models.IntegerField(null=True, blank=True, default=0)
@@ -4864,7 +5024,11 @@ class OCCAnimalObservation(models.Model):
         max_length=1000, null=True, blank=True
     )
 
-    counted = models.BooleanField(default=True)
+    count_status = models.CharField(
+        choices=settings.COUNT_STATUS_CHOICES,
+        max_length=20,
+        default=settings.COUNT_STATUS_NOT_COUNTED,
+    )
 
     alive_adult_male = models.IntegerField(null=True, blank=True, default=0)
     dead_adult_male = models.IntegerField(null=True, blank=True, default=0)
@@ -4886,6 +5050,10 @@ class OCCAnimalObservation(models.Model):
     dead_unsure_female = models.IntegerField(null=True, blank=True, default=0)
     alive_unsure_unknown = models.IntegerField(null=True, blank=True, default=0)
     dead_unsure_unknown = models.IntegerField(null=True, blank=True, default=0)
+
+    simple_alive = models.IntegerField(null=True, blank=True, default=0)
+    simple_dead = models.IntegerField(null=True, blank=True, default=0)
+
     count_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:

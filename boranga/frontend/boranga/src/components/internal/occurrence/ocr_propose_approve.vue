@@ -102,7 +102,7 @@
                                 </div>
                                 <div
                                     id="occurrence_name_lookup_propose_approve_form_group_id"
-                                    class="form-group"
+                                    class="form-group mb-3"
                                 >
                                     <label
                                         class="mb-3"
@@ -116,6 +116,55 @@
                                         class="form-control"
                                         required
                                     />
+                                </div>
+                                <div
+                                    id="copy_ocr_comments_section"
+                                    v-if="
+                                        occurrence_report.comments &&
+                                        propose_approve.occurrence_id
+                                    "
+                                >
+                                    <div>
+                                        <label
+                                            class="mb-3"
+                                            for="copy_ocr_comments_to_occ_comments"
+                                            >Copy Occurrence Report Comments to
+                                            Occurrence?</label
+                                        >
+                                        <div class="form-check form-switch">
+                                            <input
+                                                v-model="
+                                                    propose_approve.copy_ocr_comments_to_occ_comments
+                                                "
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                role="switch"
+                                                id="copy_ocr_comments_to_occ_comments"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="border rounded p-3 mt-3"
+                                        v-if="
+                                            propose_approve.copy_ocr_comments_to_occ_comments
+                                        "
+                                    >
+                                        <label
+                                            class="mb-3"
+                                            for="occ_final_comment_preview"
+                                            >Resulting Occurrence Comment
+                                            Preview</label
+                                        >
+                                        <textarea
+                                            v-model="occ_final_comment_preview"
+                                            type="date"
+                                            class="form-control"
+                                            name="details"
+                                            id="occ_final_comment_preview"
+                                            rows="10"
+                                            disabled
+                                        ></textarea>
+                                    </div>
                                 </div>
                             </div>
                             <div v-else class="mt-3">
@@ -207,9 +256,11 @@ export default {
                 occurrence_name: '',
                 create_new_occurrence: false,
                 new_occurrence_name: '',
+                copy_ocr_comments_to_occ_comments: true,
                 details: '',
                 cc_email: null,
             },
+            occurrence_comment: '',
             errorString: '',
         };
     },
@@ -219,6 +270,16 @@ export default {
                 !this.propose_approve.create_new_occurrence &&
                 !this.propose_approve.occurrence
             );
+        },
+        occ_final_comment_preview: function () {
+            let comment = this.occurrence_report.comments;
+            if (this.occurrence_comment) {
+                comment =
+                    this.occurrence_comment +
+                    '\n\n' +
+                    this.occurrence_report.comments;
+            }
+            return comment;
         },
     },
     watch: {
@@ -281,6 +342,7 @@ export default {
                 occurrence_name: '',
                 create_new_occurrence: false,
                 new_occurrence_name: '',
+                copy_ocr_comments_to_occ_comments: true,
                 details: '',
             };
             $(this.$refs.occurrence_name_lookup_propose_approve)
@@ -327,6 +389,7 @@ export default {
                         async (response) => {
                             if (!response.ok) {
                                 vm.errorString = await response.json();
+                                console.log(vm.errorString);
                                 return;
                             }
                             swal.fire({
@@ -394,6 +457,7 @@ export default {
                 .on('select2:select', function (e) {
                     vm.propose_approve.occurrence_id = e.params.data.id;
                     vm.propose_approve.occurrence_name = e.params.data.text;
+                    vm.occurrence_comment = e.params.data.occurrence_comment;
                 })
                 .on('select2:open', function () {
                     const searchField = $(

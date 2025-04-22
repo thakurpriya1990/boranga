@@ -121,7 +121,7 @@
                                             <router-link
                                                 class="btn btn-primary"
                                                 :to="{
-                                                    name: 'external-conservation_status-dash',
+                                                    name: 'external-conservation-status-dash',
                                                 }"
                                                 >Back to Dashboard</router-link
                                             >
@@ -231,7 +231,7 @@
                                         <router-link
                                             class="btn btn-primary"
                                             :to="{
-                                                name: 'external-conservation_status-dash',
+                                                name: 'external-conservation-status-dash',
                                             }"
                                             >Back to Dashboard</router-link
                                         >
@@ -455,7 +455,7 @@ export default {
                 if (vm.isSaved === true) {
                     // redirect back to dashboard
                     vm.$router.push({
-                        name: 'external-conservation_status-dash',
+                        name: 'external-conservation-status-dash',
                     });
                 } else {
                     this.saveExitCSProposal = false;

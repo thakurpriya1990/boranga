@@ -265,6 +265,11 @@ api_patterns = [
         name="get-scientific-name",
     ),
     re_path(
+        r"^api/common_name_lookup_ocr_select$",
+        species_communities_api.GetCommonNameOCRSelect.as_view(),
+        name="get-common-name-ocr-select",
+    ),
+    re_path(
         r"^api/scientific_name_lookup_by_groupname$",
         species_communities_api.GetScientificNameByGroup.as_view(),
         name="get-scientific-name-by-groupname",
@@ -348,6 +353,11 @@ api_patterns = [
         r"^api/history/(?P<app_label>[\w-]+)/(?P<model_name>[\w-]+)/(?P<revision_id>\d+)/$",
         history_api.GetRevisionVersionsView.as_view(),
         name="get-revision",
+    ),
+    re_path(
+        r"^api/get_list_items/(?P<model_name>[\w-]+)/$",
+        main_api.GetListItems.as_view(),
+        name="get-list-items",
     ),
 ]
 

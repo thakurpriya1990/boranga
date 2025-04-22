@@ -1,0 +1,22 @@
+[
+  {
+    "model": "boranga.observercategory",
+    "pk": 1,
+    "fields": { "order": 0, "archived": false, "item": "Category 1" }
+  },
+  {
+    "model": "boranga.observercategory",
+    "pk": 2,
+    "fields": { "order": 1, "archived": false, "item": "Category 2" }
+  },
+  {
+    "model": "boranga.observercategory",
+    "pk": 3,
+    "fields": { "order": 2, "archived": false, "item": "Category 3" }
+  },
+  {
+    "model": "boranga.observercategory",
+    "pk": 4,
+    "fields": { "order": 3, "archived": false, "item": "Category 4" }
+  }
+]

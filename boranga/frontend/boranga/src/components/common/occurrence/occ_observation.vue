@@ -73,37 +73,60 @@
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
-                    >Area Surveyed(m<sup>2</sup>) :</label
+                    >Area Surveyed:</label
                 >
                 <div class="col-sm-6">
-                    <input
-                        id="area_surveyed"
-                        v-model="
-                            occurrence_obj.observation_detail.area_surveyed
-                        "
-                        :disabled="isReadOnly"
-                        type="number"
-                        class="form-control occ_number"
-                        placeholder=""
-                        min="0"
-                    />
+                    <div class="input-group">
+                        <input
+                            id="area_surveyed"
+                            v-model="
+                                occurrence_obj.observation_detail.area_surveyed
+                            "
+                            :disabled="isReadOnly"
+                            type="number"
+                            class="form-control"
+                            placeholder=""
+                            min="0"
+                            max="2147483647"
+                        />
+                        <span class="input-group-text">m<sup>2</sup></span>
+                    </div>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
-                    >Survey Duration(mins) :</label
+                    >Survey Duration:</label
                 >
                 <div class="col-sm-6">
-                    <input
+                    <div class="input-group">
+                        <input
+                            id="survey_duration"
+                            v-model="
+                                occurrence_obj.observation_detail
+                                    .survey_duration
+                            "
+                            :disabled="isReadOnly"
+                            type="number"
+                            class="form-control occ_number"
+                            placeholder=""
+                            min="0"
+                            max="2147483647"
+                        />
+                        <span class="input-group-text">minutes</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Comments:</label>
+                <div class="col-sm-9">
+                    <textarea
                         id="survey_duration"
-                        v-model="
-                            occurrence_obj.observation_detail.survey_duration
-                        "
+                        v-model="occurrence_obj.observation_detail.comments"
                         :disabled="isReadOnly"
-                        type="number"
-                        class="form-control occ_number"
+                        class="form-control"
                         placeholder=""
                         min="0"
+                        rows="6"
                     />
                 </div>
             </div>

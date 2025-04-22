@@ -2,97 +2,63 @@
     <div class="container">
         <div class="row">
             <div class="col-sm-12">
-                <div class="row">
-                    <div
-                        v-if="isOCRProposal"
-                        class="col-sm-offset-3 col-sm-6 borderDecoration"
-                    >
-                        <div
-                            v-if="
-                                occurrence_report_obj.group_type ==
-                                application_type_flora
-                            "
-                        >
-                            <strong
-                                >Your flora occurrence report has been
-                                successfully submitted.</strong
-                            >
-                            <br />
-                        </div>
-                        <div
-                            v-else-if="
-                                occurrence_report_obj.group_type ==
-                                application_type_fauna
-                            "
-                        >
-                            <strong
-                                >Your fauna occurrence report has been
-                                successfully submitted.</strong
-                            >
-                            <br />
-                        </div>
-                        <div
-                            v-else-if="
-                                occurrence_report_obj.group_type ==
-                                application_type_community
-                            "
-                        >
-                            <strong
-                                >Your community occurrence report has been
-                                successfully submitted.</strong
-                            >
-                            <br />
-                        </div>
-                        <table>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Application:</strong></td>
-                                    <td>
-                                        <strong>{{
-                                            occurrence_report_obj.occurrence_report_number
-                                        }}</strong>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Date/Time:</strong></td>
-                                    <td>
-                                        <strong>
+                <div class="row justify-content-center">
+                    <div class="col-9 p-3 border rounded">
+                        <template v-if="isOCRProposal">
+                            <h3>
+                                Occurrence Report Proposal Submitted
+                                Successfully
+                            </h3>
+                            <div class="mb-3">
+                                <strong
+                                    >Your
+                                    {{ occurrence_report_obj.group_type }}
+                                    occurrence report has been received.</strong
+                                >
+                            </div>
+
+                            <table class="table table-sm w-50 mb-4">
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <strong>Proposal Number:</strong>
+                                        </td>
+                                        <td>
+                                            {{
+                                                occurrence_report_obj.occurrence_report_number
+                                            }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Date/Time:</strong></td>
+                                        <td>
                                             {{
                                                 formatDate(
                                                     occurrence_report_obj.lodgement_date
                                                 )
-                                            }}</strong
-                                        >
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <br />
-                        <label
-                            >You will receive a notification email if there is
-                            any incomplete information or documents missing from
-                            the proposal.</label
-                        >
+                                            }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <p>
+                                You will receive a notification email if there
+                                is any incomplete information or documents
+                                missing from the proposal.
+                            </p>
+                        </template>
+                        <template v-else>
+                            <strong
+                                >Sorry it looks like there isn't any application
+                                currently in your session.</strong
+                            >
+                        </template>
                         <router-link
                             :to="{ name: 'external-occurrence-report-dash' }"
                             style="margin-top: 15px"
                             class="btn btn-primary"
-                            >Back to home</router-link
-                        >
-                    </div>
-                    <div
-                        v-else
-                        class="col-sm-offset-3 col-sm-6 borderDecoration"
-                    >
-                        <strong
-                            >Sorry it looks like there isn't any application
-                            currently in your session.</strong
-                        >
-                        <br /><router-link
-                            :to="{ name: 'external-occurrence-report-dash' }"
-                            style="margin-top: 15px"
-                            class="btn btn-primary"
-                            >Back to home</router-link
+                            >Return to Occurrence Report Dashboard</router-link
                         >
                     </div>
                 </div>
@@ -104,12 +70,6 @@
 import { api_endpoints } from '@/utils/hooks';
 
 export default {
-    beforeRouteEnter: function (to, from, next) {
-        next((vm) => {
-            vm.occurrence_report_obj = to.params.occurrence_report_obj;
-            console.log(vm.occurrence_report_obj);
-        });
-    },
     data: function () {
         return {
             occurrence_report_obj: {},
@@ -131,9 +91,17 @@ export default {
             return api_endpoints.group_type_community;
         },
     },
-    mounted: function () {
-        let vm = this;
-        vm.form = document.forms.new_ocr_proposal;
+    created: function () {
+        if (!window.history.state.occurrence_report_obj) {
+            this.$router.push({
+                name: 'external-occurrence-report-dash',
+            });
+            return;
+        }
+        Object.assign(
+            this.occurrence_report_obj,
+            JSON.parse(window.history.state.occurrence_report_obj)
+        );
     },
     methods: {
         formatDate: function (data) {

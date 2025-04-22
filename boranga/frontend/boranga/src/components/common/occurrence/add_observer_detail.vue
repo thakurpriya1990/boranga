@@ -5,7 +5,7 @@
             transition="modal fade"
             :title="title"
             large
-            @ok="ok()"
+            @ok="validateForm()"
             @cancel="close()"
         >
             <div class="container-fluid">
@@ -13,6 +13,7 @@
                     <form
                         class="form-horizontal needs-validation"
                         name="observerDetailForm"
+                        id="observerDetailForm"
                         novalidate
                     >
                         <alert v-if="errorString" type="danger"
@@ -40,13 +41,156 @@
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-sm-3">
-                                        <label class="control-label pull-left"
+                                        <label
+                                            class="control-label pull-left"
+                                            for="role"
                                             >Role</label
                                         >
                                     </div>
                                     <div class="col-sm-9">
+                                        <template v-if="!isReadOnly">
+                                            <template
+                                                v-if="
+                                                    observerRoles &&
+                                                    observerRoles.length > 0 &&
+                                                    observerObj.role_id &&
+                                                    !observerRoles
+                                                        .map((d) => d.id)
+                                                        .includes(
+                                                            observerObj.role_id
+                                                        )
+                                                "
+                                            >
+                                                <input
+                                                    v-if="observerObj.role"
+                                                    type="text"
+                                                    class="form-control mb-3"
+                                                    :value="
+                                                        observerObj.role +
+                                                        ' (Now Archived)'
+                                                    "
+                                                    disabled
+                                                />
+                                                <div class="mb-3 text-muted">
+                                                    Change role to:
+                                                </div>
+                                            </template>
+                                            <select
+                                                id="role"
+                                                v-model="observerObj.role_id"
+                                                :disabled="isReadOnly"
+                                                required
+                                                class="form-select"
+                                            >
+                                                <option value="" disabled>
+                                                    Select the appropriate Role
+                                                </option>
+                                                <option
+                                                    v-for="listItem in observerRoles"
+                                                    :key="listItem.id"
+                                                    :value="listItem.id"
+                                                >
+                                                    {{ listItem.item }}
+                                                </option>
+                                            </select>
+                                        </template>
+                                        <template v-else>
+                                            <input
+                                                class="form-control"
+                                                type="text"
+                                                :disabled="true"
+                                                :value="
+                                                    observerObj.role
+                                                        ? observerObj.role
+                                                        : 'N/A'
+                                                "
+                                            />
+                                        </template>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <label
+                                            class="control-label pull-left"
+                                            for="category"
+                                            >Observer Category</label
+                                        >
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <template v-if="!isReadOnly">
+                                            <template
+                                                v-if="
+                                                    observerCategories &&
+                                                    observerCategories.length >
+                                                        0 &&
+                                                    observerObj.category_id &&
+                                                    !observerCategories
+                                                        .map((d) => d.id)
+                                                        .includes(
+                                                            observerObj.category_id
+                                                        )
+                                                "
+                                            >
+                                                <input
+                                                    v-if="observerObj.category"
+                                                    type="text"
+                                                    class="form-control mb-3"
+                                                    :value="
+                                                        observerObj.category +
+                                                        ' (Now Archived)'
+                                                    "
+                                                    disabled
+                                                />
+                                                <div class="mb-3 text-muted">
+                                                    Change category to:
+                                                </div>
+                                            </template>
+                                            <select
+                                                id="category"
+                                                v-model="
+                                                    observerObj.category_id
+                                                "
+                                                :disabled="isReadOnly"
+                                                required
+                                                class="form-select"
+                                            >
+                                                <option value="" disabled>
+                                                    Select the appropriate
+                                                    Observer Category
+                                                </option>
+                                                <option
+                                                    v-for="listItem in observerCategories"
+                                                    :key="listItem.id"
+                                                    :value="listItem.id"
+                                                >
+                                                    {{ listItem.item }}
+                                                </option>
+                                            </select>
+                                        </template>
+                                        <template v-else>
+                                            <input
+                                                class="form-control"
+                                                type="text"
+                                                :disabled="true"
+                                                :value="
+                                                    observerObj.category
+                                                        ? observerObj.category
+                                                        : 'N/A'
+                                                "
+                                            />
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <label class="control-label pull-left"
+                                            >Organisation</label
+                                        >
+                                    </div>
+                                    <div class="col-sm-9">
                                         <input
-                                            v-model="observerObj.role"
+                                            v-model="observerObj.organisation"
                                             type="text"
                                             class="form-control"
                                             :disabled="isReadOnly"
@@ -69,21 +213,6 @@
                                             class="form-control"
                                             :disabled="isReadOnly"
                                             rows="4"
-                                        />
-                                    </div>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-sm-3">
-                                        <label class="control-label pull-left"
-                                            >Organisation</label
-                                        >
-                                    </div>
-                                    <div class="col-sm-9">
-                                        <input
-                                            v-model="observerObj.organisation"
-                                            type="text"
-                                            class="form-control"
-                                            :disabled="isReadOnly"
                                         />
                                     </div>
                                 </div>
@@ -193,7 +322,7 @@
                                     type="button"
                                     disabled
                                     class="btn btn-primary"
-                                    @click="ok"
+                                    @click="validateForm"
                                 >
                                     Updating
                                     <span
@@ -209,7 +338,7 @@
                                     v-else
                                     type="button"
                                     class="btn btn-primary"
-                                    @click="ok"
+                                    @click="validateForm"
                                 >
                                     Update Observer
                                 </button>
@@ -220,7 +349,7 @@
                                     type="button"
                                     disabled
                                     class="btn btn-primary"
-                                    @click="ok"
+                                    @click="validateForm"
                                 >
                                     Adding
                                     <span
@@ -236,7 +365,7 @@
                                     v-else
                                     type="button"
                                     class="btn btn-primary"
-                                    @click="ok"
+                                    @click="validateForm"
                                 >
                                     Add Observer
                                 </button>
@@ -252,7 +381,7 @@
 <script>
 import modal from '@vue-utils/bootstrap-modal.vue';
 import alert from '@vue-utils/alert.vue';
-import { helpers } from '@/utils/hooks.js';
+import { api_endpoints, helpers } from '@/utils/hooks.js';
 
 export default {
     name: 'ObserverDetail',
@@ -276,6 +405,8 @@ export default {
             form: null,
             observer_detail_action: String,
             observerObj: null,
+            observerRoles: null,
+            observerCategories: null,
             addingObserver: false,
             updatingObserver: false,
             errorString: '',
@@ -294,6 +425,20 @@ export default {
         },
         isReadOnly: function () {
             return this.observer_detail_action === 'view' ? true : false;
+        },
+        defaultObserver: function () {
+            return {
+                id: null,
+                occurrence_report: this.occurrence_report.id,
+                main_observer: true,
+                observer_name: '',
+                contact: '',
+                organisation: '',
+                role: '',
+                role_id: '',
+                category: '',
+                category_id: '',
+            };
         },
     },
     watch: {
@@ -316,23 +461,31 @@ export default {
     },
     methods: {
         ok: function () {
-            let vm = this;
-            if ($(document.forms.observerDetailForm).valid()) {
-                vm.sendData();
-            }
+            this.validateForm();
         },
         close: function () {
             this.isModalOpen = false;
-            this.observerObj = null;
+            this.observerObj = this.defaultObserver;
             this.errorString = '';
             $('.has-error').removeClass('has-error');
+        },
+        validateForm: function () {
+            let vm = this;
+            var form = document.getElementById('observerDetailForm');
+            if (form.checkValidity()) {
+                console.log('valid');
+                vm.sendData();
+            } else {
+                form.classList.add('was-validated');
+                $('#observerDetailForm').find(':invalid').first().focus();
+            }
+            return false;
         },
         sendData: function () {
             let vm = this;
             vm.errorString = '';
             let observerObj = JSON.parse(JSON.stringify(vm.observerObj));
             let formData = new FormData();
-
             if (vm.observerObj.id) {
                 vm.updatingObserver = true;
                 formData.append('data', JSON.stringify(observerObj));
@@ -381,9 +534,11 @@ export default {
                 contact: '',
                 organisation: '',
                 role: '',
+                role_id: '',
+                category: '',
+                category_id: '',
             };
             observerObj = { ...observerObj, ...this.observerObj };
-            console.log(this.occurrence_report.submitter_information);
             observerObj.observer_name =
                 this.occurrence_report.submitter_information.name;
             observerObj.contact =
@@ -404,9 +559,35 @@ export default {
                 occurrence_report: this.occurrence_report.id,
                 main_observer: true,
                 contact: '',
+                role: '',
+                role_id: '',
+                category: '',
+                category_id: '',
+                organisation: '',
             };
             this.$refs.observer_name.focus();
         },
+        fetchObserverRoles: function () {
+            let vm = this;
+            fetch(api_endpoints.list_items('observerrole'))
+                .then((response) => response.json())
+                .then((data) => {
+                    vm.observerRoles = data;
+                });
+        },
+        fetchObserverCategories: function () {
+            let vm = this;
+            fetch(api_endpoints.list_items('observercategory'))
+                .then((response) => response.json())
+                .then((data) => {
+                    vm.observerCategories = data;
+                });
+        },
+    },
+    created: function () {
+        this.observerObj = this.defaultObserver;
+        this.fetchObserverRoles();
+        this.fetchObserverCategories();
     },
 };
 </script>

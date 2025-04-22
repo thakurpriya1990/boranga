@@ -196,3 +196,9 @@ class ContentTypeSerializer(serializers.ModelSerializer):
                 }
             )
         return model_fields
+
+
+class AbstractOrderedListSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    order = serializers.IntegerField()
+    item = serializers.CharField()

@@ -75,6 +75,7 @@ from boranga.components.species_and_communities.permissions import (
     SpeciesCommunitiesPermission,
 )
 from boranga.components.species_and_communities.serializers import (
+    CommonNameTaxonomySerializer,
     CommunityDistributionSerializer,
     CommunityDocumentSerializer,
     CommunityLogEntrySerializer,
@@ -271,6 +272,48 @@ class GetCommonName(views.APIView):
         return Response()
 
 
+class GetCommonNameOCRSelect(views.APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, format=None):
+        search_term = request.GET.get("term", "")
+        group_type_id = request.GET.get("group_type_id", "")
+        has_species = request.GET.get("has_species", False)
+
+        if not search_term:
+            return Response({"results": []})
+
+        taxonomy_vernaculars = TaxonVernacular.objects.all()
+
+        if has_species:
+            taxonomy_vernaculars = taxonomy_vernaculars.exclude(taxonomy__species=None)
+
+        taxonomy_vernaculars = taxonomy_vernaculars.filter(
+            taxonomy__species__processing_status=Species.PROCESSING_STATUS_ACTIVE
+        )
+        taxonomy_vernaculars = taxonomy_vernaculars.filter(
+            vernacular_name__icontains=search_term,
+        )
+
+        if group_type_id:
+            logger.debug(f"filtering by group_type_id: {group_type_id}")
+            taxonomy_vernaculars = taxonomy_vernaculars.filter(
+                taxonomy__kingdom_fk__grouptype_id=group_type_id
+            )
+
+        taxonomy_ids = taxonomy_vernaculars.distinct().values_list(
+            "taxonomy_id", flat=True
+        )
+        taxonomies = Taxonomy.objects.filter(
+            id__in=taxonomy_ids,
+        )
+
+        serializer = CommonNameTaxonomySerializer(
+            taxonomies[:10], context={"request": request}, many=True
+        )
+        return Response({"results": serializer.data})
+
+
 class GetFamily(views.APIView):
     permission_classes = [AllowAny]
 
@@ -357,12 +400,19 @@ class GetCommunityId(views.APIView):
     def get(self, request, format=None):
         search_term = request.GET.get("term", "")
         if search_term:
-            data = CommunityTaxonomy.objects.filter(
+            community_taxonomies = CommunityTaxonomy.objects.filter(
                 community_migrated_id__icontains=search_term
-            ).values("id", "community_migrated_id")[:10]
+            ).values("id", "community_migrated_id", "community_id", "community_name")[
+                :10
+            ]
             data_transform = [
-                {"id": community["id"], "text": community["community_migrated_id"]}
-                for community in data
+                {
+                    "id": community_taxonomy["id"],
+                    "text": community_taxonomy["community_migrated_id"],
+                    "community_id": community_taxonomy["community_id"],
+                    "community_name": community_taxonomy["community_name"],
+                }
+                for community_taxonomy in community_taxonomies
             ]
             return Response({"results": data_transform})
         return Response()
@@ -382,15 +432,23 @@ class GetCommunityName(views.APIView):
                     & Q(community_name__icontains=search_term)
                 )[:10]
                 data_transform = [
-                    {"id": community.community.id, "text": community.community_name}
+                    {
+                        "id": community.community.id,
+                        "text": community.community_name,
+                        "community_migrated_id": community.community_migrated_id,
+                    }
                     for community in data
                 ]
             else:
                 data = CommunityTaxonomy.objects.filter(
                     community_name__icontains=search_term
-                ).values("id", "community_name")[:10]
+                ).values("id", "community_name", "community_migrated_id")[:10]
                 data_transform = [
-                    {"id": taxon["id"], "text": taxon["community_name"]}
+                    {
+                        "id": taxon["id"],
+                        "text": taxon["community_name"],
+                        "community_migrated_id": taxon["community_migrated_id"],
+                    }
                     for taxon in data
                 ]
             return Response({"results": data_transform})
@@ -1147,7 +1205,6 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         publishing_status_instance, created = (
             SpeciesPublishingStatus.objects.get_or_create(species=instance)
         )
-        publishing_status_instance.species_public = False
         publishing_status_instance.save()
         serializer = SaveSpeciesSerializer(instance, data=request_data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -1455,6 +1512,10 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         new_rename_instance.lodgement_date = None
         new_rename_instance.save(version_user=request.user)
 
+        # Copy the regions an districts
+        new_rename_instance.regions.add(*instance.regions.all())
+        new_rename_instance.districts.add(*instance.districts.all())
+
         # Log action
         new_rename_instance.log_user_action(
             SpeciesUserAction.ACTION_COPY_SPECIES_FROM.format(
@@ -1736,7 +1797,9 @@ class SpeciesViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         related_filter_type = request.GET.get("related_filter_type")
         related_items = instance.get_related_items(related_filter_type)
-        serializer = RelatedItemsSerializer(related_items, many=True)
+        serializer = RelatedItemsSerializer(
+            related_items, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     @detail_route(
@@ -1979,7 +2042,6 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         publishing_status_instance, created = (
             CommunityPublishingStatus.objects.get_or_create(community=instance)
         )
-        publishing_status_instance.community_public = False
         publishing_status_instance.save()
 
         serializer = SaveCommunitySerializer(instance, data=request_data)
@@ -2149,7 +2211,9 @@ class CommunityViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         instance = self.get_object()
         related_filter_type = request.GET.get("related_filter_type")
         related_items = instance.get_related_items(related_filter_type)
-        serializer = RelatedItemsSerializer(related_items, many=True)
+        serializer = RelatedItemsSerializer(
+            related_items, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     @detail_route(
@@ -2803,7 +2867,6 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 SpeciesPublishingStatus.objects.get_or_create(species=instance.species)
             )
             if publishing_status_instance.threats_public:
-                publishing_status_instance.species_public = False
                 publishing_status_instance.save()
         elif instance.community:
             publishing_status_instance, created = (
@@ -2812,7 +2875,6 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 )
             )
             if publishing_status_instance.threats_public:
-                publishing_status_instance.community_public = False
                 publishing_status_instance.save()
 
     # used for Threat Form dropdown lists
@@ -3074,7 +3136,6 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 SpeciesPublishingStatus.objects.get_or_create(species=instance.species)
             )
             if publishing_status_instance.threats_public:
-                publishing_status_instance.species_public = False
                 publishing_status_instance.save()
         elif instance.community:
             instance.community.log_user_action(
@@ -3095,7 +3156,6 @@ class ConservationThreatViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMix
                 )
             )
             if publishing_status_instance.threats_public:
-                publishing_status_instance.community_public = False
                 publishing_status_instance.save()
 
         serializer = self.get_serializer(instance)

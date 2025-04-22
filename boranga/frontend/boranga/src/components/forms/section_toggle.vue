@@ -94,6 +94,7 @@ export default {
             default: false,
         },
     },
+    emits: ['toggle-collapse', 'opened', 'collapsed', 'toggleComment'],
     data: function () {
         return {
             custom_id: uuid(),
@@ -127,6 +128,11 @@ export default {
             ).hasClass('collapsed');
             this.elem_expanded = !elem_expanded_when_clicked;
             this.$emit('toggle-collapse');
+            if (elem_expanded_when_clicked) {
+                this.$emit('collapsed');
+            } else {
+                this.$emit('opened');
+            }
         },
         toggleComment: function () {
             this.$emit('toggleComment', !this.isShowComment);

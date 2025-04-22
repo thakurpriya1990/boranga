@@ -2,19 +2,23 @@ import logging
 import re
 
 import pyproj
+from django.apps import apps
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db.models import Q
+from django.http import Http404
 from django_filters import rest_framework as filters
 from rest_framework import filters as rest_framework_filters
-from rest_framework import viewsets
+from rest_framework import views, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from boranga import helpers
-from boranga.components.main.models import HelpTextEntry
+from boranga.components.main.models import AbstractOrderedList, HelpTextEntry
 from boranga.components.main.serializers import (
+    AbstractOrderedListSerializer,
     ContentTypeSerializer,
     HelpTextEntrySerializer,
 )
@@ -184,3 +188,22 @@ def search_datums(search, codes=None):
     datums = [c for c in geodetic_crs if f"{search}".lower() in c["name"].lower()]
 
     return datums
+
+
+class GetListItems(views.APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, model_name, *args, **kwargs):
+        try:
+            model = apps.get_model(AbstractOrderedList.Meta.app_label, model_name)
+        except LookupError:
+            raise Http404
+
+        if not issubclass(model, AbstractOrderedList):
+            raise ValueError(
+                f"Model {AbstractOrderedList.Meta.app_label}.{model_name} is not an instance of AbstractOrderedList"
+            )
+
+        serializer = AbstractOrderedListSerializer(model.objects.active(), many=True)
+
+        return Response(serializer.data)

@@ -84,6 +84,34 @@
                     :is_new_contributor="occurrence_report.is_new_contributor"
                     class="mb-3"
                 />
+                <div
+                    v-if="show_reassign_draft_panel"
+                    class="card card-default mb-3"
+                >
+                    <div class="card-header">Reassign Draft</div>
+                    <div class="card-body">
+                        <div>
+                            <select
+                                ref="contributors"
+                                class="form-select form-select-sm"
+                            ></select>
+                        </div>
+                        <button
+                            v-if="
+                                profile &&
+                                profile.groups.includes(
+                                    'Internal Contributors'
+                                ) &&
+                                occurrence_report.submitter.id != profile.id
+                            "
+                            class="btn btn-primary btn-sm float-end mt-2"
+                            role="button"
+                            @click.prevent="reassignDraftToUser(profile.id)"
+                        >
+                            Reassign draft to me
+                        </button>
+                    </div>
+                </div>
 
                 <div class="card card-default sticky-top">
                     <div class="card-header">Workflow</div>
@@ -553,10 +581,7 @@
                                     Return to Dashboard
                                 </button>
                                 <div
-                                    v-if="
-                                        occurrence_report.internal_application &&
-                                        occurrence_report.can_user_edit
-                                    "
+                                    v-if="show_save_buttons"
                                     class="col-md-6 text-end"
                                 >
                                     <button
@@ -616,69 +641,36 @@
                                     >
                                         Save and Exit
                                     </button>
-
-                                    <button
-                                        v-if="submitOccurrenceReport"
-                                        class="btn btn-primary"
-                                        style="margin-top: 5px"
-                                        disabled
-                                    >
-                                        Submit&nbsp;
-                                        <span
-                                            class="spinner-border spinner-border-sm"
-                                            role="status"
-                                            aria-hidden="true"
-                                        ></span>
-                                        <span class="visually-hidden"
-                                            >Loading...</span
+                                    <span v-if="show_submit_button">
+                                        <button
+                                            v-if="submitOccurrenceReport"
+                                            class="btn btn-primary"
+                                            style="margin-top: 5px"
+                                            disabled
                                         >
-                                    </button>
-                                    <button
-                                        v-else
-                                        class="btn btn-primary"
-                                        style="margin-top: 5px"
-                                        :disabled="
-                                            saveExitOccurrenceReport ||
-                                            savingOccurrenceReport
-                                        "
-                                        @click.prevent="submit()"
-                                    >
-                                        Submit
-                                    </button>
-                                </div>
-                                <div
-                                    v-else-if="
-                                        occurrence_report.assessor_mode
-                                            .has_assessor_mode ||
-                                        occurrence_report.assessor_mode
-                                            .has_unlocked_mode
-                                    "
-                                    class="col-md-6 text-end"
-                                >
-                                    <button
-                                        v-if="savingOccurrenceReport"
-                                        class="btn btn-primary"
-                                        style="margin-top: 5px"
-                                        disabled
-                                    >
-                                        Save Changes
-                                        <span
-                                            class="spinner-border spinner-border-sm"
-                                            role="status"
-                                            aria-hidden="true"
-                                        ></span>
-                                        <span class="visually-hidden"
-                                            >Loading...</span
+                                            Submit&nbsp;
+                                            <span
+                                                class="spinner-border spinner-border-sm"
+                                                role="status"
+                                                aria-hidden="true"
+                                            ></span>
+                                            <span class="visually-hidden"
+                                                >Loading...</span
+                                            >
+                                        </button>
+                                        <button
+                                            v-else
+                                            class="btn btn-primary"
+                                            style="margin-top: 5px"
+                                            :disabled="
+                                                saveExitOccurrenceReport ||
+                                                savingOccurrenceReport
+                                            "
+                                            @click.prevent="submit()"
                                         >
-                                    </button>
-                                    <button
-                                        v-else
-                                        class="btn btn-primary"
-                                        style="margin-top: 5px"
-                                        @click.prevent="save()"
-                                    >
-                                        Save Changes
-                                    </button>
+                                            Submit
+                                        </button>
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -801,6 +793,7 @@ export default {
     },
     data: function () {
         return {
+            profile: null,
             occurrence_report: null,
             original_occurrence_report: null,
             referrals_api_endpoint: api_endpoints.ocr_referrals,
@@ -816,7 +809,9 @@ export default {
             isSaved: false,
             DATE_TIME_FORMAT: 'DD/MM/YYYY HH:mm:ss',
             department_users: null,
+            contributors: null,
             external_referee_email: '',
+            selectedReassignUser: null,
         };
     },
     computed: {
@@ -966,6 +961,30 @@ export default {
                       `/${this.occurrence_report.id}/referrals/`
                 : '';
         },
+        show_save_buttons: function () {
+            return (
+                this.occurrence_report &&
+                (this.show_submit_button ||
+                    this.occurrence_report.assessor_mode.has_assessor_mode ||
+                    this.occurrence_report.assessor_mode.has_unlocked_mode)
+            );
+        },
+        show_submit_button: function () {
+            return (
+                this.occurrence_report &&
+                this.occurrence_report.internal_application &&
+                this.occurrence_report.can_user_edit
+            );
+        },
+        show_reassign_draft_panel: function () {
+            return (
+                this.occurrence_report &&
+                this.occurrence_report.processing_status == 'Draft' &&
+                this.profile &&
+                (this.occurrence_report.submitter.id == this.profile.id ||
+                    this.profile.groups.includes('Occurrence Approvers'))
+            );
+        },
     },
     created: function () {
         if (!this.occurrence_report) {
@@ -973,8 +992,11 @@ export default {
         }
     },
     mounted: function () {
-        let vm = this;
-        vm.fetchDeparmentUsers();
+        this.fetchProfile();
+        this.fetchDeparmentUsers();
+        this.$nextTick(() => {
+            this.initialiseContributorsSelect();
+        });
     },
     updated: function () {
         let vm = this;
@@ -1171,34 +1193,18 @@ export default {
             }
 
             let payload = { proposal: vm.occurrence_report };
-            await fetch(vm.occurrence_report_form_url, {
+            fetch(vm.occurrence_report_form_url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-            }).then(
-                async (response) => {
-                    swal.fire({
-                        title: 'Saved',
-                        text: 'Your changes have been saved',
-                        icon: 'success',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    });
-                    vm.savingOccurrenceReport = false;
-                    vm.isSaved = true;
-                    vm.occurrence_report = await response.json();
-                    vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
-                        false
-                    );
-                },
-                (err) => {
-                    var errorText = helpers.apiVueResourceError(err);
+            }).then(async (response) => {
+                let data = await response.json();
+                if (!response.ok) {
                     swal.fire({
                         title: 'Save Error',
-                        text: errorText,
+                        text: JSON.stringify(data),
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
@@ -1209,8 +1215,23 @@ export default {
                     vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
                         false
                     );
+                    return;
                 }
-            );
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Your changes have been saved',
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+                vm.savingOccurrenceReport = false;
+                vm.isSaved = true;
+                vm.occurrence_report = data;
+                vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
+                    false
+                );
+            });
         },
         save_exit: async function () {
             let vm = this;
@@ -1257,22 +1278,25 @@ export default {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-            }).then(
-                async () => {},
-                (err) => {
-                    var errorText = helpers.apiVueResourceError(err);
+            }).then(async (response) => {
+                let data = await response.json();
+                if (!response.ok) {
                     swal.fire({
-                        title: 'Submit Error',
-                        text: errorText,
+                        title: 'Save Error',
+                        text: JSON.stringify(data),
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
                     });
-                    vm.submitOccurrenceReport = false;
-                    vm.saveError = true;
+                    vm.savingOccurrenceReport = false;
+                    vm.isSaved = false;
+                    vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
+                        false
+                    );
+                    return;
                 }
-            );
+            });
             return result;
         },
         can_submit: async function (check_action) {
@@ -1488,6 +1512,7 @@ export default {
             vm.$nextTick(() => {
                 vm.initialiseAssignedOfficerSelect(true);
                 vm.updateAssignedOfficerSelect();
+                vm.initialiseContributorsSelect();
             });
         },
         initialiseSelects: function () {
@@ -1497,6 +1522,7 @@ export default {
                 vm.initialiseAssignedOfficerSelect();
                 vm.initialisedSelects = true;
             }
+            vm.initialiseContributorsSelect();
         },
         sendReferral: function () {
             let vm = this;
@@ -1671,6 +1697,36 @@ export default {
                     console.log(error);
                 }
             );
+        },
+        initialiseContributorsSelect: function () {
+            let vm = this;
+            $(vm.$refs.contributors)
+                .select2({
+                    minimumInputLength: 2,
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: 'Search for Contributor',
+                    ajax: {
+                        url: api_endpoints.users_api + '/get_contributors/',
+                        dataType: 'json',
+                        data: function (params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                            };
+                            return query;
+                        },
+                    },
+                })
+                .on('select2:select', function (e) {
+                    let data = e.params.data.id;
+                    vm.selectedReassignUser = e.params.data.text;
+                    vm.reassignDraftToUser(data);
+                })
+                .on('select2:unselect', function () {
+                    vm.selectedReassignUser = null;
+                    $(vm.$refs.contributors).val(null).trigger('change');
+                });
         },
         initialiseReferreeSelect: function () {
             let vm = this;
@@ -1963,6 +2019,63 @@ export default {
                 );
             }
         },
+        reassignDraftToUser: function (emailuser_id) {
+            let vm = this;
+            let endPointAction = '/reassign_draft_to_user';
+            let reassignUser = vm.selectedReassignUser;
+            if (vm.profile.id == emailuser_id) {
+                reassignUser = 'yourself';
+                endPointAction = '/reassign_draft_to_request_user';
+            }
+            swal.fire({
+                title: 'Reassign Draft',
+                text: `Are you sure you want to reassign this draft to ${reassignUser}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Reassign Draft',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary me-2',
+                },
+                reverseButtons: true,
+            }).then(async (swalresult) => {
+                if (swalresult.isConfirmed) {
+                    fetch(
+                        helpers.add_endpoint_json(
+                            api_endpoints.occurrence_report,
+                            vm.occurrence_report.id + endPointAction
+                        ),
+                        {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ user_id: emailuser_id }),
+                        }
+                    ).then(
+                        async (response) => {
+                            const data = await response.json();
+                            vm.occurrence_report = data;
+                            $(vm.$refs.contributors)
+                                .val(null)
+                                .trigger('change');
+                        },
+                        (error) => {
+                            swal.fire({
+                                title: 'Application Error',
+                                text: helpers.apiVueResourceError(error),
+                                icon: 'error',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                        }
+                    );
+                } else {
+                    $(vm.$refs.contributors).val(null).trigger('change');
+                }
+            });
+        },
         assignRequestUser: function () {
             let vm = this;
             fetch(
@@ -2021,6 +2134,22 @@ export default {
                 },
                 (err) => {
                     console.log(err);
+                }
+            );
+        },
+        fetchProfile: function () {
+            let vm = this;
+            fetch(api_endpoints.profile, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(
+                async (response) => {
+                    vm.profile = await response.json();
+                },
+                (error) => {
+                    console.log(error);
                 }
             );
         },

@@ -880,7 +880,7 @@
                         <label
                             for="proposed_other_conservation_assessment"
                             class="col-sm-5 col-form-label"
-                            >Other Conservation Criteria:</label
+                            >Other Conservation Assessment:</label
                         >
                         <div class="col-sm-7">
                             <template v-if="!isReadOnly">

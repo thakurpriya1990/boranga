@@ -639,6 +639,13 @@ const _helper = {
                         })
                         .then(function (text) {
                             const result = parser.read(text);
+
+                            if (jQuery.isEmptyObject(result.Contents)) {
+                                throw new Error(
+                                    'result.Contents is an empty object'
+                                );
+                            }
+
                             const options = optionsFromCapabilities(result, {
                                 layer: layer.layer_name,
                                 matrixSet: matrixSet,

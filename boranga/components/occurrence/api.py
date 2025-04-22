@@ -120,6 +120,7 @@ from boranga.components.occurrence.permissions import (
     OccurrenceReportCopyPermission,
     OccurrenceReportObjectPermission,
     OccurrenceReportPermission,
+    OccurrenceReportReassignDraftPermission,
 )
 from boranga.components.occurrence.serializers import (
     BackToAssessorSerializer,
@@ -161,6 +162,7 @@ from boranga.components.occurrence.serializers import (
     OCRObserverDetailSerializer,
     ProposeApproveSerializer,
     ProposeDeclineSerializer,
+    SaveBeforeSubmitOCRHabitatConditionSerializer,
     SaveOCCAnimalObservationSerializer,
     SaveOCCAssociatedSpeciesSerializer,
     SaveOCCConservationThreatSerializer,
@@ -1665,7 +1667,10 @@ class OccurrenceReportViewSet(
             if serializer.is_valid():
                 serializer.save()
 
-        if proposal_data.get("plant_count"):
+        if (
+            instance.group_type.name == GroupType.GROUP_TYPE_FLORA
+            and proposal_data.get("plant_count")
+        ):
             plant_count_instance, created = OCRPlantCount.objects.get_or_create(
                 occurrence_report=instance
             )
@@ -1715,11 +1720,9 @@ class OccurrenceReportViewSet(
         geometry_data = proposal_data.get("ocr_geometry", None)
         if geometry_data:
             save_geometry(request, instance, geometry_data, "occurrence_report")
-
         serializer = SaveOccurrenceReportSerializer(
             instance, data=proposal_data, partial=True
         )
-
         serializer.is_valid(raise_exception=True)
         if serializer.is_valid():
             if (
@@ -1738,9 +1741,15 @@ class OccurrenceReportViewSet(
     @detail_route(methods=["post"], detail=True)
     @renderer_classes((JSONRenderer,))
     def submit(self, request, *args, **kwargs):
-
         instance = self.get_object()
-        # instance.submit(request,self)
+
+        # This will validate the keighery scale percentages
+        habitat_condition_instance = instance.habitat_condition
+        serializer = SaveBeforeSubmitOCRHabitatConditionSerializer(
+            data=habitat_condition_instance.__dict__
+        )
+        serializer.is_valid(raise_exception=True)
+
         ocr_proposal_submit(instance, request)
         instance.save(version_user=request.user)
         serializer = self.get_serializer(instance)
@@ -2171,6 +2180,37 @@ class OccurrenceReportViewSet(
         )
 
         serializer = self.get_serializer(ocr_copy)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+        permission_classes=[OccurrenceReportReassignDraftPermission],
+    )
+    @renderer_classes((JSONRenderer,))
+    def reassign_draft_to_request_user(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.reassign_draft_to_user(request, request.user.id)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @detail_route(
+        methods=[
+            "PATCH",
+        ],
+        detail=True,
+        permission_classes=[OccurrenceReportReassignDraftPermission],
+    )
+    @renderer_classes((JSONRenderer,))
+    def reassign_draft_to_user(self, request, *args, **kwargs):
+        instance = self.get_object()
+        user_id = request.data.get("user_id", None)
+        if not user_id:
+            raise serializers.ValidationError("A user id is required")
+        instance.reassign_draft_to_user(request, user_id)
+        serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
 
@@ -2988,10 +3028,14 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
                     )
                     .filter(display_name__icontains=search_term)
                     .distinct()
-                    .values("id", "display_name")[:10]
+                    .values("id", "display_name", "comment")[:10]
                 )
                 queryset = [
-                    {"id": occurrence["id"], "text": occurrence["display_name"]}
+                    {
+                        "id": occurrence["id"],
+                        "text": occurrence["display_name"],
+                        "occurrence_comment": occurrence["comment"],
+                    }
                     for occurrence in queryset
                 ]
             else:
@@ -3286,7 +3330,9 @@ class OccurrencePaginatedViewSet(viewsets.ReadOnlyModelViewSet):
         instance = self.get_object()
         related_filter_type = request.GET.get("related_filter_type")
         related_items = instance.get_related_items(related_filter_type)
-        serializer = RelatedItemsSerializer(related_items, many=True)
+        serializer = RelatedItemsSerializer(
+            related_items, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     @list_route(
@@ -4110,7 +4156,9 @@ class OccurrenceViewSet(
         instance = self.get_object()
         related_filter_type = request.GET.get("related_filter_type")
         related_items = instance.get_related_items(related_filter_type)
-        serializer = RelatedItemsSerializer(related_items, many=True)
+        serializer = RelatedItemsSerializer(
+            related_items, many=True, context={"request": request}
+        )
         return Response(serializer.data)
 
     @list_route(

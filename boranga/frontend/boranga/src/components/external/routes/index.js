@@ -50,7 +50,7 @@ export default {
                     name: 'draft_ocr_proposal',
                 },
                 {
-                    path: '/submit',
+                    path: 'submit',
                     component: OCRProposalSubmit,
                     name: 'submit_ocr_proposal',
                 },
@@ -64,7 +64,7 @@ export default {
         {
             path: 'conservation-status',
             component: ExternalConservationStatusDash,
-            name: 'external-conservation_status-dash',
+            name: 'external-conservation-status-dash',
         },
         {
             path: 'conservation-status',

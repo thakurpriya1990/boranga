@@ -23,6 +23,7 @@
                 :submitter_information="
                     occurrence_report_obj.submitter_information
                 "
+                :show_organisation_section="false"
                 :disabled="
                     !(
                         occurrence_report_obj.can_user_edit &&

@@ -209,7 +209,7 @@ class ListSpeciesSerializer(serializers.ModelSerializer):
     def get_other_conservation_assessment(self, obj):
         conservation_status = obj.approved_conservation_status
         if conservation_status and conservation_status.other_conservation_assessment:
-            return conservation_status.other_conservation_assessment
+            return conservation_status.other_conservation_assessment.code
         return ""
 
     def get_conservation_criteria(self, obj):
@@ -371,6 +371,7 @@ class TaxonomySerializer(serializers.ModelSerializer):
     phylogenetic_group = serializers.SerializerMethodField()
     conservation_status = serializers.SerializerMethodField()
     species_id = serializers.SerializerMethodField()
+    common_names_list = serializers.SerializerMethodField()
 
     class Meta:
         model = Taxonomy
@@ -382,6 +383,7 @@ class TaxonomySerializer(serializers.ModelSerializer):
             "kingdom_name",
             # need to fetch common name in multiple select
             "common_name",
+            "common_names_list",
             "taxon_previous_name",
             "phylogenetic_group",
             "name_authority",
@@ -403,6 +405,14 @@ class TaxonomySerializer(serializers.ModelSerializer):
         if not obj.vernaculars:
             return ""
         return ", ".join(str(vn.vernacular_name) for vn in obj.vernaculars.all())
+
+    def get_common_names_list(self, obj):
+        if not hasattr(obj, "species") or not obj.species:
+            return []
+
+        return obj.species.taxonomy.vernaculars.values_list(
+            "vernacular_name", flat=True
+        )
 
     def get_phylogenetic_group(self, obj):
         try:
@@ -428,6 +438,11 @@ class TaxonomySerializer(serializers.ModelSerializer):
             return BasicConservationStatusSerializer(qs, context=self.context).data
         except (ConservationStatus.DoesNotExist, Species.DoesNotExist):
             return BasicConservationStatusSerializer(context=self.context).data
+
+
+class CommonNameTaxonomySerializer(TaxonomySerializer):
+    def get_text(self, obj):
+        return super().get_common_name(obj)
 
 
 class SpeciesConservationAttributesSerializer(serializers.ModelSerializer):

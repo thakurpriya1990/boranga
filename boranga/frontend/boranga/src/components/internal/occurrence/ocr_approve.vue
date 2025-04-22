@@ -62,6 +62,24 @@
                         </div>
                     </div>
 
+                    <div class="row mb-3 border-bottom">
+                        <label
+                            for="details_from_assessor"
+                            class="col-sm-4 col-form-label fw-bold"
+                            >Copy Occurrence Report Comments to
+                            Occurrence?</label
+                        >
+                        <div class="col-sm-8 d-flex align-items-center">
+                            <i
+                                class="bi bi-check-lg h4 text-success"
+                                v-if="
+                                    approval_details.copy_ocr_comments_to_occ_comments
+                                "
+                            ></i>
+                            <i class="bi bi-x-lg h4 text-error" v-else></i>
+                        </div>
+                    </div>
+
                     <div class="row">
                         <label
                             class="col-sm-4 col-form-label fw-bold"

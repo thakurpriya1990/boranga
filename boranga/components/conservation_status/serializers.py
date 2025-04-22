@@ -50,6 +50,9 @@ class BasicConservationStatusSerializer(serializers.ModelSerializer):
     commonwealth_conservation_category = serializers.CharField(
         source="commonwealth_conservation_category.code", allow_null=True
     )
+    other_conservation_assessment = serializers.CharField(
+        source="other_conservation_assessment.code", allow_null=True
+    )
     under_review = serializers.SerializerMethodField()
 
     class Meta:
@@ -165,6 +168,9 @@ class ListSpeciesConservationStatusSerializer(serializers.ModelSerializer):
     )
     commonwealth_conservation_category = serializers.CharField(
         source="commonwealth_conservation_category.code", allow_null=True
+    )
+    other_conservation_assessment = serializers.CharField(
+        source="other_conservation_assessment.code", allow_null=True
     )
     processing_status = serializers.CharField(source="get_processing_status_display")
     assessor_process = serializers.SerializerMethodField(read_only=True)
@@ -362,6 +368,9 @@ class ListCommunityConservationStatusSerializer(serializers.ModelSerializer):
     )
     commonwealth_conservation_category = serializers.CharField(
         source="commonwealth_conservation_category.code", allow_null=True
+    )
+    other_conservation_assessment = serializers.CharField(
+        source="other_conservation_assessment.code", allow_null=True
     )
     change_code = serializers.CharField(
         source="change_code.code", read_only=True, allow_null=True

@@ -1,8 +1,10 @@
 import hashlib
 import logging
+from decimal import Decimal
 
 from django.db import models, transaction
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from taggit.serializers import TaggitSerializer, TagListSerializerField
@@ -256,6 +258,7 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
         format="%Y-%m-%d %H:%M:%S", allow_null=True
     )
     main_observer = serializers.SerializerMethodField()
+    can_user_edit = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -310,6 +313,10 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
         else:
             return ""
 
+    def get_can_user_edit(self, obj):
+        request = self.context["request"]
+        return obj.can_user_edit(request)
+
 
 class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     scientific_name = serializers.SerializerMethodField()
@@ -337,6 +344,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     main_observer = serializers.SerializerMethodField()
     copied_to_occurrence = serializers.SerializerMethodField()
     geometry_show_on_map = serializers.SerializerMethodField()
+    can_user_edit = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -413,14 +421,14 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
     def get_assessor_edit(self, obj):
         request = self.context["request"]
         user = request.user
-        if obj.can_user_edit:
+        if obj.can_user_edit(request):
             if user in obj.allowed_assessors:
                 return True
         return False
 
     def get_internal_user_edit(self, obj):
         request = self.context["request"]
-        if obj.can_user_edit:
+        if obj.can_user_edit(request):
             if obj.internal_application is True and obj.submitter == request.user.id:
                 return True
         else:
@@ -440,6 +448,10 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
             and obj.processing_status
             == OccurrenceReport.PROCESSING_STATUS_WITH_APPROVER
         )
+
+    def get_can_user_edit(self, obj):
+        request = self.context["request"]
+        return obj.can_user_edit(request)
 
     def get_is_new_contributor(self, obj):
         return is_new_external_contributor(obj.submitter)
@@ -603,6 +615,7 @@ class OCRObservationDetailSerializer(serializers.ModelSerializer):
             "observation_method",
             "area_surveyed",
             "survey_duration",
+            "comments",
         )
 
 
@@ -661,7 +674,7 @@ class OCRPlantCountSerializer(serializers.ModelSerializer):
             "detailed_alive_unknown",
             "detailed_dead_unknown",
             "count_date",
-            "counted",
+            "count_status",
         )
 
 
@@ -715,8 +728,10 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
             "dead_unsure_female",
             "alive_unsure_unknown",
             "dead_unsure_unknown",
+            "simple_alive",
+            "simple_dead",
             "count_date",
-            "counted",
+            "count_status",
         )
 
     def __init__(self, *args, **kwargs):
@@ -1103,6 +1118,7 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     number_of_observers = serializers.IntegerField(read_only=True)
     has_main_observer = serializers.BooleanField(read_only=True)
     is_submitter = serializers.SerializerMethodField()
+    can_user_edit = serializers.SerializerMethodField()
 
     class Meta:
         model = OccurrenceReport
@@ -1152,6 +1168,9 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "number_of_observers",
             "has_main_observer",
             "is_submitter",
+            "comments",
+            "ocr_for_occ_number",
+            "ocr_for_occ_name",
         )
 
     def get_readonly(self, obj):
@@ -1245,6 +1264,10 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     def get_is_submitter(self, obj):
         request = self.context["request"]
         return request.user.id == obj.submitter
+
+    def get_can_user_edit(self, obj):
+        request = self.context["request"]
+        return obj.can_user_edit(request)
 
 
 class OccurrenceReportSerializer(BaseOccurrenceReportSerializer):
@@ -1377,6 +1400,10 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     )
     observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    common_names = serializers.SerializerMethodField(read_only=True)
+    community_migrated_id = serializers.CharField(
+        source="community.taxonomy.community_migrated_id", allow_null=True
+    )
 
     class Meta:
         model = OccurrenceReport
@@ -1389,6 +1416,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "species_number",
             "community_number",
             "community_id",
+            "community_migrated_id",
             "occurrence_report_number",
             "reported_date",
             "lodgement_date",
@@ -1446,6 +1474,8 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "is_submitter",
             "migrated_from_id",
             "user_is_assessor",
+            "comments",
+            "common_names",
         )
 
     def get_readonly(self, obj):
@@ -1537,6 +1567,14 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
 
     def get_is_new_contributor(self, obj):
         return is_new_external_contributor(obj.submitter)
+
+    def get_common_names(self, obj):
+        if not obj.species:
+            return []
+
+        return obj.species.taxonomy.vernaculars.values_list(
+            "vernacular_name", flat=True
+        )
 
 
 class DTOccurrenceReportReferralSerializer(serializers.ModelSerializer):
@@ -1699,6 +1737,41 @@ class SaveOCRHabitatConditionSerializer(serializers.ModelSerializer):
         )
 
 
+class SaveBeforeSubmitOCRHabitatConditionSerializer(SaveOCRHabitatConditionSerializer):
+
+    def validate(self, attrs):
+        count_date = attrs.get("count_date")
+        if count_date:
+            try:
+                # Check if the date is in the future
+                if count_date > timezone.now():
+                    raise serializers.ValidationError(
+                        "Count date cannot be in the future."
+                    )
+            except ValueError:
+                raise serializers.ValidationError("Invalid date format.")
+
+        # Make sure the total of pristine, excellent, very_good, good, degraded, and completely_degraded is 100
+        habitat_conditions_fields = [
+            "pristine",
+            "excellent",
+            "very_good",
+            "good",
+            "degraded",
+            "completely_degraded",
+        ]
+        total = Decimal("0.00")
+        for field in habitat_conditions_fields:
+            total += Decimal(attrs.get(field, Decimal("0.00")))
+        total = total.quantize(Decimal("0.00"))
+        if total != Decimal("100.00"):
+            raise serializers.ValidationError(
+                "The sum of habitat conditions must equal 100. Currently they equal %s."
+                % total
+            )
+        return attrs
+
+
 class SaveOCRVegetationStructureSerializer(serializers.ModelSerializer):
     # write_only removed from below as the serializer will not return that field in serializer.data
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
@@ -1760,6 +1833,7 @@ class SaveOCRObservationDetailSerializer(serializers.ModelSerializer):
             "observation_method_id",
             "area_surveyed",
             "survey_duration",
+            "comments",
         )
 
 
@@ -1809,7 +1883,7 @@ class SaveOCRPlantCountSerializer(serializers.ModelSerializer):
             "detailed_alive_unknown",
             "detailed_dead_unknown",
             "count_date",
-            "counted",
+            "count_status",
         )
 
 
@@ -1857,8 +1931,10 @@ class SaveOCRAnimalObservationSerializer(serializers.ModelSerializer):
             "dead_unsure_female",
             "alive_unsure_unknown",
             "dead_unsure_unknown",
+            "simple_alive",
+            "simple_dead",
             "count_date",
-            "counted",
+            "count_status",
         )
 
     def __init__(self, *args, **kwargs):
@@ -1943,6 +2019,12 @@ class SaveOCRLocationSerializer(serializers.ModelSerializer):
 
 
 class OCRObserverDetailSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(source="role.item", allow_null=True, read_only=True)
+    role_id = serializers.IntegerField(allow_null=False, required=True)
+    category = serializers.CharField(
+        source="category.item", allow_null=True, read_only=True
+    )
+    category_id = serializers.IntegerField(allow_null=False, required=True)
     can_action = serializers.SerializerMethodField()
 
     class Meta:
@@ -1952,14 +2034,17 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
             "occurrence_report",
             "observer_name",
             "role",
+            "role_id",
+            "category",
+            "category_id",
             "contact",
             "organisation",
             "main_observer",
             "visible",
             "can_action",
         )
-        read_only_fields = (id,)
-        datatables_always_serialize = ("id", "can_action")
+        read_only_fields = ("id", "role", "category", "can_action")
+        datatables_always_serialize = ("id", "role", "category", "can_action")
 
     def get_can_action(self, obj):
         request = self.context["request"]
@@ -1989,8 +2074,20 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
                     and field_name not in self.Meta.read_only_fields
                 ):
                     setattr(instance, field_name, validated_data[field_name])
+            logger.debug(f"instance: {instance.__dict__}")
             instance.save(*args, **kwargs)
             return instance
+
+    def to_representation(self, instance):
+        my_fields = {"role_id", "category_id"}
+        data = super().to_representation(instance)
+        for field in my_fields:
+            try:
+                if not data[field]:
+                    data[field] = ""
+            except KeyError:
+                pass
+        return data
 
 
 class OCRObserverDetailLimitedSerializer(OCRObserverDetailSerializer):
@@ -2003,6 +2100,9 @@ class OCRObserverDetailLimitedSerializer(OCRObserverDetailSerializer):
             "occurrence_report",
             "observer_name",
             "role",
+            "role_id",
+            "category",
+            "category_id",
             "organisation",
             "main_observer",
             "visible",
@@ -2063,6 +2163,7 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
             "observation_date",
             "ocr_for_occ_number",
             "ocr_for_occ_name",
+            "comments",
         )
         read_only_fields = ("id",)
 
@@ -2521,6 +2622,13 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
             "review_due_date",
         )
         read_only_fields = ("id", "group_type")
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=model.objects.all(),
+                fields=("occurrence_name", "species", "community"),
+                message="An occurrence with this name already exists for this species or community.",
+            )
+        ]
 
     def validate(self, data):
         obj = self.instance
@@ -2728,6 +2836,7 @@ class OCCObservationDetailSerializer(serializers.ModelSerializer):
             "observation_method",
             "area_surveyed",
             "survey_duration",
+            "comments",
         )
 
     def get_copied_ocr(self, obj):
@@ -2794,7 +2903,7 @@ class OCCPlantCountSerializer(serializers.ModelSerializer):
             "detailed_alive_unknown",
             "detailed_dead_unknown",
             "count_date",
-            "counted",
+            "count_status",
         )
 
     def get_copied_ocr(self, obj):
@@ -2854,8 +2963,10 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
             "dead_unsure_female",
             "alive_unsure_unknown",
             "dead_unsure_unknown",
+            "simple_alive",
+            "simple_dead",
             "count_date",
-            "counted",
+            "count_status",
         )
 
     def __init__(self, *args, **kwargs):
@@ -3051,6 +3162,7 @@ class SaveOCCObservationDetailSerializer(serializers.ModelSerializer):
             "observation_method_id",
             "area_surveyed",
             "survey_duration",
+            "comments",
         )
 
 
@@ -3100,7 +3212,7 @@ class SaveOCCPlantCountSerializer(serializers.ModelSerializer):
             "detailed_alive_unknown",
             "detailed_dead_unknown",
             "count_date",
-            "counted",
+            "count_status",
         )
 
 
@@ -3148,8 +3260,10 @@ class SaveOCCAnimalObservationSerializer(serializers.ModelSerializer):
             "dead_unsure_female",
             "alive_unsure_unknown",
             "dead_unsure_unknown",
+            "simple_alive",
+            "simple_dead",
             "count_date",
-            "counted",
+            "count_status",
         )
 
     def __init__(self, *args, **kwargs):

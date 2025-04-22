@@ -434,133 +434,178 @@
             label="Habitat Condition"
             :Index="habitatConditionBody"
         >
-            <label for="" class="col-lg-3 control-label fs-5 fw-bold"
+            <label for="" class="col-lg-3 control-label fs-5 fw-bold mb-3"
                 >Keighery Scale</label
             >
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Pristine %:</label>
-                <div class="col-sm-6">
-                    <input
-                        id="pristine"
-                        v-model="
-                            occurrence_report_obj.habitat_condition.pristine
-                        "
-                        :disabled="isReadOnly"
-                        type="number"
-                        class="form-control ocr_number"
-                        placeholder=""
-                        min="0"
-                        max="100"
-                        @change.prevent="calcKeigheryTotal()"
-                    />
+            <div class="row mb-2">
+                <label for="" class="col-sm-3 control-label">Pristine:</label>
+                <div class="col-sm-2">
+                    <div class="input-group">
+                        <input
+                            id="pristine"
+                            v-model="
+                                occurrence_report_obj.habitat_condition.pristine
+                            "
+                            :disabled="isReadOnly"
+                            type="number"
+                            class="form-control"
+                            placeholder=""
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            @change="
+                                checkKeigheryScaleTotal($event, 'pristine')
+                            "
+                        />
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label for="" class="col-sm-3 control-label">Excellent:</label>
+                <div class="col-sm-2">
+                    <div class="input-group">
+                        <input
+                            id="excellent"
+                            v-model="
+                                occurrence_report_obj.habitat_condition
+                                    .excellent
+                            "
+                            :disabled="isReadOnly"
+                            type="number"
+                            class="form-control"
+                            placeholder=""
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            @change="
+                                checkKeigheryScaleTotal($event, 'excellent')
+                            "
+                        />
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label for="" class="col-sm-3 control-label">Very Good:</label>
+                <div class="col-sm-2">
+                    <div class="input-group">
+                        <input
+                            id="very_good"
+                            v-model="
+                                occurrence_report_obj.habitat_condition
+                                    .very_good
+                            "
+                            :disabled="isReadOnly"
+                            type="number"
+                            class="form-control"
+                            placeholder=""
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            @change="
+                                checkKeigheryScaleTotal($event, 'very_good')
+                            "
+                        />
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label for="" class="col-sm-3 control-label">Good:</label>
+                <div class="col-sm-2">
+                    <div class="input-group">
+                        <input
+                            id="good"
+                            v-model="
+                                occurrence_report_obj.habitat_condition.good
+                            "
+                            :disabled="isReadOnly"
+                            type="number"
+                            class="form-control"
+                            placeholder=""
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            @change="checkKeigheryScaleTotal($event, 'good')"
+                        />
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label for="" class="col-sm-3 control-label">Degraded:</label>
+                <div class="col-sm-2">
+                    <div class="input-group">
+                        <input
+                            id="degraded"
+                            v-model="
+                                occurrence_report_obj.habitat_condition.degraded
+                            "
+                            :disabled="isReadOnly"
+                            type="number"
+                            class="form-control"
+                            placeholder=""
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            @change="
+                                checkKeigheryScaleTotal($event, 'degraded')
+                            "
+                        />
+                        <span class="input-group-text">%</span>
+                    </div>
                 </div>
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
-                    >Excellent %:</label
+                    >Completely Degraded:</label
                 >
-                <div class="col-sm-6">
-                    <input
-                        id="excellent"
-                        v-model="
-                            occurrence_report_obj.habitat_condition.excellent
-                        "
-                        :disabled="isReadOnly"
-                        type="number"
-                        class="form-control ocr_number"
-                        placeholder=""
-                        min="0"
-                        max="100"
-                        @change.prevent="calcKeigheryTotal()"
-                    />
+                <div class="col-sm-2">
+                    <div class="input-group">
+                        <input
+                            id="completely_degraded"
+                            v-model="
+                                occurrence_report_obj.habitat_condition
+                                    .completely_degraded
+                            "
+                            :disabled="isReadOnly"
+                            type="number"
+                            class="form-control"
+                            placeholder=""
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            @change="
+                                checkKeigheryScaleTotal(
+                                    $event,
+                                    'completely_degraded'
+                                )
+                            "
+                        />
+                        <span class="input-group-text">%</span>
+                    </div>
                 </div>
             </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"
-                    >Very Good %:</label
-                >
-                <div class="col-sm-6">
-                    <input
-                        id="very_good"
-                        v-model="
-                            occurrence_report_obj.habitat_condition.very_good
-                        "
-                        :disabled="isReadOnly"
-                        type="number"
-                        class="form-control ocr_number"
-                        placeholder=""
-                        min="0"
-                        max="100"
-                        @change.prevent="calcKeigheryTotal()"
-                    />
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Good %:</label>
-                <div class="col-sm-6">
-                    <input
-                        id="good"
-                        v-model="occurrence_report_obj.habitat_condition.good"
-                        :disabled="isReadOnly"
-                        type="number"
-                        class="form-control ocr_number"
-                        placeholder=""
-                        min="0"
-                        max="100"
-                        @change.prevent="calcKeigheryTotal()"
-                    />
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Degraded %:</label>
-                <div class="col-sm-6">
-                    <input
-                        id="degraded"
-                        v-model="
-                            occurrence_report_obj.habitat_condition.degraded
-                        "
-                        :disabled="isReadOnly"
-                        type="number"
-                        class="form-control ocr_number"
-                        placeholder=""
-                        min="0"
-                        max="100"
-                        @change.prevent="calcKeigheryTotal()"
-                    />
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"
-                    >Completely Degraded %:</label
-                >
-                <div class="col-sm-6">
-                    <input
-                        id="completely_degraded"
-                        v-model="
-                            occurrence_report_obj.habitat_condition
-                                .completely_degraded
-                        "
-                        :disabled="isReadOnly"
-                        type="number"
-                        class="form-control ocr_number"
-                        placeholder=""
-                        min="0"
-                        max="100"
-                        @change.prevent="calcKeigheryTotal()"
-                    />
-                </div>
-            </div>
-            <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label"></label>
-                <div class="col-sm-6">
-                    <input
-                        id="habitat_cond_sum"
-                        v-model="habitat_cond_sum"
-                        readonly
-                        type="text"
-                        class="form-control ocr_number"
-                        placeholder=""
-                    />
+            <div class="row pt-3 border-top">
+                <label for="" class="col-sm-3 control-label">Total</label>
+                <div class="col-sm-2">
+                    <div class="input-group">
+                        <input
+                            id="keighery-scale-total"
+                            v-model="keigheryScaleTotal"
+                            readonly
+                            type="number"
+                            class="form-control"
+                            placeholder=""
+                            :class="
+                                keigheryScaleTotal == 100.0
+                                    ? 'border-success border-2'
+                                    : 'border-danger border-2'
+                            "
+                        />
+                        <span class="input-group-text">%</span>
+                    </div>
                 </div>
             </div>
             <div
@@ -730,6 +775,7 @@
                         type="month"
                         class="form-control"
                         name="last_fire_date"
+                        :max="new Date().toISOString().slice(0, 7)"
                         @change="checkDate()"
                     />
                 </div>
@@ -933,12 +979,12 @@ export default {
             land_form_list: [],
             drainage_list: [],
             intensity_list: [],
-            habitat_cond_sum: 0,
             updatingHabitatCompositionDetails: false,
             updatingHabitatConditionDetails: false,
             updatingVegetationStructure: false,
             updatingFireHistoryDetails: false,
             updatingAssociatedSpeciesDetails: false,
+            previousKeigheryValue: null,
         };
     },
     computed: {
@@ -949,18 +995,19 @@ export default {
             }
             return this.occurrence_report_obj.readonly;
         },
-    },
-    watch: {
-        // "occurrence_report_obj.distribution.noo_auto": function(newVal) {
-        //     let vm=this;
-        //     var selectedValue = newVal;
-        //         if(selectedValue === "true"){
-        //             vm.occurrence_report_obj.distribution.number_of_occurrences=vm.occurrence_report_obj.distribution.cal_number_of_occurrences;
-        //         }
-        //         else{
-        //             vm.occurrence_report_obj.distribution.number_of_occurrences=null;
-        //         }
-        // },
+        keigheryScaleTotal: function () {
+            return (
+                Number(this.occurrence_report_obj.habitat_condition.pristine) +
+                Number(this.occurrence_report_obj.habitat_condition.excellent) +
+                Number(this.occurrence_report_obj.habitat_condition.very_good) +
+                Number(this.occurrence_report_obj.habitat_condition.good) +
+                Number(this.occurrence_report_obj.habitat_condition.degraded) +
+                Number(
+                    this.occurrence_report_obj.habitat_condition
+                        .completely_degraded
+                )
+            ).toFixed(2);
+        },
     },
     created: async function () {
         let vm = this;
@@ -1009,7 +1056,6 @@ export default {
         let vm = this;
         vm.eventListeners();
         vm.initialiseLandFormSelect();
-        vm.calcKeigheryTotal();
     },
     methods: {
         eventListeners: function () {
@@ -1033,12 +1079,35 @@ export default {
                 });
         },
         checkDate: function () {
-            let vm = this;
-            if (vm.$refs.last_fire_date.value) {
-                vm.occurrence_report_obj.fire_history.last_fire_estimate =
-                    vm.$refs.last_fire_date.value;
-            } else {
-                vm.occurrence_report_obj.fire_history.last_fire_estimate = null;
+            if (
+                isNaN(
+                    new Date(
+                        this.occurrence_report_obj.fire_history
+                            .last_fire_estimate + '-01'
+                    )
+                )
+            ) {
+                return;
+            }
+            if (
+                new Date(
+                    this.occurrence_report_obj.fire_history.last_fire_estimate +
+                        '-01'
+                ) > new Date()
+            ) {
+                this.occurrence_report_obj.fire_history.last_fire_estimate =
+                    new Date().toISOString().slice(0, 7);
+                this.$nextTick(() => {
+                    this.$refs.last_fire_date.focus();
+                });
+                swal.fire({
+                    title: 'Error',
+                    text: 'Last fire estimate cannot be in the future',
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
             }
         },
         relatedSpeciesTextChanged: function (new_text) {
@@ -1084,15 +1153,88 @@ export default {
                         vm.occurrence_report_obj.habitat_composition
                     ),
                 }
-            ).then(
-                async (response) => {
-                    vm.updatingHabitatCompositionDetails = false;
-                    vm.occurrence_report_obj.habitat_composition =
-                        await response.json();
+            ).then(async (response) => {
+                let data = await response.json();
+                if (!response.ok) {
                     swal.fire({
-                        title: 'Saved',
-                        text: 'Habitat Composition details have been saved',
-                        icon: 'success',
+                        title: 'Error',
+                        text:
+                            'Habitat Composition details cannot be saved because of the following error: ' +
+                            JSON.stringify(data),
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    vm.updatingHabitatCompositionDetails = false;
+                    return;
+                }
+                vm.updatingHabitatCompositionDetails = false;
+                vm.occurrence_report_obj.habitat_composition = data;
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Habitat Composition details have been saved',
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                }).then(() => {
+                    if (
+                        vm.occurrence_report_obj.processing_status == 'Unlocked'
+                    ) {
+                        vm.$router.go();
+                    }
+                });
+            });
+        },
+        validateKeigheryScaleTotal: function () {
+            let vm = this;
+            if (vm.keigheryScaleTotal != (100.0).toFixed(2)) {
+                swal.fire({
+                    title: 'Keighery Scale Total Error',
+                    text:
+                        'Keighery Scale total should be 100%. Currently the total is ' +
+                        vm.keigheryScaleTotal +
+                        '%.',
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+                return false;
+            }
+            return true;
+        },
+        updateHabitatConditionDetails: function () {
+            let vm = this;
+            if (!vm.validateKeigheryScaleTotal()) {
+                return;
+            }
+            vm.updatingHabitatConditionDetails = true;
+            fetch(
+                helpers.add_endpoint_json(
+                    api_endpoints.occurrence_report,
+                    vm.occurrence_report_obj.id +
+                        '/update_habitat_condition_details'
+                ),
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(
+                        vm.occurrence_report_obj.habitat_condition
+                    ),
+                }
+            ).then(async (response) => {
+                let data = await response.json();
+                if (!response.ok) {
+                    swal.fire({
+                        title: 'Error',
+                        text:
+                            'Habitat Condition details cannot be saved because of the following error: ' +
+                            JSON.stringify(data),
+                        icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
                         },
@@ -1104,87 +1246,26 @@ export default {
                             vm.$router.go();
                         }
                     });
-                },
-                (error) => {
-                    var text = helpers.apiVueResourceError(error);
-                    swal.fire({
-                        title: 'Error',
-                        text:
-                            'Habitat Composition details cannot be saved because of the following error: ' +
-                            text,
-                        icon: 'error',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    });
-                    vm.updatingHabitatCompositionDetails = false;
+                    vm.updatingHabitatConditionDetails = false;
                 }
-            );
-        },
-        updateHabitatConditionDetails: function () {
-            let vm = this;
-            var valKeigheryTotal = vm.calcKeigheryTotal();
-            if (valKeigheryTotal) {
-                vm.updatingHabitatConditionDetails = true;
-                fetch(
-                    helpers.add_endpoint_json(
-                        api_endpoints.occurrence_report,
-                        vm.occurrence_report_obj.id +
-                            '/update_habitat_condition_details'
-                    ),
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(
-                            vm.occurrence_report_obj.habitat_condition
-                        ),
-                    }
-                ).then(
-                    async (response) => {
-                        vm.updatingHabitatConditionDetails = false;
-                        vm.occurrence_report_obj.habitat_condition =
-                            await response.json();
-                        swal.fire({
-                            title: 'Saved',
-                            text: 'Habitat Condition details have been saved',
-                            icon: 'success',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
-                            },
-                        }).then(() => {
-                            if (
-                                vm.occurrence_report_obj.processing_status ==
-                                'Unlocked'
-                            ) {
-                                vm.$router.go();
-                            }
-                        });
+                vm.updatingHabitatConditionDetails = false;
+                vm.occurrence_report_obj.habitat_condition =
+                    await response.json();
+                swal.fire({
+                    title: 'Saved',
+                    text: 'Habitat Condition details have been saved',
+                    icon: 'success',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
                     },
-                    (error) => {
-                        var text = helpers.apiVueResourceError(error);
-                        swal.fire({
-                            title: 'Error',
-                            text:
-                                'Habitat Condition details cannot be saved because of the following error: ' +
-                                text,
-                            icon: 'error',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
-                            },
-                        }).then(() => {
-                            if (
-                                vm.occurrence_report_obj.processing_status ==
-                                'Unlocked'
-                            ) {
-                                vm.$router.go();
-                            }
-                        });
-                        vm.updatingHabitatConditionDetails = false;
+                }).then(() => {
+                    if (
+                        vm.occurrence_report_obj.processing_status == 'Unlocked'
+                    ) {
+                        vm.$router.go();
                     }
-                );
-            }
+                });
+            });
         },
         updateVegetationStructure: function () {
             let vm = this;
@@ -1347,39 +1428,17 @@ export default {
                 }
             );
         },
-        calcKeigheryTotal: function () {
-            let vm = this;
-            let total = 0;
-            let a = parseInt(
-                vm.occurrence_report_obj.habitat_condition.pristine
-            );
-            let b = parseInt(
-                vm.occurrence_report_obj.habitat_condition.excellent
-            );
-            let c = parseInt(
-                vm.occurrence_report_obj.habitat_condition.very_good
-            );
-            let d = parseInt(vm.occurrence_report_obj.habitat_condition.good);
-            let e = parseInt(
-                vm.occurrence_report_obj.habitat_condition.degraded
-            );
-            let f = parseInt(
-                vm.occurrence_report_obj.habitat_condition.completely_degraded
-            );
-            total = a + b + c + d + e + f;
-            vm.habitat_cond_sum = total;
-            if (total > 100) {
-                swal.fire({
-                    title: 'warning',
-                    text: 'The total Kiery Scale should not exceed 100% ',
-                    icon: 'warning',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-                return false;
-            } else {
-                return true;
+        checkKeigheryScaleTotal: function (event, key) {
+            if (this.keigheryScaleTotal > 100.0) {
+                let difference = (100.0 - this.keigheryScaleTotal).toFixed(2);
+                let targetValue = event.target.value;
+                let newValue = (
+                    Number(targetValue) + Number(difference)
+                ).toFixed(2);
+                if (newValue < 0) {
+                    newValue = Number(0.0).toFixed(2);
+                }
+                this.occurrence_report_obj.habitat_condition[key] = newValue;
             }
         },
     },
@@ -1419,9 +1478,5 @@ input[type='number'] {
 
 input.ocr_number {
     width: 20%;
-}
-
-#habitat_cond_sum {
-    color: red;
 }
 </style>

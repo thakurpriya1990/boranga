@@ -1763,7 +1763,19 @@ export default {
                         propertyName: 'Shape', // Default to query for feature geometries only
                         geometry: 'Shape', // Geometry name (not `the_geom`)
                     },
-                    CPT_CADASTRE_SCDB: {
+                    'kaartdijin-boodja-private:CPT_CADASTRE_SCDB': {
+                        version: '2.0.0', // WFS version
+                        srsName: 'EPSG:4326',
+                        propertyName: 'SHAPE', // Default to query for feature geometries only
+                        geometry: 'SHAPE', // Geometry name (not `the_geom`)
+                    },
+                    'kaartdijin-boodja-public:CPT_DBCA_REGIONS': {
+                        version: '2.0.0', // WFS version
+                        srsName: 'EPSG:4326',
+                        propertyName: 'SHAPE', // Default to query for feature geometries only
+                        geometry: 'SHAPE', // Geometry name (not `the_geom`)
+                    },
+                    'kaartdijin-boodja-public:CPT_DBCA_DISTRICTS': {
                         version: '2.0.0', // WFS version
                         srsName: 'EPSG:4326',
                         propertyName: 'SHAPE', // Default to query for feature geometries only
@@ -3283,9 +3295,13 @@ export default {
             });
 
             // Add a button to show/hide the layers
-            const button = $('<div title="show/hide" style="cursor: pointer;">')
-                .text('Show/hide all')
-                .click(() => {
+            const button = $(
+                '<button id="global-layer-visibilty-toggle" class="btn btn-primary btn-sm mb-2"></button>'
+            )
+                .text('Show/Hide All Layers')
+                .click((e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     const a = this.map
                         .getLayers()
                         .getArray()
@@ -3300,7 +3316,13 @@ export default {
                         a[i].setVisible(b);
                     }
                 });
-            this.layerSwitcher.setHeader($('<div>').append(button).get(0));
+            this.layerSwitcher.setHeader(
+                $(
+                    '<div class="d-flex justify-content-center border-bottom mb-3">'
+                )
+                    .append(button)
+                    .get(0)
+            );
 
             this.map.addControl(this.layerSwitcher);
         },
@@ -3915,7 +3937,7 @@ export default {
             let vm = this;
 
             const transform = new Transform({
-                features: vm.editableFeatureCollection,
+                features: toRaw(vm.editableFeatureCollection),
                 hitTolerance: vm.hitTolerance,
             });
 
@@ -4459,7 +4481,7 @@ export default {
             const label = properties.label || context.label || 'Draw';
 
             // Apply the passed in properties to the feature, but overwrite where necessary (nullish coalescing operator ??=)
-            const featureProperties = structuredClone(properties);
+            const featureProperties = structuredClone(toRaw(properties));
             featureProperties['can_hide_geometries'] =
                 context['can_hide_geometries'] || false;
             // Make sure all features have an id under the same key
@@ -5395,14 +5417,14 @@ export default {
 
             if (coordsChanged || sridChanged) {
                 // Update the undo-redo stack for user input geodata
-                const clone = structuredClone(geometry);
+                const clone = structuredClone(toRaw(geometry));
                 clone['ol_uid'] = feature.ol_uid;
                 const before = [...this.userInputGeometryStack];
                 this.userInputGeometryStack.push(clone);
 
                 this.undoredo.push('update user input geodata', {
                     before: before,
-                    after: structuredClone(this.userInputGeometryStack),
+                    after: structuredClone(toRaw(this.userInputGeometryStack)),
                 });
             }
 

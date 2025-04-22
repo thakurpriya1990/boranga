@@ -66,7 +66,7 @@
       "min_zoom": 0,
       "max_zoom": 21,
       "is_tenure_intersects_query_layer": false,
-      "invert_xy": false,
+      "invert_xy": true,
       "matrix_set": "",
       "tile_pixel_size": 256
     }
@@ -87,30 +87,6 @@
       "is_internal": true,
       "visible": false,
       "active": true,
-      "min_zoom": 0,
-      "max_zoom": 21,
-      "is_tenure_intersects_query_layer": false,
-      "invert_xy": false,
-      "matrix_set": "",
-      "tile_pixel_size": 256
-    }
-  },
-  {
-    "model": "boranga.tilelayer",
-    "pk": 5,
-    "fields": {
-      "service": "wms",
-      "geoserver_url": 2,
-      "is_capabilities_url": false,
-      "layer_name": "kaartdijin-boodja-public:DFA_FMP_tenure",
-      "layer_title": "kaartdijin-boodja-public:DFA_FMP_tenure",
-      "display_title": "Tenure",
-      "is_satellite_background": false,
-      "is_streets_background": false,
-      "is_external": true,
-      "is_internal": true,
-      "visible": false,
-      "active": false,
       "min_zoom": 0,
       "max_zoom": 21,
       "is_tenure_intersects_query_layer": false,

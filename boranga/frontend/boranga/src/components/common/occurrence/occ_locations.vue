@@ -23,8 +23,8 @@
                     :is_external="false"
                     :point-features-supported="true"
                     :polygon-features-supported="true"
-                    :drawable="true"
-                    :editable="true"
+                    :drawable="!isReadOnly"
+                    :editable="!isReadOnly"
                     :file-upload-disabled="true"
                     level="internal"
                     style-by="model"
@@ -161,21 +161,6 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="" class="col-sm-3 control-label">Locality:</label>
-                <div class="col-sm-9">
-                    <textarea
-                        id="locality"
-                        v-model="occurrence_obj.location.locality"
-                        :disabled="isReadOnly"
-                        class="form-control"
-                        rows="1"
-                        placeholder=""
-                    />
-                </div>
-            </div>
-
-            <!-- -------------------------------- -->
-            <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
                     >Location Description:</label
                 >
@@ -186,6 +171,19 @@
                         :disabled="isReadOnly"
                         class="form-control"
                         rows="2"
+                        placeholder=""
+                    />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label">Locality:</label>
+                <div class="col-sm-9">
+                    <textarea
+                        id="locality"
+                        v-model="occurrence_obj.location.locality"
+                        :disabled="isReadOnly"
+                        class="form-control"
+                        rows="1"
                         placeholder=""
                     />
                 </div>
@@ -463,7 +461,6 @@ import {
     intersects,
     intersectedArea,
 } from '@/components/common/map_functions.js';
-
 export default {
     name: 'OCClocations',
     components: {
@@ -615,7 +612,7 @@ export default {
             return api_endpoints.occurrence + 'buffer_geometries/';
         },
         isReadOnly: function () {
-            return this.occurrence_obj.readonly;
+            return !this.occurrence_obj.can_user_edit;
         },
         csrf_token: function () {
             return helpers.getCookie('csrftoken');

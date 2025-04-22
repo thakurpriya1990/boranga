@@ -410,7 +410,7 @@ export default {
             if (missing_data != true) {
                 swal.fire({
                     title: 'Please fix following errors before saving',
-                    text: missing_data,
+                    text: missing_data.toString().replace(',', ', '),
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
@@ -447,7 +447,7 @@ export default {
                 if (!response.ok) {
                     swal.fire({
                         title: 'Save Error',
-                        text: data,
+                        text: JSON.stringify(data),
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
@@ -470,7 +470,12 @@ export default {
                 });
                 vm.savingOccurrence = false;
                 vm.isSaved = true;
-                vm.refreshFromResponse(data);
+
+                // Update the occurrence object with the response data
+                vm.original_occurrence = helpers.copyObject(data);
+                vm.occurrence = helpers.copyObject(data);
+                vm.combine_key++;
+
                 vm.$refs.occurrence.$refs.occ_location.$refs.component_map.setLoadingMap(
                     false
                 );
@@ -484,7 +489,7 @@ export default {
             if (missing_data != true) {
                 swal.fire({
                     title: 'Please fix following errors before saving',
-                    text: missing_data,
+                    text: missing_data.toString().replace(',', ', '),
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
@@ -541,6 +546,9 @@ export default {
         can_submit: function () {
             let vm = this;
             let blank_fields = [];
+            if (!vm.occurrence.occurrence_name) {
+                blank_fields.push('Occurrence Name is missing');
+            }
             if (
                 vm.occurrence.group_type == 'flora' ||
                 vm.occurrence.group_type == 'fauna'
@@ -569,10 +577,11 @@ export default {
             let vm = this;
 
             var missing_data = vm.can_submit('submit');
+            missing_data = missing_data.replace(',', ', ');
             if (missing_data != true) {
                 swal.fire({
                     title: 'Please fix following errors before submitting',
-                    text: missing_data,
+                    text: missing_data.toString().replace(',', ', '),
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',

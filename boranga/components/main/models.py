@@ -7,6 +7,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.files.storage import FileSystemStorage
 from django.db import models
+from ordered_model.models import OrderedModel, OrderedModelManager
 from reversion.models import Version
 
 from boranga.helpers import check_file
@@ -343,3 +344,37 @@ class HelpTextEntry(ArchivableModel):
 
     def __str__(self):
         return self.section_id
+
+
+class AbstractOrderedListManager(OrderedModelManager):
+    def active(self):
+        return super().get_queryset().filter(archived=False)
+
+    def archived(self):
+        return super().get_queryset().filter(archived=True)
+
+
+class AbstractOrderedList(OrderedModel, ArchivableModel):
+    objects = AbstractOrderedListManager()
+
+    item = models.CharField(max_length=100)
+
+    class Meta(OrderedModel.Meta):
+        abstract = True
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.item)
+
+    def get_lists_dict(
+        cls: models.base.ModelBase,
+        active_only: bool = False,
+    ) -> list:
+        lists = cls.objects.all()
+
+        if active_only:
+            lists = cls.objects.active()
+
+        lists = lists.values("id", "item").order_by("order")
+
+        return list(lists)

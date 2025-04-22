@@ -240,159 +240,202 @@
                 </template>
             </div>
         </div>
-        <label for="" class="col-lg-3 control-label fs-5 fw-bold"
-            >Plant Count - Detailed</label
+        <label for="" class="col-lg-3 control-label fs-5 fw-bold mb-3"
+            >Plant Count Method</label
         >
         <div class="row mb-3">
-            <div class="col-sm-2">
-                <label class="form-check-label fw-bold" for="not-counted"
-                    >Not Counted</label
+            <div class="col">
+                <div class="form-check form-check-inline">
+                    <input
+                        class="form-check-input"
+                        type="radio"
+                        name="count-status"
+                        id="count-status-not-counted"
+                        value="not_counted"
+                        v-model="plant_count.count_status"
+                    />
+                    <label class="form-check-label" for="inlineRadio1"
+                        >Not Counted</label
+                    >
+                </div>
+                <div class="form-check form-check-inline">
+                    <input
+                        class="form-check-input"
+                        type="radio"
+                        name="count-status"
+                        id="count-status-simple-count"
+                        value="simple_count"
+                        v-model="plant_count.count_status"
+                    />
+                    <label class="form-check-label" for="inlineRadio2"
+                        >Simple Count</label
+                    >
+                </div>
+                <div class="form-check form-check-inline">
+                    <input
+                        class="form-check-input"
+                        type="radio"
+                        name="count-status"
+                        id="count-status-detailed-count"
+                        value="detailed_count"
+                        v-model="plant_count.count_status"
+                    />
+                    <label class="form-check-label" for="inlineRadio3"
+                        >Detailed Count</label
+                    >
+                </div>
+            </div>
+        </div>
+        <div
+            id="plant-count-detailed"
+            v-if="plant_count.count_status == 'detailed_count'"
+        >
+            <label for="" class="col-lg-3 control-label fs-5 fw-bold mb-3"
+                >Plant Count - Detailed</label
+            >
+            <div class="row mb-3">
+                <div class="col-sm-3"></div>
+                <div class="col-sm-2 fw-bold">Mature</div>
+                <div class="col-sm-2 fw-bold">Juvenile</div>
+                <div class="col-sm-2 fw-bold">Seedling</div>
+                <div class="col-sm-2 fw-bold">Unknown</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-3 fw-bold">Alive</div>
+                <div class="col-sm-2">
+                    <input
+                        id="alive_mature"
+                        v-model="plant_count.detailed_alive_mature"
+                        :disabled="isReadOnly"
+                        type="number"
+                        class="form-control plant_count"
+                        placeholder=""
+                        min="0"
+                    />
+                </div>
+                <div class="col-sm-2">
+                    <input
+                        id="plant_alive_juvenile"
+                        v-model="plant_count.detailed_alive_juvenile"
+                        :disabled="isReadOnly"
+                        type="number"
+                        class="form-control plant_count"
+                        placeholder=""
+                        min="0"
+                    />
+                </div>
+                <div class="col-sm-2">
+                    <input
+                        id="alive_seedling"
+                        v-model="plant_count.detailed_alive_seedling"
+                        :disabled="isReadOnly"
+                        type="number"
+                        class="form-control plant_count"
+                        placeholder=""
+                        min="0"
+                    />
+                </div>
+                <div class="col-sm-2">
+                    <input
+                        id="alive_unknown"
+                        v-model="plant_count.detailed_alive_unknown"
+                        :disabled="isReadOnly"
+                        type="number"
+                        class="form-control plant_count"
+                        placeholder=""
+                        min="0"
+                    />
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-3 fw-bold">Dead</div>
+                <div class="col-sm-2">
+                    <input
+                        id="dead_mature"
+                        v-model="plant_count.detailed_dead_mature"
+                        :disabled="isReadOnly"
+                        type="number"
+                        class="form-control plant_count"
+                        placeholder=""
+                        min="0"
+                    />
+                </div>
+                <div class="col-sm-2">
+                    <input
+                        id="plant_dead_juvenile"
+                        v-model="plant_count.detailed_dead_juvenile"
+                        :disabled="isReadOnly"
+                        type="number"
+                        class="form-control plant_count"
+                        placeholder=""
+                        min="0"
+                    />
+                </div>
+                <div class="col-sm-2">
+                    <input
+                        id="dead_seedling"
+                        v-model="plant_count.detailed_dead_seedling"
+                        :disabled="isReadOnly"
+                        type="number"
+                        class="form-control plant_count"
+                        placeholder=""
+                        min="0"
+                    />
+                </div>
+                <div class="col-sm-2">
+                    <input
+                        id="dead_unknown"
+                        v-model="plant_count.detailed_dead_unknown"
+                        :disabled="isReadOnly"
+                        type="number"
+                        class="form-control plant_count"
+                        placeholder=""
+                        min="0"
+                    />
+                </div>
+            </div>
+        </div>
+        <div
+            id="plant-count-simple"
+            v-if="plant_count.count_status == 'simple_count'"
+        >
+            <label for="" class="col-lg-3 control-label fs-5 fw-bold mb-3"
+                >Plant Count - Simple</label
+            >
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label"
+                    >Number alive :</label
                 >
+                <div class="col-sm-6">
+                    <input
+                        id="simple_alive"
+                        v-model="plant_count.simple_alive"
+                        :disabled="isReadOnly"
+                        type="number"
+                        class="form-control ocr_number"
+                        placeholder=""
+                        min="0"
+                    />
+                </div>
             </div>
-            <div class="col-sm-2">
-                <input
-                    id="not-counted"
-                    v-model="plant_count.counted"
-                    type="checkbox"
-                    true-value="false"
-                    false-value="true"
-                    @change="checkboxChanged"
-                />
-            </div>
-        </div>
-        <div class="row mb-3">
-            <div class="col-sm-3"></div>
-            <div class="col-sm-2 fw-bold">Mature</div>
-            <div class="col-sm-2 fw-bold">Juvenile</div>
-            <div class="col-sm-2 fw-bold">Seedling</div>
-            <div class="col-sm-2 fw-bold">Unknown</div>
-        </div>
-        <div class="row mb-3">
-            <div class="col-sm-3 fw-bold">Alive</div>
-            <div class="col-sm-2">
-                <input
-                    id="alive_mature"
-                    v-model="plant_count.detailed_alive_mature"
-                    :disabled="isReadOnly || not_counted"
-                    type="number"
-                    class="form-control plant_count"
-                    placeholder=""
-                    min="0"
-                />
-            </div>
-            <div class="col-sm-2">
-                <input
-                    id="plant_alive_juvenile"
-                    v-model="plant_count.detailed_alive_juvenile"
-                    :disabled="isReadOnly || not_counted"
-                    type="number"
-                    class="form-control plant_count"
-                    placeholder=""
-                    min="0"
-                />
-            </div>
-            <div class="col-sm-2">
-                <input
-                    id="alive_seedling"
-                    v-model="plant_count.detailed_alive_seedling"
-                    :disabled="isReadOnly || not_counted"
-                    type="number"
-                    class="form-control plant_count"
-                    placeholder=""
-                    min="0"
-                />
-            </div>
-            <div class="col-sm-2">
-                <input
-                    id="alive_unknown"
-                    v-model="plant_count.detailed_alive_unknown"
-                    :disabled="isReadOnly || not_counted"
-                    type="number"
-                    class="form-control plant_count"
-                    placeholder=""
-                    min="0"
-                />
+            <div class="row mb-3">
+                <label for="" class="col-sm-3 control-label"
+                    >Number dead :</label
+                >
+                <div class="col-sm-6">
+                    <input
+                        id="simple_dead"
+                        v-model="plant_count.simple_dead"
+                        :disabled="isReadOnly"
+                        type="number"
+                        class="form-control ocr_number"
+                        placeholder=""
+                        min="0"
+                    />
+                </div>
             </div>
         </div>
-        <div class="row mb-3">
-            <div class="col-sm-3 fw-bold">Dead</div>
-            <div class="col-sm-2">
-                <input
-                    id="dead_mature"
-                    v-model="plant_count.detailed_dead_mature"
-                    :disabled="isReadOnly || not_counted"
-                    type="number"
-                    class="form-control plant_count"
-                    placeholder=""
-                    min="0"
-                />
-            </div>
-            <div class="col-sm-2">
-                <input
-                    id="plant_dead_juvenile"
-                    v-model="plant_count.detailed_dead_juvenile"
-                    :disabled="isReadOnly || not_counted"
-                    type="number"
-                    class="form-control plant_count"
-                    placeholder=""
-                    min="0"
-                />
-            </div>
-            <div class="col-sm-2">
-                <input
-                    id="dead_seedling"
-                    v-model="plant_count.detailed_dead_seedling"
-                    :disabled="isReadOnly || not_counted"
-                    type="number"
-                    class="form-control plant_count"
-                    placeholder=""
-                    min="0"
-                />
-            </div>
-            <div class="col-sm-2">
-                <input
-                    id="dead_unknown"
-                    v-model="plant_count.detailed_dead_unknown"
-                    :disabled="isReadOnly || not_counted"
-                    type="number"
-                    class="form-control plant_count"
-                    placeholder=""
-                    min="0"
-                />
-            </div>
-        </div>
-        <label for="" class="col-lg-3 control-label fs-5 fw-bold"
-            >Plant Count - Simple</label
-        >
-        <div class="row mb-3">
-            <label for="" class="col-sm-3 control-label">Number alive :</label>
-            <div class="col-sm-6">
-                <input
-                    id="simple_alive"
-                    v-model="plant_count.simple_alive"
-                    :disabled="isReadOnly || not_counted"
-                    type="number"
-                    class="form-control ocr_number"
-                    placeholder=""
-                    min="0"
-                />
-            </div>
-        </div>
-        <div class="row mb-3">
-            <label for="" class="col-sm-3 control-label">Number dead :</label>
-            <div class="col-sm-6">
-                <input
-                    id="simple_dead"
-                    v-model="plant_count.simple_dead"
-                    :disabled="isReadOnly || not_counted"
-                    type="number"
-                    class="form-control ocr_number"
-                    placeholder=""
-                    min="0"
-                />
-            </div>
-        </div>
-        <label for="" class="col-lg-3 control-label fs-5 fw-bold"
+        <label for="" class="col-lg-3 control-label fs-5 fw-bold mb-3"
             >Quadrats</label
         >
         <div class="row mb-3">
@@ -821,7 +864,6 @@ export default {
             plant_condition_list: [],
             counted_subject_list: [],
             updatingPlantCountDetails: false,
-            not_counted: false,
         };
     },
     computed: {},
@@ -855,16 +897,8 @@ export default {
             name: null,
         });
     },
-    mounted: function () {
-        let vm = this;
-        //this.$emit('component-mounted');
-        vm.not_counted = !vm.plant_count.counted;
-    },
     methods: {
         eventListeners: function () {},
-        checkboxChanged: function () {
-            this.not_counted = this.plant_count.counted == 'false';
-        },
         updatePlantCountDetails: function () {
             let vm = this;
             vm.updatingPlantCountDetails = true;

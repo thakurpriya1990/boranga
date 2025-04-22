@@ -1,10 +1,14 @@
 <template lang="html">
     <div id="observerTable">
         <div v-if="!isReadOnly" class="row mb-3">
-            <label for="" class="col-sm-3 control-label fw-bold"
-                >Observation Details: <span class="text-danger">*</span></label
+            <label for="" class="col-sm-6 control-label"
+                ><span class="text-danger fw-bold">*</span>
+                <span class="text-muted ms-1"
+                    >You must add at least one observer</span
+                ></label
             >
-            <div class="col-sm-9 text-end">
+
+            <div class="col-sm-6 text-end">
                 <button
                     :disabled="isReadOnly"
                     type="button"
@@ -97,6 +101,11 @@ export default {
                 searchable: true,
             },
             {
+                data: 'category',
+                orderable: true,
+                searchable: true,
+            },
+            {
                 data: 'organisation',
                 orderable: true,
                 searchable: true,
@@ -141,6 +150,7 @@ export default {
                       'Contact Name',
                       'Contact Detail',
                       'Observer Role',
+                      'Observer Category',
                       'Organisation',
                       'Main Observer',
                       'Action',
@@ -148,6 +158,7 @@ export default {
                 : [
                       'Contact Name',
                       'Observer Role',
+                      'Observer Category',
                       'Organisation',
                       'Main Observer',
                       'Action',
@@ -302,18 +313,6 @@ export default {
             }
         },
         newObserverDetail: function () {
-            let vm = this;
-            //----for adding new observer
-            var new_observer_detail = {
-                id: null,
-                occurrence_report: vm.occurrence_report_obj.id,
-                observer_name: '',
-                role: '',
-                contact: '',
-                organisation: '',
-                main_observer: false,
-            };
-            this.$refs.observer_detail.observerObj = new_observer_detail;
             this.$refs.observer_detail.observer_detail_action = 'add';
             this.$refs.observer_detail.isModalOpen = true;
         },
