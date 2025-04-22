@@ -1763,7 +1763,7 @@ export default {
                         propertyName: 'Shape', // Default to query for feature geometries only
                         geometry: 'Shape', // Geometry name (not `the_geom`)
                     },
-                    CPT_CADASTRE_SCDB: {
+                    'kaartdijin-boodja-private:CPT_CADASTRE_SCDB': {
                         version: '2.0.0', // WFS version
                         srsName: 'EPSG:4326',
                         propertyName: 'SHAPE', // Default to query for feature geometries only
