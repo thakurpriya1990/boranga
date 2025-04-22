@@ -985,7 +985,8 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
         # Note: possibly add support for other request types if needed, like GetFeatureInfo
         raise Http404(f"Request {params.get('request')} not supported")
 
-    if any(cts["layer_name"].split(":")[-1] in layers for cts in cache_times_strings):
+    # Layer name should include namespace
+    if any(cts["layer_name"] in layers for cts in cache_times_strings):
         layer_allowed = True
 
     if layer_allowed is True:
@@ -1024,7 +1025,9 @@ def process_proxy(request, remoteurl, queryString, auth_user, auth_password):
         return http_response
     else:
         http_response = HttpResponse(
-            "Access Denied", content_type="text/html", status=401
+            "Access Denied: Layer Name not found in boranga proxy cache",
+            content_type="text/html",
+            status=401,
         )
         return http_response
 
