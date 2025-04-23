@@ -18,7 +18,7 @@
 {% block content %}
 {% with system_name=settings.SYSTEM_NAME %}
     {% if not request.user.is_authenticated %}
-    <div class="container px-4">
+    <div class="container px-4 pt-4">
         <div class="row">
             <div class="col-md-8">
                 <h2 class="mb-4">
@@ -53,7 +53,7 @@
             </div>
         {% else %}
         <div class="container">
-            <div class="px-4">
+            <div class="px-4 pt-4">
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <h2>
