@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+from csvexport.actions import csvexport
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.gis import admin
@@ -66,6 +67,13 @@ class ArchivableModelAdminMixin:
         return "Yes" if obj.archived else "No"
 
     achived_list_view_display.short_description = "Archived"
+
+
+class CsvExportMixin:
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        actions["csvexport"] = (csvexport, "csvexport", "Export to CSV")
+        return actions
 
 
 admin.site.index_template = "admin-index.html"

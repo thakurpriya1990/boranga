@@ -5,7 +5,11 @@ from django.apps import apps
 from django.contrib.gis import admin
 from django.http import HttpRequest
 
-from boranga.admin import ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+from boranga.admin import (
+    ArchivableModelAdminMixin,
+    CsvExportMixin,
+    DeleteProtectedModelAdmin,
+)
 from boranga.components.main.models import (
     Document,
     FileExtensionWhitelist,
@@ -52,7 +56,9 @@ class FileExtensionWhitelistAdmin(DeleteProtectedModelAdmin):
     form = ModelForm
 
 
-class HelpTextEntryAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class HelpTextEntryAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = [
         "section_id",
         "text",

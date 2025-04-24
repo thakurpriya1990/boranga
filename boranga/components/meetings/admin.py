@@ -1,11 +1,17 @@
 from django.contrib.gis import admin
 
-from boranga.admin import ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+from boranga.admin import (
+    ArchivableModelAdminMixin,
+    CsvExportMixin,
+    DeleteProtectedModelAdmin,
+)
 from boranga.components.meetings import models
 from boranga.components.meetings.models import CommitteeMembers
 
 
-class MeetingRoomAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class MeetingRoomAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["id", "room_name"]
 
 
@@ -15,11 +21,15 @@ class CommitteeMembersInline(admin.TabularInline):
     # raw_id_fields = ('email',)
 
 
-class CommitteeMembersAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class CommitteeMembersAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["email", "id", "first_name", "last_name", "committee"]
 
 
-class CommitteeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class CommitteeAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name", "id"]
     inlines = [CommitteeMembersInline]
 

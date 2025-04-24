@@ -1,12 +1,16 @@
 from django.contrib.gis import admin
 
-from boranga.admin import ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+from boranga.admin import (
+    ArchivableModelAdminMixin,
+    CsvExportMixin,
+    DeleteProtectedModelAdmin,
+)
 from boranga.components.conservation_status import models
 
 
 @admin.register(models.ProposalAmendmentReason)
 class ProposalAmendmentReasonAdmin(
-    ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
 ):
     list_display = ["reason"]
 
@@ -25,37 +29,47 @@ class AbstractCategoryAdmin(DeleteProtectedModelAdmin):
     list_display = ["code", "label"]
 
 
-class WAPriorityListAdmin(ArchivableModelAdminMixin, AbstractListAdmin):
+class WAPriorityListAdmin(CsvExportMixin, ArchivableModelAdminMixin, AbstractListAdmin):
     pass
 
 
-class WAPriorityCategoryAdmin(ArchivableModelAdminMixin, AbstractCategoryAdmin):
+class WAPriorityCategoryAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, AbstractCategoryAdmin
+):
     filter_horizontal = ("wa_priority_lists",)
 
 
-class IUCNVersionAdmin(ArchivableModelAdminMixin, AbstractListAdmin):
+class IUCNVersionAdmin(CsvExportMixin, ArchivableModelAdminMixin, AbstractListAdmin):
     pass
 
 
-class WALegislativeListAdmin(ArchivableModelAdminMixin, AbstractListAdmin):
-    pass
-
-
-class WALegislativeCategoryAdmin(ArchivableModelAdminMixin, AbstractCategoryAdmin):
-    filter_horizontal = ("wa_legislative_lists",)
-
-
-class CommonwealthConservationListAdmin(ArchivableModelAdminMixin, AbstractListAdmin):
-    pass
-
-
-class OtherConservationAssessmentListAdmin(
-    ArchivableModelAdminMixin, AbstractListAdmin
+class WALegislativeListAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, AbstractListAdmin
 ):
     pass
 
 
-class ConservationChangeCodeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class WALegislativeCategoryAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, AbstractCategoryAdmin
+):
+    filter_horizontal = ("wa_legislative_lists",)
+
+
+class CommonwealthConservationListAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, AbstractListAdmin
+):
+    pass
+
+
+class OtherConservationAssessmentListAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, AbstractListAdmin
+):
+    pass
+
+
+class ConservationChangeCodeAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["code", "label"]
 
 
