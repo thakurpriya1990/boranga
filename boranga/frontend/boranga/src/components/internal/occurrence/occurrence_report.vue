@@ -1402,7 +1402,6 @@ export default {
                 async (swalresult) => {
                     if (swalresult.isConfirmed) {
                         await vm.save_before_submit();
-                        console.log(`vm.saveError`, vm.saveError);
                         if (!vm.saveError) {
                             let payload = new Object();
                             Object.assign(payload, vm.occurrence_report);
