@@ -439,6 +439,7 @@ export default {
             internal_status: [
                 { value: 'draft', name: 'Draft' },
                 { value: 'active', name: 'Active' },
+                { value: 'discarded', name: 'Discarded' },
                 { value: 'historical', name: 'Historical' },
             ],
             community_status: [],
