@@ -513,7 +513,7 @@
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
-                    >Area of Occupancy<br />(2km x 2km):</label
+                    >Area of Occupancy<br />(10km x 10km):</label
                 >
                 <div class="col-sm-6">
                     <input
