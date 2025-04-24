@@ -250,7 +250,7 @@ class CustomSystemGroupAdmin(SystemGroupAdmin):
         """
         Override the response_change method to handle the export action.
         """
-        if "export_system_group_permissions_detail" in request.POST:
+        if "_export_system_group_permissions_detail" in request.POST:
             return self.export_system_group_permissions_detail(request, obj.id)
 
         return super().response_change(request, obj)
