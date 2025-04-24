@@ -660,6 +660,8 @@ export default {
                 visible: true,
                 render: function (value, type) {
                     let result = helpers.dtPopover(value, 30, 'hover');
+                    console.log(value);
+                    console.log(type);
                     return type == 'export' ? value : result;
                 },
                 name: 'taxonomy__scientific_name',
@@ -865,6 +867,7 @@ export default {
                     className: 'btn btn-primary me-2 rounded',
                     exportOptions: {
                         columns: ':not(.no-export)',
+                        orthogonal: 'export',
                     },
                 },
                 {
@@ -874,6 +877,7 @@ export default {
                     className: 'btn btn-primary rounded',
                     exportOptions: {
                         columns: ':not(.no-export)',
+                        orthogonal: 'export',
                     },
                 },
             ];

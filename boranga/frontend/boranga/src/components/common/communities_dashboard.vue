@@ -720,6 +720,7 @@ export default {
                     className: 'btn btn-primary me-2 rounded',
                     exportOptions: {
                         columns: ':not(.no-export)',
+                        orthogonal: 'export',
                     },
                 },
                 {
@@ -729,6 +730,7 @@ export default {
                     className: 'btn btn-primary rounded',
                     exportOptions: {
                         columns: ':not(.no-export)',
+                        orthogonal: 'export',
                     },
                 },
             ];
