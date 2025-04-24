@@ -1167,14 +1167,6 @@ export default {
             let payload = new Object();
             Object.assign(payload, vm.species_community);
 
-            let was_public = '';
-            if (
-                vm.species_community.publishing_status.public_status ===
-                'Public'
-            ) {
-                was_public = ' - record is now private';
-            }
-
             await fetch(vm.species_community_form_url, {
                 method: 'POST',
                 body: JSON.stringify(payload),
@@ -1189,7 +1181,7 @@ export default {
                     ); //update original after save
                     swal.fire({
                         title: 'Saved',
-                        text: 'Your changes have been saved' + was_public,
+                        text: 'Your changes have been saved',
                         icon: 'success',
                         customClass: {
                             confirmButton: 'btn btn-primary',
