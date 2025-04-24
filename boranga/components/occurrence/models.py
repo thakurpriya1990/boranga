@@ -1099,6 +1099,20 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             self.processing_status = OccurrenceReport.PROCESSING_STATUS_APPROVED
             self.save(version_user=request.user)
 
+            self.log_user_action(
+                OccurrenceReportUserAction.ACTION_LOCK.format(
+                    self.occurrence_report_number
+                ),
+                request,
+            )
+
+            request.user.log_user_action(
+                OccurrenceReportUserAction.ACTION_LOCK.format(
+                    self.occurrence_report_number
+                ),
+                request,
+            )
+
     def unlock(self, request):
         if (
             self.can_change_lock(request)
@@ -1108,6 +1122,20 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
             if self.assigned_officer != request.user.id:
                 self.assigned_officer = request.user.id
             self.save(version_user=request.user)
+
+            self.log_user_action(
+                OccurrenceReportUserAction.ACTION_UNLOCK.format(
+                    self.occurrence_report_number
+                ),
+                request,
+            )
+
+            request.user.log_user_action(
+                OccurrenceReportUserAction.ACTION_UNLOCK.format(
+                    self.occurrence_report_number
+                ),
+                request,
+            )
 
     @property
     def latest_referrals(self):
@@ -1461,6 +1489,8 @@ class OccurrenceReportUserAction(UserAction):
     ACTION_UNASSIGN_APPROVER = "Unassign approver from occurrence report {}"
     ACTION_DECLINE = "Occurrence Report {} has been declined. Reason: {}"
     ACTION_APPROVE = "Occurrence Report {} has been approved by {}"
+    ACTION_UNLOCK = "Unlock occurrence report {}"
+    ACTION_LOCK = "Lock occurrence report {}"
     ACTION_CLOSE_OccurrenceReport = "De list occurrence report {}"
     ACTION_DISCARD_PROPOSAL = "Discard occurrence report {}"
     ACTION_REINSTATE_PROPOSAL = "Reinstate occurrence report {}"

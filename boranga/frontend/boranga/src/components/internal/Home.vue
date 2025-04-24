@@ -1,5 +1,5 @@
 <template>
-    <div v-if="profile" id="internal-home" class="container">
+    <div v-if="profile" id="internal-home" class="container pt-4">
         <h2 class="mb-4">
             Welcome back {{ profile ? profile.first_name : '' }}
         </h2>

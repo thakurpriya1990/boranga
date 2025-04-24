@@ -1294,6 +1294,7 @@ export default {
                     vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
                         false
                     );
+                    vm.saveError = true;
                     return;
                 }
             });
@@ -1387,7 +1388,7 @@ export default {
 
             vm.submitOccurrenceReport = true;
             swal.fire({
-                title: 'Submit Occurrece Report',
+                title: 'Submit Occurrence Report',
                 text: 'Are you sure you want to submit this occurrence report?',
                 icon: 'question',
                 showCancelButton: true,
@@ -1416,25 +1417,24 @@ export default {
                                     },
                                     body: JSON.stringify(payload),
                                 }
-                            ).then(
-                                async (response) => {
-                                    vm.occurrence = await response.json();
-                                    vm.$router.push({
-                                        name: 'internal-occurrence-dash',
-                                    });
-                                },
-                                (err) => {
+                            ).then(async (response) => {
+                                vm.occurrence = await response.json();
+                                if (!response.ok) {
                                     swal.fire({
                                         title: 'Submit Error',
-                                        text: helpers.apiVueResourceError(err),
+                                        text: JSON.stringify(vm.occurrence),
                                         icon: 'error',
                                         customClass: {
                                             confirmButton: 'btn btn-primary',
                                         },
                                     });
                                     vm.submitOccurrenceReport = false;
+                                    return;
                                 }
-                            );
+                                vm.$router.push({
+                                    name: 'internal-occurrence-dash',
+                                });
+                            });
                         }
                     }
                     vm.submitOccurrenceReport = false;
