@@ -8,6 +8,7 @@ from django.contrib.gis import admin
 from django.forms import ValidationError
 from django.http import HttpResponse
 from django.urls import path
+from django.utils.functional import cached_property
 from ledger_api_client.admin import SystemGroupAdmin, SystemGroupPermissionInline
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup, SystemGroupPermission
@@ -159,6 +160,28 @@ class CustomSystemGroupPermissionInlineForm(SystemGroupPermissionInline.form):
 
 class CustomSystemGroupPermissionInline(SystemGroupPermissionInline):
     form = CustomSystemGroupPermissionInlineForm
+    fields = (
+        "emailuser",
+        "first_name",
+        "last_name",
+        "active",
+    )
+    readonly_fields = ("first_name", "last_name")
+
+    @cached_property
+    def emailuser_obj(self, obj):
+        """
+        Get the emailuser object from the system group permission.
+        """
+        if obj.emailuser_id:
+            return EmailUser.objects.get(id=obj.emailuser_id)
+        return None
+
+    def first_name(self, obj):
+        return self.emailuser_obj.first_name
+
+    def last_name(self, obj):
+        return self.emailuser_obj.last_name
 
 
 def export_system_group_permissions(modeladmin, request, queryset):
