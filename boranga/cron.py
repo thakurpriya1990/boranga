@@ -9,7 +9,9 @@ log = logging.getLogger(__name__)
 class CronJobFetchNomosTaxonDataDaily(django_cron.CronJobBase):
     RUN_ON_DAYS = [0, 1, 2, 3, 4, 5, 6]
     RUN_AT_TIMES = ["20:00"]
-    schedule = django_cron.Schedule(run_on_days=RUN_ON_DAYS, run_at_times=RUN_AT_TIMES)
+    schedule = django_cron.Schedule(
+        run_weekly_on_days=RUN_ON_DAYS, run_at_times=RUN_AT_TIMES
+    )
     code = "boranga.fetch_nomos_data"
 
     def do(self) -> None:
@@ -19,7 +21,9 @@ class CronJobFetchNomosTaxonDataDaily(django_cron.CronJobBase):
 
 
 class CronJobOCRPreProcessBulkImportTasks(django_cron.CronJobBase):
-    schedule = django_cron.Schedule(run_on_days=[0, 1, 2, 3, 4, 5, 6], run_every_mins=2)
+    schedule = django_cron.Schedule(
+        run_weekly_on_days=[0, 1, 2, 3, 4, 5, 6], run_every_mins=2
+    )
     code = "boranga.ocr_pre_process_bulk_import_tasks"
 
     def do(self) -> None:
@@ -29,7 +33,9 @@ class CronJobOCRPreProcessBulkImportTasks(django_cron.CronJobBase):
 
 
 class CronJobOCRProcessBulkImportQueue(django_cron.CronJobBase):
-    schedule = django_cron.Schedule(run_on_days=[0, 1, 2, 3, 4, 5, 6], run_every_mins=5)
+    schedule = django_cron.Schedule(
+        run_weekly_on_days=[0, 1, 2, 3, 4, 5, 6], run_every_mins=5
+    )
     code = "boranga.ocr_process_bulk_import_queue"
 
     def do(self) -> None:
