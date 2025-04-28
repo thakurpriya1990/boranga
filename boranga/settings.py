@@ -115,6 +115,7 @@ INSTALLED_APPS += [
     "boranga.components.meetings",
     "boranga.components.occurrence",
     "boranga.components.spatial",
+    "csvexport",
     "taggit",
     "rest_framework",
     "rest_framework_datatables",

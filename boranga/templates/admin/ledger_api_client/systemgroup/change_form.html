@@ -1,0 +1,30 @@
+{% extends "admin/change_form.html" %}
+
+{% block after_field_sets %}
+{{ block.super }}
+<div id="search" style="background-color: rgb(33, 33, 33); padding:10px; margin-bottom:10px; border-radius: 4px;">
+    <form id="system-group-permission-search" method="post" role="search">
+    <div style="margin-bottom:8px;"><!-- DIV needed for valid HTML -->
+        <label for="searchbar"><img src="/static/admin/img/search.svg" alt="Search"></label>
+        <input type="text" size="40" name="q" value="" id="searchbar" placeholder="Search System Group Permissions">
+        <input type="submit" value="Export Users to .csv" name="_export_system_group_permissions_detail" style="float: right; margin-left: 10px;">
+    </div>
+    </form>
+    <script type="text/javascript">
+        const searchbar = document.getElementById('searchbar');
+        searchbar.addEventListener('input', function() {
+            const searchValue = searchbar.value.toLowerCase();
+            const systemGroupPermissions = document.querySelectorAll('tr.form-row');
+            systemGroupPermissions.forEach(function(tableRow) {
+                const permissionName = tableRow.textContent.toLowerCase().trim();
+                console.log(permissionName);
+                if (permissionName.includes(searchValue)) {
+                    tableRow.style.display = 'table-row';
+                } else {
+                    tableRow.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</div>
+{% endblock %}

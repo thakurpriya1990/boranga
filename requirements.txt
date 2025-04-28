@@ -9,6 +9,7 @@ django-colorfield~=0.11.0
 django-confy==1.0.4
 django-countries~=7.5
 django-crispy-forms==2.0 # Last version to support Django 3.2
+django-admin-csvexport==2.3
 django-datatables-view~=1.20
 django-debug-toolbar~=4.3
 django-dirtyfields~=1.9

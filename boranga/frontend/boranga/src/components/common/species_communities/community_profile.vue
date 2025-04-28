@@ -429,7 +429,7 @@
                                 <span
                                     id="area_of_occupancy-addon"
                                     class="input-group-text"
-                                    >2km x 2km</span
+                                    >10km x 10km</span
                                 >
                             </div>
                         </div>

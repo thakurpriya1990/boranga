@@ -2,7 +2,11 @@ import nested_admin
 from django.contrib.gis import admin, forms
 from ordered_model.admin import OrderedModelAdmin
 
-from boranga.admin import ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+from boranga.admin import (
+    ArchivableModelAdminMixin,
+    CsvExportMixin,
+    DeleteProtectedModelAdmin,
+)
 from boranga.components.occurrence.models import (
     AnimalHealth,
     BufferGeometry,
@@ -349,7 +353,7 @@ class OccurrenceTenureAdmin(nested_admin.NestedModelAdmin):
 
 @admin.register(OccurrenceTenurePurpose)
 class OccurrenceTenurePurposeAdmin(
-    ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
 ):
     pass
 
@@ -359,58 +363,82 @@ class OccurrenceTenureVestingAdmin(admin.ModelAdmin):
     pass
 
 
-class PermitTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class PermitTypeAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ("group_type", "name")
     list_filter = ("group_type",)
 
 
-class DatumAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class DatumAdmin(CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
     list_display = ("srid", "name")
     search_fields = ("srid", "name")
 
 
-class WildStatusAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class WildStatusAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 
-class CoordinateSourceAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class CoordinateSourceAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 
-class SoilTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class SoilTypeAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 
-class SoilConditionAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class SoilConditionAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 
-class SoilColourAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class SoilColourAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 
-class SiteTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class SiteTypeAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 
-class SecondarySignAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class SecondarySignAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 
-class SampleTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class SampleTypeAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ("group_type", "name")
     list_filter = ("group_type",)
 
 
-class SampleDestinationAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class SampleDestinationAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 
-class RockTypeAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class RockTypeAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 
-class ReproductiveStateAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class ReproductiveStateAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 
@@ -426,45 +454,63 @@ class PrimaryDetectionMethodAdmin(DeleteProtectedModelAdmin):
     # more work on the frontend due to django-multiselectfield
 
 
-class PlantCountMethodAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
-    list_display = ["name"]
-
-
-class PlantCountAccuracyAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
-    list_display = ["name"]
-
-
-class PlantConditionAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
-    list_display = ["name"]
-
-
-class ObservationMethodAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
-    list_display = ["name"]
-
-
-class LocationAccuracyAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
-    list_display = ["name"]
-
-
-class IntensityAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
-    list_display = ["name"]
-
-
-class IdentificationCertaintyAdmin(
-    ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+class PlantCountMethodAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
 ):
     list_display = ["name"]
 
 
-class DrainageAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class PlantCountAccuracyAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 
-class DeathReasonAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class PlantConditionAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 
-class CountedSubjectAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class ObservationMethodAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
+    list_display = ["name"]
+
+
+class LocationAccuracyAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
+    list_display = ["name"]
+
+
+class IntensityAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
+    list_display = ["name"]
+
+
+class IdentificationCertaintyAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
+    list_display = ["name"]
+
+
+class DrainageAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
+    list_display = ["name"]
+
+
+class DeathReasonAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
+    list_display = ["name"]
+
+
+class CountedSubjectAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 

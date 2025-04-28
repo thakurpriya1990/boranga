@@ -1,6 +1,10 @@
 from django.contrib.gis import admin
 
-from boranga.admin import ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+from boranga.admin import (
+    ArchivableModelAdminMixin,
+    CsvExportMixin,
+    DeleteProtectedModelAdmin,
+)
 from boranga.components.species_and_communities.models import (
     ClassificationSystem,
     CurrentImpact,
@@ -24,32 +28,46 @@ from boranga.components.species_and_communities.models import (
 )
 
 
-class DocumentCategoryAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class DocumentCategoryAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["document_category_name"]
 
 
 @admin.register(DocumentSubCategory)
-class DocumentSubCategoryAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class DocumentSubCategoryAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["document_sub_category_name", "document_category"]
 
 
-class ThreatCategoryAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class ThreatCategoryAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 
-class ThreatAgentAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class ThreatAgentAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 
-class PotentialThreatOnsetAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class PotentialThreatOnsetAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 
-class PotentialImpactAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class PotentialImpactAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 
-class CurrentImpactAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class CurrentImpactAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ["name"]
 
 

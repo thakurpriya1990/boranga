@@ -439,6 +439,7 @@ export default {
             internal_status: [
                 { value: 'draft', name: 'Draft' },
                 { value: 'active', name: 'Active' },
+                { value: 'discarded', name: 'Discarded' },
                 { value: 'historical', name: 'Historical' },
             ],
             community_status: [],
@@ -719,6 +720,7 @@ export default {
                     className: 'btn btn-primary me-2 rounded',
                     exportOptions: {
                         columns: ':not(.no-export)',
+                        orthogonal: 'export',
                     },
                 },
                 {
@@ -728,6 +730,7 @@ export default {
                     className: 'btn btn-primary rounded',
                     exportOptions: {
                         columns: ':not(.no-export)',
+                        orthogonal: 'export',
                     },
                 },
             ];

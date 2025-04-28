@@ -3,11 +3,17 @@ from django.contrib import admin
 from django.forms import ValidationError
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 
-from boranga.admin import ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+from boranga.admin import (
+    ArchivableModelAdminMixin,
+    CsvExportMixin,
+    DeleteProtectedModelAdmin,
+)
 from boranga.components.users import models
 
 
-class SubmitterCategoryAdmin(ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
+class SubmitterCategoryAdmin(
+    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+):
     list_display = ("name", "visible_to")
 
 

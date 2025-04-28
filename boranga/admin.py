@@ -1,9 +1,13 @@
+import csv
 from copy import deepcopy
 
+from csvexport.actions import csvexport
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.contrib.gis import admin
 from django.forms import ValidationError
+from django.http import HttpResponse
+from django.urls import path
 from ledger_api_client.admin import SystemGroupAdmin, SystemGroupPermissionInline
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup, SystemGroupPermission
@@ -66,6 +70,13 @@ class ArchivableModelAdminMixin:
         return "Yes" if obj.archived else "No"
 
     achived_list_view_display.short_description = "Archived"
+
+
+class CsvExportMixin:
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        actions["csvexport"] = (csvexport, "csvexport", "Export to CSV")
+        return actions
 
 
 admin.site.index_template = "admin-index.html"
@@ -148,6 +159,75 @@ class CustomSystemGroupPermissionInlineForm(SystemGroupPermissionInline.form):
 
 class CustomSystemGroupPermissionInline(SystemGroupPermissionInline):
     form = CustomSystemGroupPermissionInlineForm
+    fields = (
+        "emailuser",
+        "first_name",
+        "last_name",
+        "active",
+    )
+    readonly_fields = ("first_name", "last_name")
+
+    def first_name(self, obj):
+        return EmailUser.objects.get(id=obj.emailuser_id).first_name
+
+    def last_name(self, obj):
+        return EmailUser.objects.get(id=obj.emailuser_id).last_name
+
+
+def export_system_group_permissions(modeladmin, request, queryset):
+    """
+    Export the system group permissions to a CSV file.
+    """
+    if queryset.count() == 0:
+        modeladmin.message_user(
+            request,
+            "No system groups selected. Please select at least one system group.",
+            level="error",
+        )
+        return None
+
+    filename = "system_group_permissions.csv"
+
+    if queryset.count() == 1:
+        filename = f"system_group_permissions_{queryset.first().name}.csv"
+
+    # Get the system group permissions
+    system_group_permissions = SystemGroupPermission.objects.filter(
+        system_group__in=queryset
+    )
+
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(response)
+
+    system_group_permissions = system_group_permissions.values(
+        "emailuser_id",
+        "system_group__name",
+    )
+
+    # Write the header row
+    writer.writerow(
+        [
+            "System Group Name",
+            "Email",
+            "First Name",
+            "Last Name",
+        ]
+    )
+    # Write the data rows
+    for system_group_permission in system_group_permissions:
+        emailuser = EmailUser.objects.get(id=system_group_permission["emailuser_id"])
+        writer.writerow(
+            [
+                system_group_permission["system_group__name"],
+                emailuser.email,
+                emailuser.first_name,
+                emailuser.last_name,
+            ]
+        )
+
+    return response
 
 
 class CustomSystemGroupAdmin(SystemGroupAdmin):
@@ -158,6 +238,47 @@ class CustomSystemGroupAdmin(SystemGroupAdmin):
 
     inlines = [CustomSystemGroupPermissionInline]
     filter_horizontal = ("permissions",)
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            # Add custom URL patterns here if needed
+            path(
+                "export_system_group_permissions/<int:object_id>/",
+                self.admin_site.admin_view(export_system_group_permissions),
+                name="export_system_group_permissions",
+            ),
+        ]
+        return custom_urls + urls
+
+    def export_system_group_permissions_detail(self, request, object_id):
+        """
+        Export the system group permissions to a CSV file.
+        """
+        system_group = SystemGroup.objects.filter(id=object_id)
+
+        return export_system_group_permissions(self, request, system_group)
+
+    def response_change(self, request, obj):
+        """
+        Override the response_change method to handle the export action.
+        """
+        if "_export_system_group_permissions_detail" in request.POST:
+            return self.export_system_group_permissions_detail(request, obj.id)
+
+        return super().response_change(request, obj)
+
+    def get_actions(self, request):
+        """
+        Remove the default delete action from the admin page.
+        """
+        actions = super().get_actions(request)
+        actions["export_system_group_users"] = (
+            export_system_group_permissions,
+            "export_system_group_users",
+            "Export System Group Users",
+        )
+        return actions
 
     def get_fieldsets(self, request, obj=None):
         """Remove the ledger_permissions checkbox from the Admin page, if user is DjangoAdmin and NOT superuser"""
