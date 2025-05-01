@@ -1318,22 +1318,7 @@ export default {
             vm.updatingPublishing = true;
             //if not already public, we make it public (notify user first)
             //but only if it is active
-            if (
-                helpers.checkForChange(
-                    vm.species_community_original.publishing_status,
-                    vm.species_community.publishing_status
-                )
-            ) {
-                swal.fire({
-                    title: 'Error',
-                    text: 'No changes made',
-                    icon: 'error',
-                    customClass: {
-                        confirmButton: 'btn btn-primary',
-                    },
-                });
-                vm.updatingPublishing = false;
-            } else if (vm.isPublic && vm.isActive) {
+            if (vm.isPublic && vm.isActive) {
                 //send just publishing form data
                 let data = JSON.stringify(
                     vm.species_community.publishing_status
