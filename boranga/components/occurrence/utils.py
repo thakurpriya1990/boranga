@@ -233,7 +233,16 @@ def validate_map_files(request, instance, foreign_key_field=None):
         gdf = gpd.read_file(shp_file_obj.path)  # Shapefile to GeoDataFrame
 
         if gdf.empty:
+            if archive_files_qs:
+                instance.shapefile_documents.exclude(name__endswith=".zip").delete()
             raise ValidationError(f"Geometry is empty in {shp_file_obj.name}")
+
+        if gdf.geometry.crs is None:
+            if archive_files_qs:
+                instance.shapefile_documents.exclude(name__endswith=".zip").delete()
+            raise ValidationError(
+                f"Geometry in {shp_file_obj.name} has no coordinate reference system (CRS)"
+            )
 
         # spatial reference identifier of the original uploaded geometry
         original_srid = SpatialReference(gdf.geometry.crs.srs).srid
