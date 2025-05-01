@@ -46,7 +46,10 @@ class RelatedItemsSerializer(serializers.Serializer):
         # Am using to modify the action urls for external users so they only
         # see links to species / communities profile but don't see links to OCC/OCR etc
         request = self.context.get("request")
-        if not is_internal(request):
+        if not is_internal(request) and instance.model_name.lower() not in [
+            "species",
+            "community",
+        ]:
             # If the request is not internal, remove the action_url field
             instance.action_url = None
 
