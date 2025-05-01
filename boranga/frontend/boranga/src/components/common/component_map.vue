@@ -4770,7 +4770,7 @@ export default {
                     console.log(error);
                     vm.errorString = helpers.apiVueResourceError(error);
                     swal.fire({
-                        title: 'Validation',
+                        title: 'Validation Error',
                         text: error,
                         icon: 'error',
                     });
