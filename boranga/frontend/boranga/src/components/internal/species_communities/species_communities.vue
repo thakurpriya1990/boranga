@@ -1277,20 +1277,6 @@ export default {
         can_submit: function (check_action) {
             let vm = this;
 
-            if (check_action != 'submit') {
-                //remove publishing status for check as it is handled separately
-                let sc_no_ps = helpers.copyObject(vm.species_community);
-                let sco_no_ps = helpers.copyObject(
-                    vm.species_community_original
-                );
-
-                sc_no_ps.publishing_status = undefined;
-                sco_no_ps.publishing_status = undefined;
-                if (helpers.checkForChange(sco_no_ps, sc_no_ps)) {
-                    return ['No changes made'];
-                }
-            }
-
             let blank_fields = [];
             if (
                 vm.species_community.group_type == 'flora' ||
