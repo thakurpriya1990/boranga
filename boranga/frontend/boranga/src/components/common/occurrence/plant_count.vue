@@ -241,7 +241,7 @@
             </div>
         </div>
         <label for="" class="col-lg-3 control-label fs-5 fw-bold mb-3"
-            >Plant Count Method</label
+            >Plant Count Type Used</label
         >
         <div class="row mb-3">
             <div class="col">
