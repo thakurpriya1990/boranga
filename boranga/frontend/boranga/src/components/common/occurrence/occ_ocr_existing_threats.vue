@@ -2,7 +2,7 @@
     <div id="existingThreats">
         <modal
             transition="modal fade"
-            :title="'Add Existing Threat'"
+            :title="'Add Threat from OCR'"
             :large="true"
             :full="true"
             :show-o-k="false"
