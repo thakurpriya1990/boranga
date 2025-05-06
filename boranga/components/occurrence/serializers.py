@@ -2074,7 +2074,7 @@ class OCRObserverDetailSerializer(serializers.ModelSerializer):
                     and field_name not in self.Meta.read_only_fields
                 ):
                     setattr(instance, field_name, validated_data[field_name])
-            logger.debug(f"instance: {instance.__dict__}")
+
             instance.save(*args, **kwargs)
             return instance
 

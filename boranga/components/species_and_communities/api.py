@@ -221,11 +221,22 @@ class GetScientificName(views.APIView):
                 species__processing_status=Species.PROCESSING_STATUS_ACTIVE
             )
 
-        taxonomies = taxonomies.filter(
-            scientific_name__icontains=search_term,
-        )
         if group_type_id:
             taxonomies = taxonomies.filter(kingdom_fk__grouptype=group_type_id)
+
+        # Allow internal users to perform wildcard search
+        if is_internal(request):
+            search_term = search_term.replace("%", "%%")
+            taxonomies = taxonomies.extra(
+                where=[
+                    'UPPER("boranga_taxonomy"."scientific_name"::text) LIKE UPPER(%s)'
+                ],
+                params=[search_term],
+            )
+        else:
+            taxonomies = taxonomies.filter(
+                scientific_name__icontains=search_term,
+            )
 
         serializer = TaxonomySerializer(
             taxonomies[:10], context={"request": request}, many=True
@@ -259,17 +270,32 @@ class GetCommonName(views.APIView):
 
     def get(self, request, format=None):
         group_type_id = request.GET.get("group_type_id", "")
-        search_term = request.GET.get("term", "")
-        if search_term:
-            data = TaxonVernacular.objects.filter(
+        search_term = request.GET.get("term", None)
+        if not search_term:
+            return Response()
+
+        queryset = TaxonVernacular.objects.filter(
+            taxonomy__kingdom_fk__grouptype=group_type_id,
+        ).values("id", "vernacular_name")
+
+        # Allow internal users to perform wildcard search
+        if is_internal(request):
+            search_term = search_term.replace("%", "%%")
+            queryset = queryset.extra(
+                where=[
+                    'UPPER("boranga_taxonvernacular"."vernacular_name"::text) LIKE UPPER(%s)'
+                ],
+                params=[search_term],
+            )
+        else:
+            queryset = queryset.filter(
                 vernacular_name__icontains=search_term,
-                taxonomy__kingdom_fk__grouptype=group_type_id,
-            ).values("id", "vernacular_name")[:10]
-            data_transform = [
-                {"id": vern["id"], "text": vern["vernacular_name"]} for vern in data
-            ]
-            return Response({"results": data_transform})
-        return Response()
+            )
+
+        data_transform = [
+            {"id": vern["id"], "text": vern["vernacular_name"]} for vern in queryset
+        ]
+        return Response({"results": data_transform})
 
 
 class GetCommonNameOCRSelect(views.APIView):
@@ -291,14 +317,22 @@ class GetCommonNameOCRSelect(views.APIView):
         taxonomy_vernaculars = taxonomy_vernaculars.filter(
             taxonomy__species__processing_status=Species.PROCESSING_STATUS_ACTIVE
         )
-        taxonomy_vernaculars = taxonomy_vernaculars.filter(
-            vernacular_name__icontains=search_term,
-        )
 
         if group_type_id:
-            logger.debug(f"filtering by group_type_id: {group_type_id}")
             taxonomy_vernaculars = taxonomy_vernaculars.filter(
                 taxonomy__kingdom_fk__grouptype_id=group_type_id
+            )
+
+        # Allow internal users to perform wildcard search
+        if is_internal(request):
+            search_term = search_term.replace("%", "%%")
+            taxonomy_vernaculars = taxonomy_vernaculars.extra(
+                where=["UPPER(vernacular_name) LIKE UPPER(%s)"],
+                params=[search_term],
+            )
+        else:
+            taxonomy_vernaculars = taxonomy_vernaculars.filter(
+                vernacular_name__icontains=search_term,
             )
 
         taxonomy_ids = taxonomy_vernaculars.distinct().values_list(
@@ -422,37 +456,45 @@ class GetCommunityName(views.APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, format=None):
-        search_term = request.GET.get("term", "")
-        cs_community = request.GET.get("cs_community", "")
-        if search_term:
-            if cs_community != "":
-                exclude_status = ["draft"]
-                data = CommunityTaxonomy.objects.filter(
-                    ~Q(community__processing_status__in=exclude_status)
-                    & Q(community_name__icontains=search_term)
-                )[:10]
-                data_transform = [
-                    {
-                        "id": community.community.id,
-                        "text": community.community_name,
-                        "community_migrated_id": community.community_migrated_id,
-                    }
-                    for community in data
-                ]
-            else:
-                data = CommunityTaxonomy.objects.filter(
-                    community_name__icontains=search_term
-                ).values("id", "community_name", "community_migrated_id")[:10]
-                data_transform = [
-                    {
-                        "id": taxon["id"],
-                        "text": taxon["community_name"],
-                        "community_migrated_id": taxon["community_migrated_id"],
-                    }
-                    for taxon in data
-                ]
-            return Response({"results": data_transform})
-        return Response()
+        search_term = request.GET.get("term", None)
+        if not search_term:
+            return Response()
+
+        cs_community = request.GET.get("cs_community", None)
+
+        community_taxonomies = CommunityTaxonomy.objects.all()
+
+        if cs_community:
+            community_taxonomies = CommunityTaxonomy.objects.exclude(
+                community__processing_status=Community.PROCESSING_STATUS_DRAFT
+            )
+
+        # Allow internal users to perform wildcard search
+        if is_internal(request):
+            search_term = search_term.replace("%", "%%")
+            community_taxonomies = community_taxonomies.extra(
+                where=["UPPER(community_name) LIKE UPPER(%s)"],
+                params=[search_term],
+            )
+        else:
+            community_taxonomies = community_taxonomies.filter(
+                vernacular_name__icontains=search_term,
+            )
+
+        community_taxonomies = community_taxonomies.only(
+            "community__id", "community_name", "community_migrated_id"
+        )[:10]
+
+        data_transform = [
+            {
+                "id": community.community.id,
+                "text": community.community_name,
+                "community_migrated_id": community.community_migrated_id,
+            }
+            for community in community_taxonomies
+        ]
+
+        return Response({"results": data_transform})
 
 
 class GetSpeciesFilterDict(views.APIView):
