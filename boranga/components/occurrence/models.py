@@ -2918,17 +2918,17 @@ class OCRPlantCount(models.Model):
         default=settings.COUNT_STATUS_NOT_COUNTED,
     )
 
-    detailed_alive_mature = models.IntegerField(null=True, blank=True, default=0)
-    detailed_dead_mature = models.IntegerField(null=True, blank=True, default=0)
-    detailed_alive_juvenile = models.IntegerField(null=True, blank=True, default=0)
-    detailed_dead_juvenile = models.IntegerField(null=True, blank=True, default=0)
-    detailed_alive_seedling = models.IntegerField(null=True, blank=True, default=0)
-    detailed_dead_seedling = models.IntegerField(null=True, blank=True, default=0)
-    detailed_alive_unknown = models.IntegerField(null=True, blank=True, default=0)
-    detailed_dead_unknown = models.IntegerField(null=True, blank=True, default=0)
+    detailed_alive_mature = models.IntegerField(null=True, blank=True)
+    detailed_dead_mature = models.IntegerField(null=True, blank=True)
+    detailed_alive_juvenile = models.IntegerField(null=True, blank=True)
+    detailed_dead_juvenile = models.IntegerField(null=True, blank=True)
+    detailed_alive_seedling = models.IntegerField(null=True, blank=True)
+    detailed_dead_seedling = models.IntegerField(null=True, blank=True)
+    detailed_alive_unknown = models.IntegerField(null=True, blank=True)
+    detailed_dead_unknown = models.IntegerField(null=True, blank=True)
 
-    simple_alive = models.IntegerField(null=True, blank=True, default=0)
-    simple_dead = models.IntegerField(null=True, blank=True, default=0)
+    simple_alive = models.IntegerField(null=True, blank=True)
+    simple_dead = models.IntegerField(null=True, blank=True)
 
     quadrats_present = models.BooleanField(null=True, blank=True)
     quadrats_data_attached = models.BooleanField(null=True, blank=True)
@@ -4970,17 +4970,17 @@ class OCCPlantCount(models.Model):
         default=settings.COUNT_STATUS_NOT_COUNTED,
     )
 
-    detailed_alive_mature = models.IntegerField(null=True, blank=True, default=0)
-    detailed_dead_mature = models.IntegerField(null=True, blank=True, default=0)
-    detailed_alive_juvenile = models.IntegerField(null=True, blank=True, default=0)
-    detailed_dead_juvenile = models.IntegerField(null=True, blank=True, default=0)
-    detailed_alive_seedling = models.IntegerField(null=True, blank=True, default=0)
-    detailed_dead_seedling = models.IntegerField(null=True, blank=True, default=0)
-    detailed_alive_unknown = models.IntegerField(null=True, blank=True, default=0)
-    detailed_dead_unknown = models.IntegerField(null=True, blank=True, default=0)
+    detailed_alive_mature = models.IntegerField(null=True, blank=True)
+    detailed_dead_mature = models.IntegerField(null=True, blank=True)
+    detailed_alive_juvenile = models.IntegerField(null=True, blank=True)
+    detailed_dead_juvenile = models.IntegerField(null=True, blank=True)
+    detailed_alive_seedling = models.IntegerField(null=True, blank=True)
+    detailed_dead_seedling = models.IntegerField(null=True, blank=True)
+    detailed_alive_unknown = models.IntegerField(null=True, blank=True)
+    detailed_dead_unknown = models.IntegerField(null=True, blank=True)
 
-    simple_alive = models.IntegerField(null=True, blank=True, default=0)
-    simple_dead = models.IntegerField(null=True, blank=True, default=0)
+    simple_alive = models.IntegerField(null=True, blank=True)
+    simple_dead = models.IntegerField(null=True, blank=True)
 
     quadrats_present = models.BooleanField(null=True, blank=True)
     quadrats_data_attached = models.BooleanField(null=True, blank=True)
@@ -5010,6 +5010,35 @@ class OCCPlantCount(models.Model):
 
     def __str__(self):
         return str(self.occurrence)
+
+    def save(self, *args, **kwargs):
+        # Set fields to None based on count status field
+        if self.count_status == settings.COUNT_STATUS_NOT_COUNTED:
+            self.detailed_alive_mature = None
+            self.detailed_dead_mature = None
+            self.detailed_alive_juvenile = None
+            self.detailed_dead_juvenile = None
+            self.detailed_alive_seedling = None
+            self.detailed_dead_seedling = None
+            self.detailed_alive_unknown = None
+            self.detailed_dead_unknown = None
+
+            self.simple_alive = None
+            self.simple_dead = None
+        elif self.count_status == settings.COUNT_STATUS_SIMPLE_COUNT:
+            self.detailed_alive_mature = None
+            self.detailed_dead_mature = None
+            self.detailed_alive_juvenile = None
+            self.detailed_dead_juvenile = None
+            self.detailed_alive_seedling = None
+            self.detailed_dead_seedling = None
+            self.detailed_alive_unknown = None
+            self.detailed_dead_unknown = None
+        elif self.count_status == settings.COUNT_STATUS_COUNTED:
+            self.simple_alive = None
+            self.simple_dead = None
+
+        super().save(*args, **kwargs)
 
 
 class OCCAnimalObservation(models.Model):

@@ -144,7 +144,7 @@
                             @click.prevent="existingThreat"
                         >
                             <i class="fa-solid fa-circle-plus"></i>
-                            Add Existing Threat
+                            Add Threat from OCR
                         </button>
                     </div>
                 </div>
