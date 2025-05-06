@@ -1379,15 +1379,15 @@
                 >
                     <template v-if="overlayFeatureInfo">
                         <div class="toast-header">
-                            <img src="" class="rounded me-2" alt="" />
                             <strong class="me-auto">{{
                                 overlayFeatureInfo.featureId
                             }}</strong>
                             <button
                                 type="button"
-                                class="btn btn-sm btn-light text-nowrap ol-popup-closer"
+                                role="button"
+                                class="btn btn-sm text-nowrap ol-popup-closer"
                                 aria-label="Close Overlay"
-                                @click="overlay(undefined)"
+                                @click="overlay(undefined, undefined)"
                             >
                                 <span style="font-size: smaller"
                                     ><i
@@ -1397,17 +1397,10 @@
                                 >
                             </button>
                         </div>
-                        <p>
-                            <span
-                                ><small>{{
-                                    overlayFeatureInfo.clickedCoordinate
-                                }}</small></span
-                            >
-                        </p>
                         <div id="popup-content toast-body">
                             <div
                                 class="table-responsive overflow-scroll"
-                                style="max-height: 250px; max-width: 350px"
+                                style="height: 250px; width: 350px"
                             >
                                 <table
                                     style="width: 100%; z-index: 9999"
@@ -1427,20 +1420,22 @@
                                         :key="property + value"
                                     >
                                         <tr v-if="property != 'geometry'">
-                                            <td scope="row">
-                                                <small>{{ property }}</small>
+                                            <td scope="row" class="py-0">
+                                                <small class="fw-bold">{{
+                                                    property
+                                                }}</small>
                                             </td>
-                                            <td>
+                                            <td class="py-0">
                                                 <small>
-                                                    <input
-                                                        v-model="
-                                                            overlayFeatureInfo[
-                                                                property
-                                                            ]
-                                                        "
-                                                        class="form-control form-control-sm ol-textarea"
-                                                        readonly
-                                                    />
+                                                    {{
+                                                        overlayFeatureInfo[
+                                                            property
+                                                        ]
+                                                            ? overlayFeatureInfo[
+                                                                  property
+                                                              ]
+                                                            : 'No value'
+                                                    }}
                                                 </small>
                                             </td>
                                         </tr>
@@ -1595,7 +1590,8 @@
 <script>
 // @Karsten: TODO - I could not get transform working in vue 3
 // When the transform interaction is activated, the selected feature seems
-// to become unselected
+// to become unselected. UPDATE: Managed to get the select feature and move
+// working however the rotate, scale and resize still do not work.
 import { v4 as uuid } from 'uuid';
 import { api_endpoints, helpers } from '@/utils/hooks';
 
@@ -1757,29 +1753,26 @@ export default {
             default: () => {
                 return {
                     // typeName
-                    'kaartdijin-boodja-public:DFA_FMP_tenure': {
-                        version: '2.0.0', // WFS version
-                        srsName: 'EPSG:4326',
-                        propertyName: 'Shape', // Default to query for feature geometries only
-                        geometry: 'Shape', // Geometry name (not `the_geom`)
-                    },
                     'kaartdijin-boodja-private:CPT_CADASTRE_SCDB': {
                         version: '2.0.0', // WFS version
                         srsName: 'EPSG:4326',
                         propertyName: 'SHAPE', // Default to query for feature geometries only
                         geometry: 'SHAPE', // Geometry name (not `the_geom`)
+                        propertyNameForInfoTitle: null,
                     },
                     'kaartdijin-boodja-public:CPT_DBCA_REGIONS': {
                         version: '2.0.0', // WFS version
                         srsName: 'EPSG:4326',
                         propertyName: 'SHAPE', // Default to query for feature geometries only
                         geometry: 'SHAPE', // Geometry name (not `the_geom`)
+                        propertyNameForInfoTitle: 'DRG_REGION_NAME',
                     },
                     'kaartdijin-boodja-public:CPT_DBCA_DISTRICTS': {
                         version: '2.0.0', // WFS version
                         srsName: 'EPSG:4326',
                         propertyName: 'SHAPE', // Default to query for feature geometries only
                         geometry: 'SHAPE', // Geometry name (not `the_geom`)
+                        propertyNameForInfoTitle: 'DDT_DISTRICT_NAME',
                     },
                 };
             },
@@ -3480,9 +3473,8 @@ export default {
             let container = document.getElementById('popup');
             let overlay = new Overlay({
                 element: container,
-                autoPan: true,
-                autoPanAnimation: {
-                    duration: 150,
+                autoPan: {
+                    margin: 110,
                 },
             });
             this.map = new Map({
@@ -4413,7 +4405,7 @@ export default {
                         $('#legend_title').text('');
                         $('#legend').find('img').attr('src', '');
                         // Hide any overlays when the optional layer is turned off
-                        vm.overlay(undefined);
+                        vm.overlay(undefined, undefined);
                     } else {
                         console.error(
                             'Cannot assess tile layer visibility change.'
@@ -4702,7 +4694,7 @@ export default {
          */
         overlay: function (coordinate, feature) {
             let vm = this;
-            let overlay = vm.map.overlays_.array_[0];
+            let overlay = toRaw(vm.map.overlays_.array_[0]);
             if (feature === undefined) {
                 vm.overlayFeatureInfo = {};
             } else {
@@ -4711,6 +4703,7 @@ export default {
                 vm.overlayFeatureInfo['featureId'] = feature.getId();
             }
             if (overlay) {
+                console.log('setting overlay position to ', coordinate);
                 overlay.setPosition(coordinate);
             }
 
@@ -5911,12 +5904,12 @@ export default {
     left: 48px;
     margin-left: -11px;
 }
-.ol-popup-closer {
+/* .ol-popup-closer {
     text-decoration: none;
     position: absolute;
     top: 2px;
     right: 8px;
-}
+} */
 /* .ol-popup-closer:after {
     content: '✖';
 } */
