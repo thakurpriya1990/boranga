@@ -353,7 +353,9 @@ class OccurrenceTenureAdmin(nested_admin.NestedModelAdmin):
 
 @admin.register(OccurrenceTenurePurpose)
 class OccurrenceTenurePurposeAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
     pass
 
@@ -364,154 +366,276 @@ class OccurrenceTenureVestingAdmin(admin.ModelAdmin):
 
 
 class PermitTypeAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ("group_type", "name")
+    list_display = ("group_type", "move_up_down_links", "name")
     list_filter = ("group_type",)
+    search_fields = ("name",)
+    ordering = ("order",)
 
 
-class DatumAdmin(CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin):
-    list_display = ("srid", "name")
-    search_fields = ("srid", "name")
+class DatumAdmin(
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
+):
+    list_display = ("srid", "move_up_down_links", "name")
+    search_fields = ("srid",)
+    ordering = ("order",)
 
 
 class WildStatusAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class CoordinateSourceAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class SoilTypeAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class SoilConditionAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class SoilColourAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class SiteTypeAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class SecondarySignAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class SampleTypeAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ("group_type", "name")
+    list_display = ("group_type", "name", "move_up_down_links")
     list_filter = ("group_type",)
+    search_fields = ("name",)
+    ordering = ("order",)
 
 
 class SampleDestinationAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class RockTypeAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class ReproductiveStateAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
-class LandFormAdmin(DeleteProtectedModelAdmin):
-    list_display = ["name"]
+class LandFormAdmin(CsvExportMixin, OrderedModelAdmin, DeleteProtectedModelAdmin):
+    list_display = ["name", "move_up_down_links"]
     fields = ["name"]  # Not showing the archived field for now as requires
     # more work on the frontend due to django-multiselectfield
+    ordering = ("order",)
 
 
-class PrimaryDetectionMethodAdmin(DeleteProtectedModelAdmin):
-    list_display = ["name"]
+class PrimaryDetectionMethodAdmin(
+    CsvExportMixin, OrderedModelAdmin, DeleteProtectedModelAdmin
+):
+    list_display = ["name", "move_up_down_links"]
     fields = ["name"]  # Not showing the archived field for now as requires
     # more work on the frontend due to django-multiselectfield
+    ordering = ("order",)
 
 
 class PlantCountMethodAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class PlantCountAccuracyAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class PlantConditionAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class ObservationMethodAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class LocationAccuracyAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class IntensityAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class IdentificationCertaintyAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class DrainageAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class DeathReasonAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    list_filter = ["archived"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class CountedSubjectAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = ["name", "move_up_down_links"]
+    list_filter = ["archived"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class OccurrenceReportBulkImportTaskAdmin(DeleteProtectedModelAdmin):
@@ -533,12 +657,40 @@ class OccurrenceReportBulkImportSchemaAdmin(DeleteProtectedModelAdmin):
     ordering = ["group_type", "version"]
 
 
-class ObserverRoleAdmin(OrderedModelAdmin):
+class ObserverRoleAdmin(
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
+):
     list_display = ["item", "move_up_down_links", "archived"]
+    list_filter = ["archived"]
+    search_fields = ["item"]
+    ordering = ("order",)
 
 
-class ObserverCategoryAdmin(OrderedModelAdmin):
+class ObserverCategoryAdmin(
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
+):
     list_display = ["item", "move_up_down_links", "archived"]
+    list_filter = ["archived"]
+    search_fields = ["item"]
+    ordering = ("order",)
+
+
+class AnimalHealthAdmin(
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
+):
+    list_display = ["name", "move_up_down_links"]
+    list_filter = ["archived"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 # Each of the following models will be available to Django Admin.
@@ -561,7 +713,7 @@ admin.site.register(PrimaryDetectionMethod, PrimaryDetectionMethodAdmin)
 admin.site.register(SecondarySign, SecondarySignAdmin)
 admin.site.register(ReproductiveState, ReproductiveStateAdmin)
 admin.site.register(DeathReason, DeathReasonAdmin)
-admin.site.register(AnimalHealth, DeleteProtectedModelAdmin)
+admin.site.register(AnimalHealth, AnimalHealthAdmin)
 admin.site.register(IdentificationCertainty, IdentificationCertaintyAdmin)
 admin.site.register(SampleType, SampleTypeAdmin)
 admin.site.register(SampleDestination, SampleDestinationAdmin)

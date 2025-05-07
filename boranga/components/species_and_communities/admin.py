@@ -1,4 +1,5 @@
 from django.contrib.gis import admin
+from ordered_model.admin import OrderedModelAdmin
 
 from boranga.admin import (
     ArchivableModelAdminMixin,
@@ -29,46 +30,98 @@ from boranga.components.species_and_communities.models import (
 
 
 class DocumentCategoryAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["document_category_name"]
+    list_display = [
+        "document_category_name",
+        "move_up_down_links",
+    ]
+    search_fields = ["document_category_name"]
+    ordering = ("order",)
 
 
 @admin.register(DocumentSubCategory)
 class DocumentSubCategoryAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    OrderedModelAdmin,
+    ArchivableModelAdminMixin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["document_sub_category_name", "document_category"]
+    list_display = [
+        "document_sub_category_name",
+        "document_category",
+        "move_up_down_links",
+    ]
+    list_filter = ["document_category"]
+    search_fields = ["document_sub_category_name"]
+    ordering = ("document_category", "document_sub_category_name")
 
 
 class ThreatCategoryAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    OrderedModelAdmin,
+    ArchivableModelAdminMixin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = [
+        "name",
+        "move_up_down_links",
+    ]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class ThreatAgentAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    OrderedModelAdmin,
+    ArchivableModelAdminMixin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = [
+        "name",
+        "move_up_down_links",
+    ]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class PotentialThreatOnsetAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    OrderedModelAdmin,
+    ArchivableModelAdminMixin,
+    DeleteProtectedModelAdmin,
 ):
-    list_display = ["name"]
+    list_display = [
+        "name",
+        "move_up_down_links",
+    ]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class PotentialImpactAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    OrderedModelAdmin,
+    ArchivableModelAdminMixin,
+    DeleteProtectedModelAdmin,
 ):
     list_display = ["name"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 class CurrentImpactAdmin(
-    CsvExportMixin, ArchivableModelAdminMixin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    OrderedModelAdmin,
+    ArchivableModelAdminMixin,
+    DeleteProtectedModelAdmin,
 ):
     list_display = ["name"]
+    search_fields = ["name"]
+    ordering = ("order",)
 
 
 # Each of the following models will be available to Django Admin.
