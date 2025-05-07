@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:1.2
 
 # Prepare the base environment.
-FROM ubuntu:24.04 as builder_base_boranga
+FROM ubuntu:24.04 AS builder_base_boranga
 
 LABEL maintainer="asi@dbca.wa.gov.au"
 LABEL org.opencontainers.image.source="https://github.com/dbca-wa/boranga"
@@ -18,7 +18,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     NODE_MAJOR=20 \
     NODE_OPTIONS=--max_old_space_size=4096
 
-FROM builder_base_boranga as apt_packages_boranga
+FROM builder_base_boranga AS apt_packages_boranga
 
 # Use Australian Mirrors
 RUN sed 's/archive.ubuntu.com/au.archive.ubuntu.com/g' /etc/apt/sources.list > /etc/apt/sourcesau.list && \
@@ -61,7 +61,7 @@ RUN --mount=type=cache,target=/var/cache/apt apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     update-ca-certificates
 
-FROM apt_packages_boranga as gdal_boranga
+FROM apt_packages_boranga AS gdal_boranga
 
 # Install newer gdal version that is secure
 RUN add-apt-repository ppa:ubuntugis/ubuntugis-unstable && \
@@ -70,7 +70,7 @@ RUN add-apt-repository ppa:ubuntugis/ubuntugis-unstable && \
     gdal-bin \
     python3-gdal
 
-FROM gdal_boranga as node_boranga
+FROM gdal_boranga AS node_boranga
 
 # install node
 RUN mkdir -p /etc/apt/keyrings && \
@@ -80,7 +80,7 @@ RUN mkdir -p /etc/apt/keyrings && \
     apt-get update && \
     apt-get install -y nodejs
 
-FROM node_boranga as configure_boranga
+FROM node_boranga AS configure_boranga
 
 COPY startup.sh /
 
@@ -98,7 +98,7 @@ RUN chmod 755 /startup.sh && \
     /tmp/default_script_installer.sh && \
     rm -rf /tmp/*
 
-FROM configure_boranga as python_dependencies_boranga
+FROM configure_boranga AS python_dependencies_boranga
 
 WORKDIR /app
 USER oim
@@ -119,17 +119,17 @@ RUN $VIRTUAL_ENV_PATH/bin/pip3 install --upgrade pip && \
 # RUN patch /usr/local/lib/python3.8/dist-packages/django/contrib/gis/geos/libgeos.py /app/libgeos.py.patch
 # RUN rm /app/libgeos.py.patch
 
-FROM python_dependencies_boranga as build_vue_boranga
+FROM python_dependencies_boranga AS build_vue_boranga
 
 RUN cd /app/boranga/frontend/boranga; npm ci --omit=dev && \
     cd /app/boranga/frontend/boranga; npm run build
 
-FROM build_vue_boranga as collectstatic_boranga
+FROM build_vue_boranga AS collectstatic_boranga
 
 RUN touch /app/.env && \
     $VIRTUAL_ENV_PATH/bin/python manage.py collectstatic --noinput
 
-FROM collectstatic_boranga as launch_boranga
+FROM collectstatic_boranga AS launch_boranga
 
 EXPOSE 8080
 HEALTHCHECK --interval=1m --timeout=5s --start-period=10s --retries=3 CMD ["wget", "-q", "-O", "-", "http://localhost:8080/"]

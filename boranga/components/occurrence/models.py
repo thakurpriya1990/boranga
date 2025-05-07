@@ -62,6 +62,7 @@ from boranga.components.main.models import (
     ArchivableModel,
     CommunicationsLogEntry,
     Document,
+    OrderedArchivableManager,
     RevisionedMixin,
     UserAction,
 )
@@ -1885,7 +1886,9 @@ class OccurrenceReportReferral(models.Model):
         return self.processing_status == self.PROCESSING_STATUS_WITH_REFERRAL
 
 
-class Datum(ArchivableModel):
+class Datum(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
+
     """
     # Admin List
 
@@ -1901,9 +1904,8 @@ class Datum(ArchivableModel):
     def name(self):
         return f"EPSG:{str(self.srid)} - {pyproj.CRS.from_string(str(self.srid)).name}"
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
-        ordering = ["srid"]
 
     def __str__(self):
         return str(self.srid)
@@ -1925,7 +1927,8 @@ class Datum(ArchivableModel):
         super().save(*args, **kwargs)
 
 
-class CoordinateSource(ArchivableModel):
+class CoordinateSource(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -1943,17 +1946,17 @@ class CoordinateSource(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Coordinate Source"
         verbose_name_plural = "Coordinate Sources"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
 
 
-class LocationAccuracy(ArchivableModel):
+class LocationAccuracy(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -1971,11 +1974,10 @@ class LocationAccuracy(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Location Accuracy"
         verbose_name_plural = "Location Accuracy"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
@@ -2287,7 +2289,8 @@ class OCRObserverDetail(RevisionedMixin):
 
 
 # Is used in HabitatComposition for multiple selection
-class LandForm(ArchivableModel):
+class LandForm(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2304,17 +2307,17 @@ class LandForm(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Land Form"
         verbose_name_plural = "Land Forms"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
 
 
-class RockType(ArchivableModel):
+class RockType(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2331,17 +2334,17 @@ class RockType(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Rock Type"
         verbose_name_plural = "Rock Types"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
 
 
-class SoilType(ArchivableModel):
+class SoilType(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2358,17 +2361,17 @@ class SoilType(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Soil Type"
         verbose_name_plural = "Soil Types"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
 
 
-class SoilColour(ArchivableModel):
+class SoilColour(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2385,17 +2388,17 @@ class SoilColour(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Soil Colour"
         verbose_name_plural = "Soil Colours"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
 
 
-class Drainage(ArchivableModel):
+class Drainage(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2412,17 +2415,17 @@ class Drainage(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Drainage"
         verbose_name_plural = "Drainages"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
 
 
-class SoilCondition(ArchivableModel):
+class SoilCondition(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2439,11 +2442,10 @@ class SoilCondition(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Soil Condition"
         verbose_name_plural = "Soil Conditions"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
@@ -2626,7 +2628,8 @@ class OCRVegetationStructure(models.Model):
         return f"OCR Vegetation Structure: {self.id} for Occurrence Report: {self.occurrence_report}"
 
 
-class Intensity(ArchivableModel):
+class Intensity(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2643,11 +2646,10 @@ class Intensity(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Intensity"
         verbose_name_plural = "Intensities"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
@@ -2713,7 +2715,8 @@ class OCRAssociatedSpecies(models.Model):
         return f"OCR Associated Species {self.id} for Occurrence Report {self.occurrence_report}"
 
 
-class ObservationMethod(ArchivableModel):
+class ObservationMethod(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2730,11 +2733,10 @@ class ObservationMethod(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Observation Method"
         verbose_name_plural = "Observation Methods"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
@@ -2772,7 +2774,8 @@ class OCRObservationDetail(models.Model):
         return f"OCR Observation Detail: {self.id} for Occurrence Report: {self.occurrence_report}"
 
 
-class PlantCountMethod(ArchivableModel):
+class PlantCountMethod(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2789,17 +2792,17 @@ class PlantCountMethod(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Plant Count Method"
         verbose_name_plural = "Plant Count Methods"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
 
 
-class PlantCountAccuracy(ArchivableModel):
+class PlantCountAccuracy(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2816,17 +2819,18 @@ class PlantCountAccuracy(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Plant Count Accuracy"
         verbose_name_plural = "Plant Count Accuracies"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
 
 
-class CountedSubject(ArchivableModel):
+class CountedSubject(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
+
     """
     # Admin List
 
@@ -2843,17 +2847,17 @@ class CountedSubject(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Counted Subject"
         verbose_name_plural = "Counted Subjects"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
 
 
-class PlantCondition(ArchivableModel):
+class PlantCondition(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2870,11 +2874,10 @@ class PlantCondition(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Plant Condition"
         verbose_name_plural = "Plant Conditions"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
@@ -2961,7 +2964,8 @@ class OCRPlantCount(models.Model):
 
 
 # used for Animal Observation(MultipleSelect)
-class PrimaryDetectionMethod(ArchivableModel):
+class PrimaryDetectionMethod(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2978,16 +2982,16 @@ class PrimaryDetectionMethod(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
 
 
 # used for Animal Observation(MultipleSelect)
-class ReproductiveState(ArchivableModel):
+class ReproductiveState(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -3004,17 +3008,17 @@ class ReproductiveState(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Reproductive State"
         verbose_name_plural = "Reproductive States"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
 
 
-class AnimalHealth(models.Model):
+class AnimalHealth(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -3031,17 +3035,17 @@ class AnimalHealth(models.Model):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Animal Health"
         verbose_name_plural = "Animal Health"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
 
 
-class DeathReason(ArchivableModel):
+class DeathReason(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -3058,16 +3062,16 @@ class DeathReason(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
 
 
 # sed for Animal Observation(MultipleSelect)
-class SecondarySign(ArchivableModel):
+class SecondarySign(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -3084,9 +3088,8 @@ class SecondarySign(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
@@ -3192,7 +3195,8 @@ class OCRAnimalObservation(models.Model):
         return total
 
 
-class IdentificationCertainty(ArchivableModel):
+class IdentificationCertainty(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
     May be a mandatory field that assessor needs to complete
@@ -3210,17 +3214,17 @@ class IdentificationCertainty(ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Identification Certainty"
         verbose_name_plural = "Identification Certainties"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
 
 
-class SampleType(ArchivableModel):
+class SampleType(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -3235,16 +3239,18 @@ class SampleType(ArchivableModel):
     group_type = models.ForeignKey(
         GroupType, on_delete=models.SET_NULL, null=True, blank=True
     )
+    order_with_respect_to = "group_type"
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
-        ordering = ["group_type", "name"]
+        ordering = ["group_type", "order"]
 
     def __str__(self):
         return str(self.name)
 
 
-class SampleDestination(ArchivableModel):
+class SampleDestination(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -3257,15 +3263,15 @@ class SampleDestination(ArchivableModel):
         max_length=250, blank=False, null=False, validators=[no_commas_validator]
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
 
 
-class PermitType(ArchivableModel):
+class PermitType(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -3280,10 +3286,11 @@ class PermitType(ArchivableModel):
     group_type = models.ForeignKey(
         GroupType, on_delete=models.SET_NULL, null=True, blank=True
     )
+    order_with_respect_to = "group_type"
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
-        ordering = ["group_type", "name"]
+        ordering = ["group_type", "order"]
 
     def __str__(self):
         return str(self.name)
@@ -3493,7 +3500,7 @@ class OCRConservationThreat(RevisionedMixin):
         return self.occurrence_report.occurrence_report_number
 
 
-class WildStatus(ArchivableModel):
+class WildStatus(OrderedModel, ArchivableModel):
     name = models.CharField(
         max_length=250,
         blank=False,
@@ -5216,7 +5223,9 @@ class OCRExternalRefereeInvite(models.Model):
         return f"{self.first_name} {self.last_name}"
 
 
-class OccurrenceTenurePurpose(ArchivableModel):
+class OccurrenceTenurePurpose(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
+
     label = models.CharField(
         max_length=100, blank=True, null=True, validators=[no_commas_validator]
     )
@@ -5224,7 +5233,7 @@ class OccurrenceTenurePurpose(ArchivableModel):
         max_length=20, blank=True, null=True, validators=[no_commas_validator]
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Occurrence Tenure Purpose"
         verbose_name_plural = "Occurrence Tenure Purposes"
@@ -5233,7 +5242,9 @@ class OccurrenceTenurePurpose(ArchivableModel):
         return f"{self.code} - {self.label}"
 
 
-class OccurrenceTenureVesting(models.Model):
+class OccurrenceTenureVesting(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
+
     label = models.CharField(
         max_length=100, blank=True, null=True, validators=[no_commas_validator]
     )
@@ -5241,7 +5252,7 @@ class OccurrenceTenureVesting(models.Model):
         max_length=20, blank=True, null=True, validators=[no_commas_validator]
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Occurrence Tenure Vesting"
         verbose_name_plural = "Occurrence Tenure Vestings"
@@ -5424,7 +5435,8 @@ class BufferGeometry(GeometryBase):
         return self.buffered_from_geometry
 
 
-class SiteType(ArchivableModel):
+class SiteType(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -5435,11 +5447,10 @@ class SiteType(ArchivableModel):
 
     name = models.CharField(max_length=250, blank=False, null=False, unique=True)
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Site Type"
         verbose_name_plural = "Site Type"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)

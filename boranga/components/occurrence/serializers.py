@@ -690,7 +690,12 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
     reproductive_state_name = serializers.CharField(
         source="reproductive_state.name", allow_null=True
     )
-    death_reason = serializers.CharField(source="death_reason.name", allow_null=True)
+    animal_health_name = serializers.CharField(
+        source="animal_health.name", allow_null=True
+    )
+    death_reason_name = serializers.CharField(
+        source="death_reason.name", allow_null=True
+    )
 
     class Meta:
         model = OCRAnimalObservation
@@ -702,9 +707,10 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
             "secondary_sign_name",
             "reproductive_state",
             "reproductive_state_name",
-            "animal_health_id",
-            "death_reason_id",
+            "animal_health",
+            "animal_health_name",
             "death_reason",
+            "death_reason_name",
             "total_count",
             "distinctive_feature",
             "action_taken",
@@ -1892,8 +1898,6 @@ class SaveOCRAnimalObservationSerializer(serializers.ModelSerializer):
     primary_detection_method = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
     )
-    animal_health_id = serializers.IntegerField(required=False, allow_null=True)
-    death_reason_id = serializers.IntegerField(required=False, allow_null=True)
     count_date = serializers.DateTimeField(
         format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
     )
@@ -1906,8 +1910,8 @@ class SaveOCRAnimalObservationSerializer(serializers.ModelSerializer):
             "primary_detection_method",
             "secondary_sign",
             "reproductive_state",
-            "animal_health_id",
-            "death_reason_id",
+            "animal_health",
+            "death_reason",
             "total_count",
             "distinctive_feature",
             "action_taken",
@@ -2924,7 +2928,12 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
     reproductive_state_name = serializers.CharField(
         source="reproductive_state.name", allow_null=True
     )
-    death_reason = serializers.CharField(source="death_reason.name", allow_null=True)
+    animal_health_name = serializers.CharField(
+        source="animal_health.name", allow_null=True
+    )
+    death_reason_name = serializers.CharField(
+        source="death_reason.name", allow_null=True
+    )
 
     class Meta:
         model = OCCAnimalObservation
@@ -2937,9 +2946,10 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
             "secondary_sign_name",
             "reproductive_state",
             "reproductive_state_name",
-            "animal_health_id",
-            "death_reason_id",
+            "animal_health",
+            "animal_health_name",
             "death_reason",
+            "death_reason_name",
             "total_count",
             "distinctive_feature",
             "action_taken",
@@ -3221,8 +3231,6 @@ class SaveOCCAnimalObservationSerializer(serializers.ModelSerializer):
     primary_detection_method = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
     )
-    animal_health_id = serializers.IntegerField(required=False, allow_null=True)
-    death_reason_id = serializers.IntegerField(required=False, allow_null=True)
     count_date = serializers.DateTimeField(
         format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
     )
@@ -3235,8 +3243,8 @@ class SaveOCCAnimalObservationSerializer(serializers.ModelSerializer):
             "primary_detection_method",
             "secondary_sign",
             "reproductive_state",
-            "animal_health_id",
-            "death_reason_id",
+            "animal_health",
+            "death_reason",
             "total_count",
             "distinctive_feature",
             "action_taken",

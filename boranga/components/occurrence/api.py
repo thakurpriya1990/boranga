@@ -1011,7 +1011,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         animal_health_list = []
-        values = AnimalHealth.objects.all()
+        values = AnimalHealth.objects.active()
         if values:
             for val in values:
                 animal_health_list.append(
@@ -1191,7 +1191,7 @@ class OccurrenceReportViewSet(
                     }
                 )
         animal_health_list = []
-        values = AnimalHealth.objects.all()
+        values = AnimalHealth.objects.active()
         if values:
             for val in values:
                 animal_health_list.append(
@@ -4901,7 +4901,7 @@ class OccurrenceViewSet(
                     }
                 )
         animal_health_list = []
-        values = AnimalHealth.objects.all()
+        values = AnimalHealth.objects.active()
         if values:
             for val in values:
                 animal_health_list.append(
@@ -5081,7 +5081,7 @@ class OccurrenceViewSet(
                     }
                 )
         animal_health_list = []
-        values = AnimalHealth.objects.all()
+        values = AnimalHealth.objects.active()
         if values:
             for val in values:
                 animal_health_list.append(

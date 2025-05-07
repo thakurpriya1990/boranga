@@ -478,7 +478,7 @@ class GetCommunityName(views.APIView):
             )
         else:
             community_taxonomies = community_taxonomies.filter(
-                vernacular_name__icontains=search_term,
+                community_name__icontains=search_term,
             )
 
         community_taxonomies = community_taxonomies.only(

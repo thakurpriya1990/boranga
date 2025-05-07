@@ -13,7 +13,7 @@ from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup, SystemGroupPermission
 
 from boranga import helpers as boranga_helpers
-from boranga.components.main.models import ArchivableManager, ArchivableModel
+from boranga.components.main.models import ArchivableModel
 from boranga.components.users.models import ExternalContributorBlacklist
 
 
@@ -54,11 +54,6 @@ class ArchivableModelAdminMixin:
 
         if not issubclass(self.model, ArchivableModel):
             raise AttributeError("The model must be a sub class of ArchivableModel.")
-
-        if not isinstance(self.model.objects, ArchivableManager):
-            raise AttributeError(
-                "The model manager must be an instance of ArchivableManager."
-            )
 
     def get_list_display(self, request):
         list_display = super().get_list_display(request)

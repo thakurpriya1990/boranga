@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
+from ordered_model.models import OrderedModel
 
 from boranga import exceptions
 from boranga.components.conservation_status.email import (
@@ -28,6 +29,7 @@ from boranga.components.main.models import (
     ArchivableModel,
     CommunicationsLogEntry,
     Document,
+    OrderedArchivableManager,
     RevisionedMixin,
     UserAction,
 )
@@ -96,17 +98,18 @@ def update_conservation_status_doc_filename(instance, filename):
     return f"{settings.MEDIA_APP_DIR}/conservation_status/{instance.conservation_status.id}/documents/{filename}"
 
 
-class AbstractConservationList(ArchivableModel):
+class AbstractConservationList(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
+
     code = models.CharField(max_length=64)
     label = models.CharField(max_length=512)
     applies_to_flora = models.BooleanField(default=False)
     applies_to_fauna = models.BooleanField(default=False)
     applies_to_communities = models.BooleanField(default=False)
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         abstract = True
         app_label = "boranga"
-        ordering = ["code"]
 
     @classmethod
     def get_lists_dict(
@@ -146,14 +149,15 @@ class AbstractConservationList(ArchivableModel):
         return f"{self.code} - {self.label}"
 
 
-class AbstractConservationCategory(ArchivableModel):
+class AbstractConservationCategory(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
+
     code = models.CharField(max_length=64)
     label = models.CharField(max_length=512)
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         abstract = True
         app_label = "boranga"
-        ordering = ["code"]
 
     def __str__(self):
         return str(self.code)
@@ -335,7 +339,8 @@ class OtherConservationAssessmentList(AbstractConservationList):
         verbose_name = "Other Conservation Assessment"
 
 
-class ConservationChangeCode(ArchivableModel):
+class ConservationChangeCode(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     When the conservation status of a species/community is changed, it can be for a number of reasons.
     These reasons are represented by change codes.
@@ -344,7 +349,7 @@ class ConservationChangeCode(ArchivableModel):
     code = models.CharField(max_length=32)
     label = models.CharField(max_length=512)
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
 
     def __str__(self):
@@ -2576,12 +2581,14 @@ class ConservationStatusProposalRequest(models.Model):
         app_label = "boranga"
 
 
-class ProposalAmendmentReason(ArchivableModel):
+class ProposalAmendmentReason(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
+
     reason = models.CharField(
         "Reason", max_length=125, validators=[no_commas_validator]
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Proposal Amendment Reason"  # display name in Admin
         verbose_name_plural = "Proposal Amendment Reasons"

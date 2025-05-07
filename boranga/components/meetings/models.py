@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
 from django.utils import timezone
+from ordered_model.models import OrderedModel, OrderedModelManager
 
 from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.main.models import (
@@ -21,7 +22,6 @@ from boranga.components.species_and_communities.models import (
     DocumentSubCategory,
 )
 from boranga.helpers import is_conservation_status_approver
-from boranga.ordered_model import OrderedModel
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,9 @@ def update_meeting_doc_filename(instance, filename):
     return f"{settings.MEDIA_APP_DIR}/meeting/{instance.meeting.id}/meeting_minutes_document/{filename}"
 
 
-class MeetingRoom(ArchivableModel):
+class MeetingRoom(OrderedModel, ArchivableModel):
+    objects = OrderedModelManager()
+
     room_name = models.CharField(max_length=128, blank=True, null=True)
 
     class Meta:
@@ -52,18 +54,21 @@ class MeetingRoom(ArchivableModel):
         return str(self.room_name)
 
 
-class Committee(ArchivableModel):
+class Committee(OrderedModel, ArchivableModel):
+    objects = OrderedModelManager()
+
     name = models.CharField(max_length=328, blank=True, null=True)
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
 
 
-class CommitteeMembers(ArchivableModel):
+class CommitteeMembers(OrderedModel, ArchivableModel):
+    objects = OrderedModelManager()
+
     first_name = models.CharField(max_length=128, blank=True, null=True)
     last_name = models.CharField(max_length=128, blank=True, null=True)
     email = models.CharField(max_length=328, blank=True, null=True)
@@ -71,7 +76,7 @@ class CommitteeMembers(ArchivableModel):
         "Committee", on_delete=models.CASCADE, null=True, blank=True
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Committee"
         verbose_name_plural = "Committee Members"

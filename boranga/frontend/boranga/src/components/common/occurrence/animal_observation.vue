@@ -138,19 +138,52 @@
                     >Animal Health:</label
                 >
                 <div class="col-sm-9">
-                    <select
-                        v-model="animal_observation.animal_health_id"
-                        :disabled="isReadOnly"
-                        class="form-select"
-                    >
-                        <option
-                            v-for="option in animal_health_list"
-                            :key="option.id"
-                            :value="option.id"
+                    <template v-if="!isReadOnly">
+                        <template
+                            v-if="
+                                animal_health_list &&
+                                animal_health_list.length > 0 &&
+                                animal_observation.animal_health &&
+                                !animal_health_list
+                                    .map((d) => d.id)
+                                    .includes(animal_observation.animal_health)
+                            "
                         >
-                            {{ option.name }}
-                        </option>
-                    </select>
+                            <input
+                                v-if="animal_observation.animal_health_name"
+                                type="text"
+                                class="form-control mb-3"
+                                :value="
+                                    animal_observation.animal_health_name +
+                                    ' (Now Archived)'
+                                "
+                                disabled
+                            />
+                            <div class="mb-3 text-muted">
+                                Change animal health to:
+                            </div>
+                        </template>
+                        <select
+                            v-model="animal_observation.animal_health"
+                            class="form-select"
+                        >
+                            <option
+                                v-for="animal_health in animal_health_list"
+                                :key="animal_health.id"
+                                :value="animal_health.id"
+                            >
+                                {{ animal_health.name }}
+                            </option>
+                        </select>
+                    </template>
+                    <template v-else>
+                        <input
+                            v-model="animal_observation.animal_health_name"
+                            class="form-control"
+                            type="text"
+                            :disabled="isReadOnly"
+                        />
+                    </template>
                 </div>
             </div>
             <div class="row mb-3">
@@ -163,20 +196,18 @@
                             v-if="
                                 death_reason_list &&
                                 death_reason_list.length > 0 &&
-                                animal_observation.death_reason_id &&
+                                animal_observation.death_reason &&
                                 !death_reason_list
                                     .map((d) => d.id)
-                                    .includes(
-                                        animal_observation.death_reason_id
-                                    )
+                                    .includes(animal_observation.death_reason)
                             "
                         >
                             <input
-                                v-if="animal_observation.death_reason"
+                                v-if="animal_observation.death_reason_name"
                                 type="text"
                                 class="form-control mb-3"
                                 :value="
-                                    animal_observation.death_reason +
+                                    animal_observation.death_reason_name +
                                     ' (Now Archived)'
                                 "
                                 disabled
@@ -186,7 +217,7 @@
                             </div>
                         </template>
                         <select
-                            v-model="animal_observation.death_reason_id"
+                            v-model="animal_observation.death_reason"
                             class="form-select"
                         >
                             <option
@@ -200,7 +231,7 @@
                     </template>
                     <template v-else>
                         <input
-                            v-model="animal_observation.death_reason"
+                            v-model="animal_observation.death_reason_name"
                             class="form-control"
                             type="text"
                             :disabled="isReadOnly"

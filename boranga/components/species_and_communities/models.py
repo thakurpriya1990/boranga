@@ -15,12 +15,14 @@ from django.db.models.functions import Cast
 from django.utils.functional import cached_property
 from ledger_api_client.managed_models import SystemGroup
 from multiselectfield import MultiSelectField
+from ordered_model.models import OrderedModel
 from pyproj import Geod
 
 from boranga.components.main.models import (
     ArchivableModel,
     CommunicationsLogEntry,
     Document,
+    OrderedArchivableManager,
     RevisionedMixin,
     UserAction,
 )
@@ -2030,7 +2032,8 @@ class CommunityDistribution(models.Model):
         return string
 
 
-class DocumentCategory(ArchivableModel):
+class DocumentCategory(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     This is particularly useful for organisation of documents e.g. preventing inappropriate documents being added
     to certain tables.
@@ -2048,17 +2051,17 @@ class DocumentCategory(ArchivableModel):
         max_length=128, unique=True, validators=[no_commas_validator]
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Document Category"
         verbose_name_plural = "Document Categories"
-        ordering = ["document_category_name"]
 
     def __str__(self):
         return str(self.document_category_name)
 
 
-class DocumentSubCategory(ArchivableModel):
+class DocumentSubCategory(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     This is particularly useful for organisation of sub documents e.g. preventing inappropriate documents being added
     to certain tables.
@@ -2081,12 +2084,12 @@ class DocumentSubCategory(ArchivableModel):
         unique=True,
         validators=[no_commas_validator],
     )
+    order_with_respect_to = "document_category"
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Document Sub Category"
         verbose_name_plural = "Document Sub Categories"
-        ordering = ["document_sub_category_name"]
 
     def __str__(self):
         return str(self.document_sub_category_name)
@@ -2236,7 +2239,8 @@ class CommunityDocument(Document):
         self.save(*args, **kwargs)
 
 
-class ThreatCategory(ArchivableModel):
+class ThreatCategory(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # e.g. mechnical disturbance
     """
@@ -2245,7 +2249,7 @@ class ThreatCategory(ArchivableModel):
         max_length=128, blank=False, unique=True, validators=[no_commas_validator]
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Threat Category"
         verbose_name_plural = "Threat Categories"
@@ -2254,7 +2258,8 @@ class ThreatCategory(ArchivableModel):
         return str(self.name)
 
 
-class CurrentImpact(ArchivableModel):
+class CurrentImpact(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # don't know the data yet
 
@@ -2267,7 +2272,7 @@ class CurrentImpact(ArchivableModel):
         max_length=100, blank=False, unique=True, validators=[no_commas_validator]
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Current Impact"
         verbose_name_plural = "Current Impacts"
@@ -2276,7 +2281,8 @@ class CurrentImpact(ArchivableModel):
         return str(self.name)
 
 
-class PotentialImpact(ArchivableModel):
+class PotentialImpact(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # don't know the data yet
 
@@ -2289,7 +2295,7 @@ class PotentialImpact(ArchivableModel):
         max_length=100, blank=False, unique=True, validators=[no_commas_validator]
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Potential Impact"
         verbose_name_plural = "Potential Impacts"
@@ -2298,7 +2304,8 @@ class PotentialImpact(ArchivableModel):
         return str(self.name)
 
 
-class PotentialThreatOnset(ArchivableModel):
+class PotentialThreatOnset(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # don't know the data yet
 
@@ -2311,7 +2318,7 @@ class PotentialThreatOnset(ArchivableModel):
         max_length=100, blank=False, unique=True, validators=[no_commas_validator]
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Potential Threat Onset"
         verbose_name_plural = "Potential Threat Onsets"
@@ -2320,7 +2327,8 @@ class PotentialThreatOnset(ArchivableModel):
         return str(self.name)
 
 
-class ThreatAgent(ArchivableModel):
+class ThreatAgent(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     Used by:
     - ConservationThreat
@@ -2331,7 +2339,7 @@ class ThreatAgent(ArchivableModel):
         max_length=100, blank=False, unique=True, validators=[no_commas_validator]
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Threat Agent"
         verbose_name_plural = "Threat Agents"
@@ -2492,7 +2500,8 @@ class CommunityPublishingStatus(models.Model):
         return str(self.community)
 
 
-class FloraRecruitmentType(ArchivableModel):
+class FloraRecruitmentType(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # list derived from WACensus
 
@@ -2503,17 +2512,17 @@ class FloraRecruitmentType(ArchivableModel):
 
     recruitment_type = models.CharField(max_length=200, blank=False, unique=True)
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Flora Recruitment Type"
         verbose_name_plural = "Flora Recruitment Types"
-        ordering = ["recruitment_type"]
 
     def __str__(self):
         return str(self.recruitment_type)
 
 
-class RootMorphology(ArchivableModel):
+class RootMorphology(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # list derived from WACensus
 
@@ -2524,17 +2533,17 @@ class RootMorphology(ArchivableModel):
 
     name = models.CharField(max_length=200, blank=False, unique=True)
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Root Morphology"
         verbose_name_plural = "Root Morphologies"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
 
 
-class PostFireHabitatInteraction(ArchivableModel):
+class PostFireHabitatInteraction(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
     """
     # list derived from WACensus
 
@@ -2545,11 +2554,10 @@ class PostFireHabitatInteraction(ArchivableModel):
 
     name = models.CharField(max_length=200, blank=False, unique=True)
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Post Fire Habitat Interaction"
         verbose_name_plural = "Post Fire Habitat Interactions"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
