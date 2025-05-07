@@ -5,6 +5,7 @@ from django.core.files.storage import FileSystemStorage
 from django.db import models
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup, SystemGroupPermission
+from ordered_model.models import OrderedModel, OrderedModelManager
 
 from boranga.components.main.models import (
     ArchivableModel,
@@ -23,7 +24,9 @@ private_storage = FileSystemStorage(
 logger = logging.getLogger(__name__)
 
 
-class SubmitterCategory(ArchivableModel):
+class SubmitterCategory(OrderedModel, ArchivableModel):
+    objects = OrderedModelManager()
+
     name = models.CharField(max_length=100, validators=[no_commas_validator])
     USER_TYPE_CHOICE_EXTERNAL = "external"
     USER_TYPE_CHOICE_INTERNAL = "internal"
@@ -39,7 +42,7 @@ class SubmitterCategory(ArchivableModel):
         default=USER_TYPE_CHOICE_EXTERNAL,
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name_plural = "Submitter Categories"
 
