@@ -196,20 +196,18 @@
                             v-if="
                                 death_reason_list &&
                                 death_reason_list.length > 0 &&
-                                animal_observation.death_reason_id &&
+                                animal_observation.death_reason &&
                                 !death_reason_list
                                     .map((d) => d.id)
-                                    .includes(
-                                        animal_observation.death_reason_id
-                                    )
+                                    .includes(animal_observation.death_reason)
                             "
                         >
                             <input
-                                v-if="animal_observation.death_reason"
+                                v-if="animal_observation.death_reason_name"
                                 type="text"
                                 class="form-control mb-3"
                                 :value="
-                                    animal_observation.death_reason +
+                                    animal_observation.death_reason_name +
                                     ' (Now Archived)'
                                 "
                                 disabled
@@ -219,7 +217,7 @@
                             </div>
                         </template>
                         <select
-                            v-model="animal_observation.death_reason_id"
+                            v-model="animal_observation.death_reason"
                             class="form-select"
                         >
                             <option
@@ -233,7 +231,7 @@
                     </template>
                     <template v-else>
                         <input
-                            v-model="animal_observation.death_reason"
+                            v-model="animal_observation.death_reason_name"
                             class="form-control"
                             type="text"
                             :disabled="isReadOnly"
