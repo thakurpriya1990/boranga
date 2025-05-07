@@ -57,7 +57,7 @@ class DocumentSubCategoryAdmin(
     ]
     list_filter = ["document_category"]
     search_fields = ["document_sub_category_name"]
-    ordering = ("document_category", "document_sub_category_name")
+    ordering = ("document_category", "order")
 
 
 class ThreatCategoryAdmin(
