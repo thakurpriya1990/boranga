@@ -5,12 +5,13 @@ from django.core.files.storage import FileSystemStorage
 from django.db import models
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup, SystemGroupPermission
-from ordered_model.models import OrderedModel, OrderedModelManager
+from ordered_model.models import OrderedModel
 
 from boranga.components.main.models import (
     ArchivableModel,
     CommunicationsLogEntry,
     Document,
+    OrderedArchivableManager,
     UserAction,
 )
 from boranga.helpers import no_commas_validator
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class SubmitterCategory(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
 
     name = models.CharField(max_length=100, validators=[no_commas_validator])
     USER_TYPE_CHOICE_EXTERNAL = "external"

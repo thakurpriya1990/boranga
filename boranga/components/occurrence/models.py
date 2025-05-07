@@ -62,6 +62,7 @@ from boranga.components.main.models import (
     ArchivableModel,
     CommunicationsLogEntry,
     Document,
+    OrderedArchivableManager,
     RevisionedMixin,
     UserAction,
 )
@@ -1886,7 +1887,7 @@ class OccurrenceReportReferral(models.Model):
 
 
 class Datum(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
 
     """
     # Admin List
@@ -1927,7 +1928,7 @@ class Datum(OrderedModel, ArchivableModel):
 
 
 class CoordinateSource(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -1955,7 +1956,7 @@ class CoordinateSource(OrderedModel, ArchivableModel):
 
 
 class LocationAccuracy(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2289,7 +2290,7 @@ class OCRObserverDetail(RevisionedMixin):
 
 # Is used in HabitatComposition for multiple selection
 class LandForm(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2316,7 +2317,7 @@ class LandForm(OrderedModel, ArchivableModel):
 
 
 class RockType(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2343,7 +2344,7 @@ class RockType(OrderedModel, ArchivableModel):
 
 
 class SoilType(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2370,7 +2371,7 @@ class SoilType(OrderedModel, ArchivableModel):
 
 
 class SoilColour(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2397,7 +2398,7 @@ class SoilColour(OrderedModel, ArchivableModel):
 
 
 class Drainage(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2424,7 +2425,7 @@ class Drainage(OrderedModel, ArchivableModel):
 
 
 class SoilCondition(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2628,7 +2629,7 @@ class OCRVegetationStructure(models.Model):
 
 
 class Intensity(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2715,7 +2716,7 @@ class OCRAssociatedSpecies(models.Model):
 
 
 class ObservationMethod(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2774,7 +2775,7 @@ class OCRObservationDetail(models.Model):
 
 
 class PlantCountMethod(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2801,7 +2802,7 @@ class PlantCountMethod(OrderedModel, ArchivableModel):
 
 
 class PlantCountAccuracy(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2828,7 +2829,7 @@ class PlantCountAccuracy(OrderedModel, ArchivableModel):
 
 
 class CountedSubject(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
 
     """
     # Admin List
@@ -2856,7 +2857,7 @@ class CountedSubject(OrderedModel, ArchivableModel):
 
 
 class PlantCondition(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2964,7 +2965,7 @@ class OCRPlantCount(models.Model):
 
 # used for Animal Observation(MultipleSelect)
 class PrimaryDetectionMethod(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -2990,7 +2991,7 @@ class PrimaryDetectionMethod(OrderedModel, ArchivableModel):
 
 # used for Animal Observation(MultipleSelect)
 class ReproductiveState(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -3017,7 +3018,7 @@ class ReproductiveState(OrderedModel, ArchivableModel):
 
 
 class AnimalHealth(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -3044,7 +3045,7 @@ class AnimalHealth(OrderedModel, ArchivableModel):
 
 
 class DeathReason(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -3070,7 +3071,7 @@ class DeathReason(OrderedModel, ArchivableModel):
 
 # sed for Animal Observation(MultipleSelect)
 class SecondarySign(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -3195,7 +3196,7 @@ class OCRAnimalObservation(models.Model):
 
 
 class IdentificationCertainty(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
     May be a mandatory field that assessor needs to complete
@@ -3223,7 +3224,7 @@ class IdentificationCertainty(OrderedModel, ArchivableModel):
 
 
 class SampleType(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -3249,7 +3250,7 @@ class SampleType(OrderedModel, ArchivableModel):
 
 
 class SampleDestination(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -3270,7 +3271,7 @@ class SampleDestination(OrderedModel, ArchivableModel):
 
 
 class PermitType(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 
@@ -3289,6 +3290,7 @@ class PermitType(OrderedModel, ArchivableModel):
 
     class Meta(OrderedModel.Meta):
         app_label = "boranga"
+        ordering = ["group_type", "order"]
 
     def __str__(self):
         return str(self.name)
@@ -5222,7 +5224,7 @@ class OCRExternalRefereeInvite(models.Model):
 
 
 class OccurrenceTenurePurpose(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
 
     label = models.CharField(
         max_length=100, blank=True, null=True, validators=[no_commas_validator]
@@ -5241,7 +5243,7 @@ class OccurrenceTenurePurpose(OrderedModel, ArchivableModel):
 
 
 class OccurrenceTenureVesting(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
 
     label = models.CharField(
         max_length=100, blank=True, null=True, validators=[no_commas_validator]
@@ -5434,7 +5436,7 @@ class BufferGeometry(GeometryBase):
 
 
 class SiteType(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # Admin List
 

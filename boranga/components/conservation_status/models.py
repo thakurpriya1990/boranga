@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
-from ordered_model.models import OrderedModel, OrderedModelManager
+from ordered_model.models import OrderedModel
 
 from boranga import exceptions
 from boranga.components.conservation_status.email import (
@@ -29,6 +29,7 @@ from boranga.components.main.models import (
     ArchivableModel,
     CommunicationsLogEntry,
     Document,
+    OrderedArchivableManager,
     RevisionedMixin,
     UserAction,
 )
@@ -98,7 +99,7 @@ def update_conservation_status_doc_filename(instance, filename):
 
 
 class AbstractConservationList(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
 
     code = models.CharField(max_length=64)
     label = models.CharField(max_length=512)
@@ -149,7 +150,7 @@ class AbstractConservationList(OrderedModel, ArchivableModel):
 
 
 class AbstractConservationCategory(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
 
     code = models.CharField(max_length=64)
     label = models.CharField(max_length=512)
@@ -339,7 +340,7 @@ class OtherConservationAssessmentList(AbstractConservationList):
 
 
 class ConservationChangeCode(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     When the conservation status of a species/community is changed, it can be for a number of reasons.
     These reasons are represented by change codes.
@@ -2581,7 +2582,7 @@ class ConservationStatusProposalRequest(models.Model):
 
 
 class ProposalAmendmentReason(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
 
     reason = models.CharField(
         "Reason", max_length=125, validators=[no_commas_validator]

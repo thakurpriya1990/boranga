@@ -328,6 +328,10 @@ class ArchivableModel(models.Model):
         self.save()
 
 
+class OrderedArchivableManager(OrderedModelManager, ArchivableManager):
+    pass
+
+
 class HelpTextEntry(ArchivableModel):
     section_id = models.CharField(max_length=255, unique=True)
     text = models.TextField()

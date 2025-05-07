@@ -15,13 +15,14 @@ from django.db.models.functions import Cast
 from django.utils.functional import cached_property
 from ledger_api_client.managed_models import SystemGroup
 from multiselectfield import MultiSelectField
-from ordered_model.models import OrderedModel, OrderedModelManager
+from ordered_model.models import OrderedModel
 from pyproj import Geod
 
 from boranga.components.main.models import (
     ArchivableModel,
     CommunicationsLogEntry,
     Document,
+    OrderedArchivableManager,
     RevisionedMixin,
     UserAction,
 )
@@ -2032,7 +2033,7 @@ class CommunityDistribution(models.Model):
 
 
 class DocumentCategory(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     This is particularly useful for organisation of documents e.g. preventing inappropriate documents being added
     to certain tables.
@@ -2060,7 +2061,7 @@ class DocumentCategory(OrderedModel, ArchivableModel):
 
 
 class DocumentSubCategory(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     This is particularly useful for organisation of sub documents e.g. preventing inappropriate documents being added
     to certain tables.
@@ -2239,7 +2240,7 @@ class CommunityDocument(Document):
 
 
 class ThreatCategory(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # e.g. mechnical disturbance
     """
@@ -2258,7 +2259,7 @@ class ThreatCategory(OrderedModel, ArchivableModel):
 
 
 class CurrentImpact(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # don't know the data yet
 
@@ -2281,7 +2282,7 @@ class CurrentImpact(OrderedModel, ArchivableModel):
 
 
 class PotentialImpact(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # don't know the data yet
 
@@ -2304,7 +2305,7 @@ class PotentialImpact(OrderedModel, ArchivableModel):
 
 
 class PotentialThreatOnset(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # don't know the data yet
 
@@ -2327,7 +2328,7 @@ class PotentialThreatOnset(OrderedModel, ArchivableModel):
 
 
 class ThreatAgent(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     Used by:
     - ConservationThreat
@@ -2500,7 +2501,7 @@ class CommunityPublishingStatus(models.Model):
 
 
 class FloraRecruitmentType(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # list derived from WACensus
 
@@ -2521,7 +2522,7 @@ class FloraRecruitmentType(OrderedModel, ArchivableModel):
 
 
 class RootMorphology(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # list derived from WACensus
 
@@ -2542,7 +2543,7 @@ class RootMorphology(OrderedModel, ArchivableModel):
 
 
 class PostFireHabitatInteraction(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
     """
     # list derived from WACensus
 
