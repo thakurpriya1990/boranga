@@ -1008,7 +1008,7 @@ export default {
                 orderable: true,
                 searchable: true,
                 visible: true,
-                name: 'other_conservation_assessment',
+                name: 'other_conservation_assessment__code',
             };
         },
         column_conservation_criteria: function () {
