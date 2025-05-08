@@ -677,10 +677,14 @@ class OccurrenceReportViewSet(
         types = LandForm.objects.all()
         if types:
             for val in types:
+                if val.archived:
+                    val.name += " (archived)"
+
                 land_form_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
+                        "disabled": val.archived,
                     }
                 )
         rock_type_list = []
@@ -694,13 +698,16 @@ class OccurrenceReportViewSet(
                     }
                 )
         soil_type_list = []
-        types = SoilType.objects.active()
+        types = SoilType.objects.all()
         if types:
             for val in types:
+                if val.archived:
+                    val.name += " (archived)"
                 soil_type_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
+                        "disabled": val.archived,
                     }
                 )
         soil_colour_list = []
@@ -971,13 +978,16 @@ class OccurrenceReportViewSet(
                     }
                 )
         primary_detection_method_list = []
-        values = PrimaryDetectionMethod.objects.active()
+        values = PrimaryDetectionMethod.objects.all()
         if values:
             for val in values:
+                if val.archived:
+                    val.name += " (archived)"
                 primary_detection_method_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
+                        "disabled": val.archived,
                     }
                 )
         secondary_sign_list = []
@@ -1151,13 +1161,16 @@ class OccurrenceReportViewSet(
         """used for Occurrence Report external form"""
 
         primary_detection_method_list = []
-        values = PrimaryDetectionMethod.objects.active()
+        values = PrimaryDetectionMethod.objects.all()
         if values:
             for val in values:
+                if val.archived:
+                    val.name += " (archived)"
                 primary_detection_method_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
+                        "disabled": val.archived,
                     }
                 )
         secondary_sign_list = []
@@ -4715,10 +4728,13 @@ class OccurrenceViewSet(
         types = LandForm.objects.all()
         if types:
             for val in types:
+                if val.archived:
+                    val.name += " (archived)"
                 land_form_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
+                        "disabled": val.archived,
                     }
                 )
         rock_type_list = []
@@ -4732,13 +4748,16 @@ class OccurrenceViewSet(
                     }
                 )
         soil_type_list = []
-        types = SoilType.objects.active()
+        types = SoilType.objects.all()
         if types:
             for val in types:
+                if val.archived:
+                    val.name += " (archived)"
                 soil_type_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
+                        "disabled": val.archived,
                     }
                 )
         soil_colour_list = []
@@ -4861,13 +4880,16 @@ class OccurrenceViewSet(
                     }
                 )
         primary_detection_method_list = []
-        values = PrimaryDetectionMethod.objects.active()
+        values = PrimaryDetectionMethod.objects.all()
         if values:
             for val in values:
+                if val.archived:
+                    val.name += " (archived)"
                 primary_detection_method_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
+                        "disabled": val.archived,
                     }
                 )
         secondary_sign_list = []
@@ -5041,13 +5063,16 @@ class OccurrenceViewSet(
         """used for Occurrence Report external form"""
 
         primary_detection_method_list = []
-        values = PrimaryDetectionMethod.objects.active()
+        values = PrimaryDetectionMethod.objects.all()
         if values:
             for val in values:
+                if val.archived:
+                    val.name += " (archived)"
                 primary_detection_method_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
+                        "disabled": val.archived,
                     }
                 )
         secondary_sign_list = []

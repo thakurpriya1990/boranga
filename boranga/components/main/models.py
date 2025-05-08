@@ -320,12 +320,14 @@ class ArchivableModel(models.Model):
         abstract = True
 
     def archive(self):
-        self.archived = True
-        self.save()
+        if not self.archived:
+            self.archived = True
+            self.save()
 
     def unarchive(self):
-        self.archived = False
-        self.save()
+        if self.archived:
+            self.archived = False
+            self.save()
 
 
 class OrderedArchivableManager(OrderedModelManager, ArchivableManager):

@@ -1622,6 +1622,11 @@ class ConservationStatus(SubmitterInformationModelMixin, RevisionedMixin):
         self.processing_status = (
             ConservationStatus.PROCESSING_STATUS_PROPOSED_FOR_AGENDA
         )
+
+        # Save time by auto assigning the request user if they are in the CS assessor group
+        if is_conservation_status_approver(request):
+            self.assigned_approver = request.user.id
+
         self.save()
 
         assessor_comment = request.data.get("assessor_comment")
@@ -2135,7 +2140,7 @@ class ConservationStatusUserAction(UserAction):
     )
     ACTION_PROPOSED_FOR_AGENDA = (
         "Conservation status proposal {} "
-        "has bee proposed for agenda. Assessor Comment: {}"
+        "has been proposed for agenda. Assessor Comment: {}"
     )
     ACTION_READY_FOR_AGENDA = (
         "Conservation status proposal {} " "is ready for agenda. Assessor Comment: {}"

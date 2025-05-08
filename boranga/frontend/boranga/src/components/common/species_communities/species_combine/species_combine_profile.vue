@@ -1632,6 +1632,7 @@
                         type="date"
                         class="form-control"
                         name="last_data_curation_date"
+                        min="1990-01-01"
                         :max="new Date().toISOString().split('T')[0]"
                         @change="checkDate()"
                     />
@@ -1961,6 +1962,27 @@ export default {
                 swal.fire({
                     title: 'Error',
                     text: 'Last data curation date cannot be in the future',
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+            }
+            if (
+                new Date(this.species_community.last_data_curation_date) <
+                new Date('1990-01-01')
+            ) {
+                this.species_community.last_data_curation_date = new Date(
+                    '1990-01-01'
+                )
+                    .toISOString()
+                    .split('T')[0];
+                this.$nextTick(() => {
+                    this.$refs.last_data_curation_date.focus();
+                });
+                swal.fire({
+                    title: 'Error',
+                    text: 'Last data curation date cannot be before 01/01/1990',
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',

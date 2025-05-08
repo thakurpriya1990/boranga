@@ -1029,6 +1029,7 @@
                             type="date"
                             class="form-control"
                             name="last_data_curation_date"
+                            min="1990-01-01"
                             :max="new Date().toISOString().split('T')[0]"
                             @change="checkDate()"
                         />
@@ -1073,7 +1074,7 @@
                     <label
                         for="conservation_plan_reference"
                         class="col-sm-3 col-form-label"
-                        >Conservation Plan Reference / Location:
+                        >Conservation Plan Reference:
                     </label>
                     <div class="col-sm-9">
                         <input
@@ -1085,7 +1086,6 @@
                             type="text"
                             class="form-control"
                             name="conservation_plan_reference"
-                            @change="checkDate()"
                         />
                     </div>
                 </div>
@@ -1854,6 +1854,27 @@ export default {
                 swal.fire({
                     title: 'Error',
                     text: 'Last data curation date cannot be in the future',
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+            }
+            if (
+                new Date(this.species_community.last_data_curation_date) <
+                new Date('1990-01-01')
+            ) {
+                this.species_community.last_data_curation_date = new Date(
+                    '1990-01-01'
+                )
+                    .toISOString()
+                    .split('T')[0];
+                this.$nextTick(() => {
+                    this.$refs.last_data_curation_date.focus();
+                });
+                swal.fire({
+                    title: 'Error',
+                    text: 'Last data curation date cannot be before 01/01/1990',
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',

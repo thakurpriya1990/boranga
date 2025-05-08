@@ -2477,9 +2477,7 @@ class OCRHabitatComposition(models.Model):
     loose_rock_percent = models.IntegerField(
         null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(100)]
     )
-    soil_type = models.ForeignKey(
-        SoilType, on_delete=models.SET_NULL, null=True, blank=True
-    )
+    soil_type = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
     soil_colour = models.ForeignKey(
         SoilColour, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -2502,6 +2500,9 @@ class OCRHabitatComposition(models.Model):
         super().__init__(*args, **kwargs)
         self._meta.get_field("land_form").choices = tuple(
             LandForm.objects.values_list("id", "name")
+        )
+        self._meta.get_field("soil_type").choices = tuple(
+            SoilType.objects.values_list("id", "name")
         )
 
 
@@ -3501,6 +3502,8 @@ class OCRConservationThreat(RevisionedMixin):
 
 
 class WildStatus(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
+
     name = models.CharField(
         max_length=250,
         blank=False,
@@ -3509,11 +3512,10 @@ class WildStatus(OrderedModel, ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Wild Status"
         verbose_name_plural = "Wild Statuses"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
@@ -4690,9 +4692,7 @@ class OCCHabitatComposition(models.Model):
     loose_rock_percent = models.IntegerField(
         null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(100)]
     )
-    soil_type = models.ForeignKey(
-        SoilType, on_delete=models.SET_NULL, null=True, blank=True
-    )
+    soil_type = MultiSelectField(max_length=250, blank=True, choices=[], null=True)
     soil_colour = models.ForeignKey(
         SoilColour, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -4715,6 +4715,9 @@ class OCCHabitatComposition(models.Model):
         super().__init__(*args, **kwargs)
         self._meta.get_field("land_form").choices = tuple(
             LandForm.objects.values_list("id", "name")
+        )
+        self._meta.get_field("soil_type").choices = tuple(
+            SoilType.objects.values_list("id", "name")
         )
 
 

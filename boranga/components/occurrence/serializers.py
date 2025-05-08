@@ -68,6 +68,7 @@ from boranga.components.occurrence.models import (
     OCRVegetationStructure,
     SchemaColumnLookupFilter,
     SchemaColumnLookupFilterValue,
+    SoilType,
 )
 from boranga.components.spatial.utils import wkb_to_geojson
 from boranga.components.species_and_communities.models import (
@@ -498,7 +499,10 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
         choices=[], allow_null=True, allow_blank=True, required=False
     )
     land_form_names = serializers.SerializerMethodField()
-    soil_type = serializers.CharField(source="soil_type.name", allow_null=True)
+    soil_type = serializers.MultipleChoiceField(
+        choices=[], allow_null=True, allow_blank=True, required=False
+    )
+    soil_type_names = serializers.SerializerMethodField()
     soil_condition = serializers.CharField(
         source="soil_condition.name", allow_null=True
     )
@@ -516,8 +520,8 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
             "rock_type_id",
             "rock_type",
             "loose_rock_percent",
-            "soil_type_id",
             "soil_type",
+            "soil_type_names",
             "soil_colour_id",
             "soil_colour",
             "soil_condition_id",
@@ -533,11 +537,22 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
         self.fields["land_form"].choices = OCRHabitatComposition._meta.get_field(
             "land_form"
         ).choices
+        self.fields["soil_type"].choices = OCRHabitatComposition._meta.get_field(
+            "soil_type"
+        ).choices
 
     def get_land_form_names(self, obj):
+        logger.debug(f"land_form: {obj.land_form}")
         return [
             lf
             for lf in LandForm.objects.filter(id__in=obj.land_form).values("id", "name")
+        ]
+
+    def get_soil_type_names(self, obj):
+        logger.debug(f"soil_type: {obj.soil_type}")
+        return [
+            st
+            for st in SoilType.objects.filter(id__in=obj.soil_type).values("id", "name")
         ]
 
 
@@ -1692,7 +1707,9 @@ class SaveOCRHabitatCompositionSerializer(serializers.ModelSerializer):
         choices=[], allow_null=True, allow_blank=True, required=False
     )
     rock_type_id = serializers.IntegerField(required=False, allow_null=True)
-    soil_type_id = serializers.IntegerField(required=False, allow_null=True)
+    soil_type = serializers.MultipleChoiceField(
+        choices=[], allow_null=True, allow_blank=True, required=False
+    )
     soil_colour_id = serializers.IntegerField(required=False, allow_null=True)
     soil_condition_id = serializers.IntegerField(required=False, allow_null=True)
     drainage_id = serializers.IntegerField(required=False, allow_null=True)
@@ -1705,7 +1722,7 @@ class SaveOCRHabitatCompositionSerializer(serializers.ModelSerializer):
             "land_form",
             "rock_type_id",
             "loose_rock_percent",
-            "soil_type_id",
+            "soil_type",
             "soil_colour_id",
             "soil_condition_id",
             "drainage_id",
@@ -1717,6 +1734,9 @@ class SaveOCRHabitatCompositionSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
         self.fields["land_form"].choices = OCRHabitatComposition._meta.get_field(
             "land_form"
+        ).choices
+        self.fields["soil_type"].choices = OCRHabitatComposition._meta.get_field(
+            "soil_type"
         ).choices
 
 
@@ -2662,6 +2682,11 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
 
         return data
 
+    def to_internal_value(self, data):
+        if data.get("review_due_date") == "":
+            data["review_due_date"] = None
+        return super().to_internal_value(data)
+
 
 class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
 
@@ -2669,7 +2694,9 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
         choices=[], allow_null=True, allow_blank=True, required=False
     )
     copied_ocr = serializers.SerializerMethodField()
-    soil_type = serializers.CharField(source="soil_type.name", allow_null=True)
+    soil_type = serializers.MultipleChoiceField(
+        choices=[], allow_null=True, allow_blank=True, required=False
+    )
     soil_condition = serializers.CharField(
         source="soil_condition.name", allow_null=True
     )
@@ -2687,7 +2714,6 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
             "rock_type_id",
             "rock_type",
             "loose_rock_percent",
-            "soil_type_id",
             "soil_type",
             "soil_colour_id",
             "soil_colour",
@@ -2703,6 +2729,9 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
         self.fields["land_form"].choices = OCCHabitatComposition._meta.get_field(
             "land_form"
+        ).choices
+        self.fields["soil_type"].choices = OCCHabitatComposition._meta.get_field(
+            "soil_type"
         ).choices
 
     def get_copied_ocr(self, obj):
@@ -3076,7 +3105,9 @@ class SaveOCCHabitatCompositionSerializer(serializers.ModelSerializer):
         choices=[], allow_null=True, allow_blank=True, required=False
     )
     rock_type_id = serializers.IntegerField(required=False, allow_null=True)
-    soil_type_id = serializers.IntegerField(required=False, allow_null=True)
+    soil_type = serializers.MultipleChoiceField(
+        choices=[], allow_null=True, allow_blank=True, required=False
+    )
     soil_colour_id = serializers.IntegerField(required=False, allow_null=True)
     soil_condition_id = serializers.IntegerField(required=False, allow_null=True)
     drainage_id = serializers.IntegerField(required=False, allow_null=True)
@@ -3089,7 +3120,7 @@ class SaveOCCHabitatCompositionSerializer(serializers.ModelSerializer):
             "land_form",
             "rock_type_id",
             "loose_rock_percent",
-            "soil_type_id",
+            "soil_type",
             "soil_colour_id",
             "soil_condition_id",
             "drainage_id",
@@ -3101,6 +3132,9 @@ class SaveOCCHabitatCompositionSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
         self.fields["land_form"].choices = OCCHabitatComposition._meta.get_field(
             "land_form"
+        ).choices
+        self.fields["soil_type"].choices = OCCHabitatComposition._meta.get_field(
+            "soil_type"
         ).choices
 
 

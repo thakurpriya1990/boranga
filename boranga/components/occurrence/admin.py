@@ -372,9 +372,12 @@ class PermitTypeAdmin(
     DeleteProtectedModelAdmin,
 ):
     list_display = ("group_type", "move_up_down_links", "name")
-    list_filter = ("group_type",)
+    list_filter = ("group_type", "archived")
     search_fields = ("name",)
-    ordering = ("order",)
+    ordering = (
+        "group_type",
+        "order",
+    )
 
 
 class DatumAdmin(
@@ -472,9 +475,12 @@ class SampleTypeAdmin(
     DeleteProtectedModelAdmin,
 ):
     list_display = ("group_type", "name", "move_up_down_links")
-    list_filter = ("group_type",)
+    list_filter = ("group_type", "archived")
     search_fields = ("name",)
-    ordering = ("order",)
+    ordering = (
+        "group_type",
+        "order",
+    )
 
 
 class SampleDestinationAdmin(
@@ -484,6 +490,7 @@ class SampleDestinationAdmin(
     DeleteProtectedModelAdmin,
 ):
     list_display = ["name", "move_up_down_links"]
+    list_filter = ["archived"]
     search_fields = ["name"]
     ordering = ("order",)
 
@@ -495,6 +502,7 @@ class RockTypeAdmin(
     DeleteProtectedModelAdmin,
 ):
     list_display = ["name", "move_up_down_links"]
+    list_filter = ["archived"]
     search_fields = ["name"]
     ordering = ("order",)
 
@@ -506,23 +514,32 @@ class ReproductiveStateAdmin(
     DeleteProtectedModelAdmin,
 ):
     list_display = ["name", "move_up_down_links"]
+    list_filter = ["archived"]
     search_fields = ["name"]
     ordering = ("order",)
 
 
-class LandFormAdmin(CsvExportMixin, OrderedModelAdmin, DeleteProtectedModelAdmin):
+class LandFormAdmin(
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
+):
     list_display = ["name", "move_up_down_links"]
-    fields = ["name"]  # Not showing the archived field for now as requires
-    # more work on the frontend due to django-multiselectfield
+    list_filter = ["archived"]
+    search_fields = ["name"]
     ordering = ("order",)
 
 
 class PrimaryDetectionMethodAdmin(
-    CsvExportMixin, OrderedModelAdmin, DeleteProtectedModelAdmin
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
 ):
     list_display = ["name", "move_up_down_links"]
-    fields = ["name"]  # Not showing the archived field for now as requires
-    # more work on the frontend due to django-multiselectfield
+    list_filter = ["archived"]
+    search_fields = ["name"]
     ordering = ("order",)
 
 
@@ -533,6 +550,7 @@ class PlantCountMethodAdmin(
     DeleteProtectedModelAdmin,
 ):
     list_display = ["name", "move_up_down_links"]
+    list_filter = ["archived"]
     search_fields = ["name"]
     ordering = ("order",)
 
@@ -544,6 +562,7 @@ class PlantCountAccuracyAdmin(
     DeleteProtectedModelAdmin,
 ):
     list_display = ["name", "move_up_down_links"]
+    list_filter = ["archived"]
     search_fields = ["name"]
     ordering = ("order",)
 
@@ -555,6 +574,7 @@ class PlantConditionAdmin(
     DeleteProtectedModelAdmin,
 ):
     list_display = ["name", "move_up_down_links"]
+    list_filter = ["archived"]
     search_fields = ["name"]
     ordering = ("order",)
 
@@ -566,6 +586,7 @@ class ObservationMethodAdmin(
     DeleteProtectedModelAdmin,
 ):
     list_display = ["name", "move_up_down_links"]
+    list_filter = ["archived"]
     search_fields = ["name"]
     ordering = ("order",)
 
@@ -577,6 +598,7 @@ class LocationAccuracyAdmin(
     DeleteProtectedModelAdmin,
 ):
     list_display = ["name", "move_up_down_links"]
+    list_filter = ["archived"]
     search_fields = ["name"]
     ordering = ("order",)
 
@@ -588,6 +610,7 @@ class IntensityAdmin(
     DeleteProtectedModelAdmin,
 ):
     list_display = ["name", "move_up_down_links"]
+    list_filter = ["archived"]
     search_fields = ["name"]
     ordering = ("order",)
 
@@ -599,6 +622,7 @@ class IdentificationCertaintyAdmin(
     DeleteProtectedModelAdmin,
 ):
     list_display = ["name", "move_up_down_links"]
+    list_filter = ["archived"]
     search_fields = ["name"]
     ordering = ("order",)
 
@@ -610,6 +634,7 @@ class DrainageAdmin(
     DeleteProtectedModelAdmin,
 ):
     list_display = ["name", "move_up_down_links"]
+    list_filter = ["archived"]
     search_fields = ["name"]
     ordering = ("order",)
 

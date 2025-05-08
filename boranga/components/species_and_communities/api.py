@@ -164,7 +164,9 @@ class GetSpecies(views.APIView):
                 ~Q(processing_status__in=exclude_status)
                 & ~Q(taxonomy=None)
                 & Q(taxonomy__scientific_name__icontains=search_term)
-            ).values("id", "taxonomy__scientific_name")[:10]
+            ).values("id", "taxonomy__scientific_name")[
+                : settings.DEFAULT_SELECT2_RECORDS_LIMIT
+            ]
             data_transform = [
                 {"id": species["id"], "text": species["taxonomy__scientific_name"]}
                 for species in data
@@ -183,7 +185,9 @@ class GetCommunities(views.APIView):
             data = Community.objects.filter(
                 ~Q(processing_status__in=exclude_status)
                 & Q(taxonomy__community_name__icontains=search_term)
-            ).values("id", "taxonomy__community_name")[:10]
+            ).values("id", "taxonomy__community_name")[
+                : settings.DEFAULT_SELECT2_RECORDS_LIMIT
+            ]
             data_transform = [
                 {"id": community["id"], "text": community["taxonomy__community_name"]}
                 for community in data
@@ -239,7 +243,9 @@ class GetScientificName(views.APIView):
             )
 
         serializer = TaxonomySerializer(
-            taxonomies[:10], context={"request": request}, many=True
+            taxonomies[: settings.DEFAULT_SELECT2_RECORDS_LIMIT],
+            context={"request": request},
+            many=True,
         )
         return Response({"results": serializer.data})
 
@@ -256,7 +262,9 @@ class GetScientificNameByGroup(views.APIView):
                     kingdom_fk__grouptype=group_type_id,
                 )
                 .distinct()
-                .values("id", "scientific_name")[:10]
+                .values("id", "scientific_name")[
+                    : settings.DEFAULT_SELECT2_RECORDS_LIMIT
+                ]
             )
             queryset = [
                 {"id": taxon["id"], "text": taxon["scientific_name"]}
@@ -343,7 +351,9 @@ class GetCommonNameOCRSelect(views.APIView):
         )
 
         serializer = CommonNameTaxonomySerializer(
-            taxonomies[:10], context={"request": request}, many=True
+            taxonomies[: settings.DEFAULT_SELECT2_RECORDS_LIMIT],
+            context={"request": request},
+            many=True,
         )
         return Response({"results": serializer.data})
 
@@ -483,7 +493,7 @@ class GetCommunityName(views.APIView):
 
         community_taxonomies = community_taxonomies.only(
             "community__id", "community_name", "community_migrated_id"
-        )[:10]
+        )[: settings.DEFAULT_SELECT2_RECORDS_LIMIT]
 
         data_transform = [
             {
