@@ -119,8 +119,14 @@ export default {
                     }),
                 }
             ).then(
-                () => {
-                    vm.$router.push({ path: '/internal/conservation-status/' });
+                (response) => {
+                    if (response.ok) {
+                        vm.$emit('refreshFromResponse', response);
+                        vm.close();
+                    } else {
+                        vm.errors = true;
+                        vm.errorString = helpers.apiVueResourceError(response);
+                    }
                 },
                 (error) => {
                     vm.errors = true;
