@@ -3501,6 +3501,8 @@ class OCRConservationThreat(RevisionedMixin):
 
 
 class WildStatus(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
+
     name = models.CharField(
         max_length=250,
         blank=False,
@@ -3509,11 +3511,10 @@ class WildStatus(OrderedModel, ArchivableModel):
         validators=[no_commas_validator],
     )
 
-    class Meta:
+    class Meta(OrderedModel.Meta):
         app_label = "boranga"
         verbose_name = "Wild Status"
         verbose_name_plural = "Wild Statuses"
-        ordering = ["name"]
 
     def __str__(self):
         return str(self.name)
