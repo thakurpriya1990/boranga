@@ -1650,7 +1650,6 @@
                         type="text"
                         class="form-control"
                         name="conservation_plan_reference"
-                        @change="checkDate()"
                     />
                 </div>
             </div>
