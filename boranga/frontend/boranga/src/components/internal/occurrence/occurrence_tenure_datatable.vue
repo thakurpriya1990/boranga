@@ -171,7 +171,7 @@ export default {
             ],
             filterStatus: sessionStorage.getItem(this.filterStatusCache)
                 ? sessionStorage.getItem(this.filterStatusCache)
-                : 'all',
+                : 'current',
             filterFeatureId: sessionStorage.getItem(this.filterFeatureIdCache)
                 ? sessionStorage.getItem(this.filterFeatureIdCache)
                 : 'all',
@@ -185,12 +185,11 @@ export default {
     },
     computed: {
         filterApplied: function () {
-            let allFiltersAreAll = [
-                this.filterFeatureId,
-                this.filterStatus,
-                this.filterVesting,
-                this.filterPurpose,
-            ].every((filter) => ['all'].includes(filter));
+            const allFiltersAreAll =
+                this.filterStatus === 'current' &&
+                this.filterFeatureId === 'all' &&
+                this.filterVesting === 'all' &&
+                this.filterPurpose === 'all';
 
             return !allFiltersAreAll;
         },
