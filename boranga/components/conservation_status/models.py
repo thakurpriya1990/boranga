@@ -2135,7 +2135,7 @@ class ConservationStatusUserAction(UserAction):
     )
     ACTION_PROPOSED_FOR_AGENDA = (
         "Conservation status proposal {} "
-        "has bee proposed for agenda. Assessor Comment: {}"
+        "has been proposed for agenda. Assessor Comment: {}"
     )
     ACTION_READY_FOR_AGENDA = (
         "Conservation status proposal {} " "is ready for agenda. Assessor Comment: {}"
