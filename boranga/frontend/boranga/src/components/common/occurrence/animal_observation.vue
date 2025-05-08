@@ -17,6 +17,7 @@
                             v-for="option in primary_detection_method_list"
                             :key="option.id"
                             :value="option.id"
+                            :disabled="option.disabled"
                         >
                             {{ option.name }}
                         </option>

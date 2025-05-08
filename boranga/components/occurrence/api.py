@@ -975,13 +975,16 @@ class OccurrenceReportViewSet(
                     }
                 )
         primary_detection_method_list = []
-        values = PrimaryDetectionMethod.objects.active()
+        values = PrimaryDetectionMethod.objects.all()
         if values:
             for val in values:
+                if val.archived:
+                    val.name += " (archived)"
                 primary_detection_method_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
+                        "disabled": val.archived,
                     }
                 )
         secondary_sign_list = []
@@ -1155,13 +1158,16 @@ class OccurrenceReportViewSet(
         """used for Occurrence Report external form"""
 
         primary_detection_method_list = []
-        values = PrimaryDetectionMethod.objects.active()
+        values = PrimaryDetectionMethod.objects.all()
         if values:
             for val in values:
+                if val.archived:
+                    val.name += " (archived)"
                 primary_detection_method_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
+                        "disabled": val.archived,
                     }
                 )
         secondary_sign_list = []
@@ -4868,13 +4874,16 @@ class OccurrenceViewSet(
                     }
                 )
         primary_detection_method_list = []
-        values = PrimaryDetectionMethod.objects.active()
+        values = PrimaryDetectionMethod.objects.all()
         if values:
             for val in values:
+                if val.archived:
+                    val.name += " (archived)"
                 primary_detection_method_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
+                        "disabled": val.archived,
                     }
                 )
         secondary_sign_list = []
@@ -5048,13 +5057,16 @@ class OccurrenceViewSet(
         """used for Occurrence Report external form"""
 
         primary_detection_method_list = []
-        values = PrimaryDetectionMethod.objects.active()
+        values = PrimaryDetectionMethod.objects.all()
         if values:
             for val in values:
+                if val.archived:
+                    val.name += " (archived)"
                 primary_detection_method_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
+                        "disabled": val.archived,
                     }
                 )
         secondary_sign_list = []
