@@ -677,10 +677,14 @@ class OccurrenceReportViewSet(
         types = LandForm.objects.all()
         if types:
             for val in types:
+                if val.archived:
+                    val.name += " (archived)"
+
                 land_form_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
+                        "disabled": val.archived,
                     }
                 )
         rock_type_list = []
@@ -4715,10 +4719,13 @@ class OccurrenceViewSet(
         types = LandForm.objects.all()
         if types:
             for val in types:
+                if val.archived:
+                    val.name += " (archived)"
                 land_form_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
+                        "disabled": val.archived,
                     }
                 )
         rock_type_list = []

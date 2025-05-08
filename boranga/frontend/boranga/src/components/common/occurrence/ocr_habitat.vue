@@ -21,6 +21,7 @@
                             v-for="option in land_form_list"
                             :key="option.id"
                             :value="option.id"
+                            :disabled="option.disabled"
                         >
                             {{ option.name }}
                         </option>
