@@ -110,62 +110,22 @@
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label">Soil Type:</label>
                 <div class="col-sm-9">
-                    <template v-if="!isReadOnly">
-                        <template
-                            v-if="
-                                soil_type_list &&
-                                soil_type_list.length > 0 &&
-                                occurrence_obj.habitat_composition
-                                    .soil_type_id &&
-                                !soil_type_list
-                                    .map((d) => d.id)
-                                    .includes(
-                                        occurrence_obj.habitat_composition
-                                            .soil_type_id
-                                    )
-                            "
+                    <select
+                        ref="soil_type_select"
+                        v-model="occurrence_obj.habitat_composition.soil_type"
+                        :disabled="isReadOnly"
+                        style="width: 100%"
+                        class="form-select input-sm"
+                    >
+                        <option
+                            v-for="option in soil_type_list"
+                            :key="option.id"
+                            :value="option.id"
+                            :disabled="option.disabled"
                         >
-                            <input
-                                v-if="
-                                    occurrence_obj.habitat_composition.soil_type
-                                "
-                                type="text"
-                                class="form-control mb-3"
-                                :value="
-                                    occurrence_obj.habitat_composition
-                                        .soil_type + ' (Now Archived)'
-                                "
-                                disabled
-                            />
-                            <div class="mb-3 text-muted">
-                                Change soil type to:
-                            </div>
-                        </template>
-                        <select
-                            v-model="
-                                occurrence_obj.habitat_composition.soil_type_id
-                            "
-                            class="form-select"
-                        >
-                            <option
-                                v-for="soil_type in soil_type_list"
-                                :key="soil_type.id"
-                                :value="soil_type.id"
-                            >
-                                {{ soil_type.name }}
-                            </option>
-                        </select>
-                    </template>
-                    <template v-else>
-                        <input
-                            v-model="
-                                occurrence_obj.habitat_composition.soil_type
-                            "
-                            class="form-control"
-                            type="text"
-                            :disabled="isReadOnly"
-                        />
-                    </template>
+                            {{ option.name }}
+                        </option>
+                    </select>
                 </div>
             </div>
             <div class="row mb-3">
@@ -1087,6 +1047,7 @@ export default {
         let vm = this;
         vm.eventListeners();
         vm.initialiseLandFormSelect();
+        vm.initialiseSoilTypeSelect();
     },
     methods: {
         eventListeners: function () {
@@ -1146,7 +1107,6 @@ export default {
         },
         initialiseLandFormSelect: function () {
             let vm = this;
-            // Initialise select2 for proposed Conservation Criteria
             $(vm.$refs.land_form_select)
                 .select2({
                     theme: 'bootstrap-5',
@@ -1162,6 +1122,26 @@ export default {
                 .on('select2:unselect', function (e) {
                     var selected = $(e.currentTarget);
                     vm.occurrence_obj.habitat_composition.land_form =
+                        selected.val();
+                });
+        },
+        initialiseSoilTypeSelect: function () {
+            let vm = this;
+            $(vm.$refs.soil_type_select)
+                .select2({
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    multiple: true,
+                    placeholder: 'Select Soil Type(s)',
+                })
+                .on('select2:select', function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.occurrence_obj.habitat_composition.soil_type =
+                        selected.val();
+                })
+                .on('select2:unselect', function (e) {
+                    var selected = $(e.currentTarget);
+                    vm.occurrence_obj.habitat_composition.soil_type =
                         selected.val();
                 });
         },

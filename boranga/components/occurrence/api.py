@@ -698,13 +698,16 @@ class OccurrenceReportViewSet(
                     }
                 )
         soil_type_list = []
-        types = SoilType.objects.active()
+        types = SoilType.objects.all()
         if types:
             for val in types:
+                if val.archived:
+                    val.name += " (archived)"
                 soil_type_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
+                        "disabled": val.archived,
                     }
                 )
         soil_colour_list = []
@@ -4745,13 +4748,16 @@ class OccurrenceViewSet(
                     }
                 )
         soil_type_list = []
-        types = SoilType.objects.active()
+        types = SoilType.objects.all()
         if types:
             for val in types:
+                if val.archived:
+                    val.name += " (archived)"
                 soil_type_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
+                        "disabled": val.archived,
                     }
                 )
         soil_colour_list = []
