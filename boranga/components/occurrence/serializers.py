@@ -2662,6 +2662,11 @@ class SaveOccurrenceSerializer(serializers.ModelSerializer):
 
         return data
 
+    def to_internal_value(self, data):
+        if data.get("review_due_date") == "":
+            data["review_due_date"] = None
+        return super().to_internal_value(data)
+
 
 class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
 
