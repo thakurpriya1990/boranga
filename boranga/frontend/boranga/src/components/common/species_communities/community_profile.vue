@@ -831,7 +831,7 @@
                     <label
                         for="conservation_plan_reference"
                         class="col-sm-3 control-label"
-                        >Conservation Plan Reference / Location:
+                        >Conservation Plan Reference:
                     </label>
                     <div class="col-sm-9">
                         <input
