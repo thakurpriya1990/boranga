@@ -37,7 +37,7 @@ djangorestframework-gis~=1.0
 djangorestframework~=3.15
 geojson~=3.1
 geopandas~=0.14
-gevent~=24.11.1
+gevent~=25.4.2
 git+https://github.com/dbca-wa/appmonitor_client.git#egg=appmonitor_client
 git+https://github.com/dbca-wa/django-media-serv.git#egg=django_media_serv
 git+https://github.com/dbca-wa/django5-utils-six.git#egg=django5_six
@@ -69,7 +69,7 @@ python-decouple~=3.8
 python-docx~=1.1.0
 reportlab~=4.1
 sentry-sdk~=2.19
-setuptools~=70.0
+setuptools~=80.3
 six>=1.16.0
 unicodecsv==0.14.1 # A Python 2.7 drop-in replacement from 2015
 wheel~=0.43
