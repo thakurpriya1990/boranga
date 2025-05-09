@@ -157,18 +157,7 @@ class OccurrenceReportPermission(BasePermission):
         if not obj.occurrence:
             return False
 
-        return (
-            is_occurrence_approver(request)
-            and obj.processing_status
-            in [
-                OccurrenceReport.PROCESSING_STATUS_WITH_REFERRAL,
-                OccurrenceReport.PROCESSING_STATUS_WITH_ASSESSOR,
-                OccurrenceReport.PROCESSING_STATUS_UNLOCKED,
-                OccurrenceReport.PROCESSING_STATUS_APPROVED,
-            ]
-            and obj.occurrence.processing_status
-            in [Occurrence.PROCESSING_STATUS_ACTIVE]
-        )
+        return is_occurrence_approver(request) or is_occurrence_assessor(request)
 
     def has_object_permission(self, request, view, obj):
         if (
@@ -502,6 +491,9 @@ class OccurrencePermission(BasePermission):
             obj.processing_status == Occurrence.PROCESSING_STATUS_LOCKED
         )
 
+    def is_authorised_to_update_show_on_map(self, request):
+        return is_occurrence_approver(request) or is_occurrence_assessor(request)
+
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
@@ -509,7 +501,7 @@ class OccurrencePermission(BasePermission):
         if hasattr(view, "action") and view.action == "unlock_occurrence":
             return self.is_authorised_to_unlock(request, obj)
         if hasattr(view, "action") and view.action == "update_show_on_map":
-            return self.is_authorised_to_update_show_on_map(request, obj)
+            return self.is_authorised_to_update_show_on_map(request)
         if hasattr(view, "action") and view.action == "reopen_occurrence":
             return self.is_authorised_to_reopen(request, obj)
 
