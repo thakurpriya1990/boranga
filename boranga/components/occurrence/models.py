@@ -2217,7 +2217,7 @@ class OccurrenceReportGeometry(GeometryBase, DrawnByGeometry):
         related_name="ocr_geometry",
     )
     locked = models.BooleanField(default=False)
-    show_on_map = models.BooleanField(default=False)
+    show_on_map = models.BooleanField(default=True)
 
     color = ColorField(blank=True, null=True)
     stroke = ColorField(blank=True, null=True)
