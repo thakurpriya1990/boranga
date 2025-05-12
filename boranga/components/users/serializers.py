@@ -1,6 +1,7 @@
 import logging
 
 from django.conf import settings
+from django.urls import reverse
 from ledger_api_client.ledger_models import Address
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
 from ledger_api_client.managed_models import SystemGroup
@@ -282,3 +283,92 @@ class SubmitterInformationSerializer(serializers.ModelSerializer):
             ret.pop("contact_details")
 
         return ret
+
+
+class OutstandingReferralSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    parent_id = serializers.IntegerField()
+    number = serializers.CharField()
+    group_type = serializers.CharField()
+    type = serializers.SerializerMethodField()
+    name = serializers.CharField()
+    lodged_on = serializers.DateTimeField()
+    processing_status = serializers.SerializerMethodField()
+    link = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = (
+            "id",
+            "parent_id",
+            "number",
+            "group_type",
+            "type",
+            "processing_status",
+        )
+
+    def get_processing_status(self, obj):
+        if "CS" in obj["number"]:
+            for choice in ConservationStatusReferral.PROCESSING_STATUS_CHOICES:
+                if choice[0] == obj["processing_status"]:
+                    return choice[1]
+        elif "OCR" in obj["number"]:
+            for choice in OccurrenceReportReferral.PROCESSING_STATUS_CHOICES:
+                if choice[0] == obj["processing_status"]:
+                    return choice[1]
+
+        raise serializers.ValidationError(
+            "Processing status not found for this referral"
+        )
+
+    def get_type(self, obj):
+        group_type = obj["group_type"]
+        if "CS" in obj["number"]:
+            return f"{group_type} Conservation Status".title()
+        else:
+            return f"{group_type} Occurrence Report".title()
+
+    def get_link(self, obj):
+        link = None
+        if is_internal(self.context["request"]):
+            if "CS" in obj["number"]:
+                link = reverse(
+                    "internal-conservation-status-referral-detail",
+                    kwargs={
+                        "cs_proposal_pk": obj["parent_id"],
+                        "referral_pk": obj["id"],
+                    },
+                )
+            elif "OCR" in obj["number"]:
+                link = reverse(
+                    "internal-occurrence-report-referral-detail",
+                    kwargs={
+                        "occurrence_report_pk": obj["parent_id"],
+                        "referral_pk": obj["id"],
+                    },
+                )
+        else:
+            if "CS" in obj["number"]:
+                link = reverse(
+                    "external-conservation-status-referral-detail",
+                    kwargs={
+                        "cs_proposal_pk": obj["parent_id"],
+                        "referral_pk": obj["id"],
+                    },
+                )
+            elif "OCR" in obj["number"]:
+                link = reverse(
+                    "external-occurrence-report-referral-detail",
+                    kwargs={
+                        "occurrence_report_pk": obj["parent_id"],
+                        "referral_pk": obj["id"],
+                    },
+                )
+
+        if link:
+            return link
+
+        logger.warning(
+            f"Link not found for referral {obj['number']} with id {obj['id']}"
+        )
+
+        return None
