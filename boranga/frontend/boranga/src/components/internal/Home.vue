@@ -134,6 +134,68 @@
                     </div>
                 </div>
             </div>
+            <div
+                class="row mt-4"
+                v-if="outstanding_referrals && outstanding_referrals.length"
+            >
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            My Referrals<i
+                                class="bi bi-exclamation-circle-fill text-warning ps-2"
+                            ></i>
+                        </h4>
+                        <div class="border-bottom mb-3"></div>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Number</th>
+                                    <th scope="col">Type</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">First Referred to You</th>
+                                    <th scope="col">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    v-for="outstanding_referral in outstanding_referrals"
+                                    :key="outstanding_referral.id"
+                                >
+                                    <td>{{ outstanding_referral.number }}</td>
+                                    <td class="text-capitalize">
+                                        {{ outstanding_referral.referral_type }}
+                                        {{ outstanding_referral.type }}
+                                    </td>
+                                    <td>{{ outstanding_referral.name }}</td>
+                                    <td>
+                                        <span class="badge bg-warning"
+                                            ><i
+                                                class="bi bi-clock-fill me-2"
+                                            ></i
+                                            >{{
+                                                outstanding_referral.processing_status
+                                            }}</span
+                                        >
+                                    </td>
+                                    <td>
+                                        <TimeSince
+                                            :date="
+                                                outstanding_referral.lodged_on
+                                            "
+                                        ></TimeSince>
+                                    </td>
+                                    <td>
+                                        <a :href="outstanding_referral.link"
+                                            >Process</a
+                                        >
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div v-else class="text-center mt-5">
@@ -145,13 +207,18 @@
 
 <script>
 import { api_endpoints } from '@/utils/hooks';
+import TimeSince from '@/components/common/TimeSince.vue';
 
 export default {
     name: 'HomeComponent',
     data: function () {
         return {
             profile: null,
+            outstanding_referrals: null,
         };
+    },
+    components: {
+        TimeSince,
     },
     computed: {
         lastLogin: function () {
@@ -168,6 +235,7 @@ export default {
         if (user_is_authenticated.toString() === 'true') {
             this.fetchProfile();
         }
+        this.fetchOutstandingReferrals();
     },
     methods: {
         updateAreaOfInterest: function () {
@@ -204,6 +272,22 @@ export default {
             }).then(
                 async (response) => {
                     vm.profile = await response.json();
+                },
+                (error) => {
+                    console.log(error);
+                }
+            );
+        },
+        fetchOutstandingReferrals: function () {
+            let vm = this;
+            fetch(api_endpoints.outstanding_referrals, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then(
+                async (response) => {
+                    vm.outstanding_referrals = await response.json();
                 },
                 (error) => {
                     console.log(error);
