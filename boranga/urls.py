@@ -207,6 +207,11 @@ api_patterns = [
         users_api.SaveAreaOfInterest.as_view(),
         name="save-area-of-interest",
     ),
+    re_path(
+        r"^api/outstanding_referrals$",
+        users_api.OutstandingReferrals.as_view(),
+        name="outstanding-referrals",
+    ),
     re_path(r"^api/countries$", users_api.GetCountries.as_view(), name="get-countries"),
     re_path(
         r"^api/submitter_categories$",
