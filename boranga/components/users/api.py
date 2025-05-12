@@ -451,10 +451,12 @@ class OutstandingReferrals(views.APIView):
             )
         )
         outstanding_referrals_qs = outstanding_referrals_qs.union(ocr_referrals_qs)
-        outstanding_referrals_qs = outstanding_referrals_qs.order_by("lodged_on")
+        ordered_outstanding_referrals_qs = outstanding_referrals_qs.order_by(
+            "lodged_on"
+        )
 
         serializer = OutstandingReferralSerializer(
-            outstanding_referrals_qs,
+            ordered_outstanding_referrals_qs,
             many=True,
             context={"request": request},
         )
