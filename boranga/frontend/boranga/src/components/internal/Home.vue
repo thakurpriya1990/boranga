@@ -85,8 +85,13 @@
                                 <p>
                                     This setting controls which tab will
                                     automatically be opened when browsing the
-                                    Species and Communities, Conservation Status
-                                    and Occurrences pages.
+                                    Species and Communities<template
+                                        v-if="profile.is_internal"
+                                        >, Conservation Status and Occurrences
+                                    </template>
+                                    page<template v-if="profile.is_internal"
+                                        >s</template
+                                    >.
                                 </p>
                                 <p>
                                     If you are planning to access more than one
