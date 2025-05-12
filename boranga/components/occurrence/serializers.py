@@ -542,14 +542,12 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
         ).choices
 
     def get_land_form_names(self, obj):
-        logger.debug(f"land_form: {obj.land_form}")
         return [
             lf
             for lf in LandForm.objects.filter(id__in=obj.land_form).values("id", "name")
         ]
 
     def get_soil_type_names(self, obj):
-        logger.debug(f"soil_type: {obj.soil_type}")
         return [
             st
             for st in SoilType.objects.filter(id__in=obj.soil_type).values("id", "name")
