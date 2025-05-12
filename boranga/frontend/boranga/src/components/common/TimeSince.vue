@@ -28,7 +28,6 @@ export default {
         },
         timeSince() {
             const seconds = Math.floor((this.now - this.dateTime) / 1000);
-            console.log(seconds);
             let interval = Math.floor(seconds / 31536000);
             let text = '';
             if (interval > 1) {
