@@ -44,31 +44,11 @@
         </div>
     </div>
     {% else %}
-        {% is_internal as is_internal_login %}
-        {% if is_internal_login %}
-            <div class="container-fluid" id="vue-root">
-                {% block vue-component %}
-                <div id="app"></div>
-                {% endblock %}
-            </div>
-        {% else %}
-        <div class="container">
-            <div class="px-4 pt-4">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <h2>
-                            Welcome back {{ request.user.first_name }}
-                        </h2>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col">
-                        TODO: Add home content for external user home page here.
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
+    <div class="container-fluid" id="vue-root">
+        {% block vue-component %}
+        <div id="app"></div>
+        {% endblock %}
+    </div>
     {% endif %}
 {% endwith %}
 {% endblock %}

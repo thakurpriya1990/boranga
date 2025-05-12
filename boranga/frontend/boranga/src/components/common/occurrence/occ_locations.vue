@@ -932,6 +932,11 @@ export default {
             this.updateShowHide(feature, layer_name).then(() => {
                 this.refreshDatatableRelatedOCR();
             });
+            // Recreating the map component here as for some reason the feature
+            // refuses to hide (if the feature is hidden it will show when toggled but will not hide)
+            if (!show_on_map) {
+                this.incrementComponentMapKey();
+            }
         },
         bufferGeometryHandler: function () {
             const occurrence_features = this.$refs.component_map

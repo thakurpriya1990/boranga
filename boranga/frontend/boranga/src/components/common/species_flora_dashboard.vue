@@ -660,8 +660,6 @@ export default {
                 visible: true,
                 render: function (value, type) {
                     let result = helpers.dtPopover(value, 30, 'hover');
-                    console.log(value);
-                    console.log(type);
                     return type == 'export' ? value : result;
                 },
                 name: 'taxonomy__scientific_name',

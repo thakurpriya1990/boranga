@@ -149,7 +149,7 @@ export default {
         datatable_headers: function () {
             return [
                 'Number',
-                'Species',
+                'Type',
                 'Scientific Name',
                 'Community Name',
                 'Status',
