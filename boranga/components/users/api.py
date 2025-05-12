@@ -451,9 +451,8 @@ class OutstandingReferrals(views.APIView):
             )
         )
         outstanding_referrals_qs = outstanding_referrals_qs.union(ocr_referrals_qs)
-        logger.debug(
-            f"Outstanding referrals for user {request.user.id}: {outstanding_referrals_qs}"
-        )
+        outstanding_referrals_qs = outstanding_referrals_qs.order_by("lodged_on")
+
         serializer = OutstandingReferralSerializer(
             outstanding_referrals_qs,
             many=True,
