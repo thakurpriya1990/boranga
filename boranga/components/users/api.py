@@ -2,8 +2,8 @@ import logging
 
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import CharField, Value
-from django.db.models.functions import Concat
+from django.db.models import CharField, F, Value
+from django.db.models.functions import Coalesce, Concat
 from django.shortcuts import get_object_or_404
 from django_countries import countries
 from ledger_api_client.ledger_models import EmailUserRO as EmailUser
@@ -28,6 +28,7 @@ from boranga.components.users.serializers import (
     EmailUserActionSerializer,
     EmailUserCommsSerializer,
     EmailUserLogEntrySerializer,
+    OutstandingReferralSerializer,
     SubmitterCategorySerializer,
     SubmitterInformationSerializer,
     UserSerializer,
@@ -392,3 +393,70 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             for person in users
         ]
         return Response({"results": data_transform})
+
+
+class OutstandingReferrals(views.APIView):
+    renderer_classes = [
+        JSONRenderer,
+    ]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        outstanding_referrals_qs = (
+            ConservationStatusReferral.objects.filter(
+                referral=self.request.user.id,
+                processing_status=ConservationStatusReferral.PROCESSING_STATUS_WITH_REFERRAL,
+            )
+            .annotate(
+                number=F("conservation_status__conservation_status_number"),
+                group_type=F("conservation_status__application_type__name"),
+                parent_id=F("conservation_status__id"),
+                name=Coalesce(
+                    "conservation_status__species__taxonomy__scientific_name",
+                    "conservation_status__community__taxonomy__community_name",
+                    output_field=CharField(),
+                ),
+            )
+            .values(
+                "id",
+                "parent_id",
+                "number",
+                "group_type",
+                "name",
+                "processing_status",
+                "lodged_on",
+            )
+        )
+        ocr_referrals_qs = (
+            OccurrenceReportReferral.objects.filter(
+                referral=self.request.user.id,
+                processing_status=OccurrenceReportReferral.PROCESSING_STATUS_WITH_REFERRAL,
+            )
+            .annotate(
+                name=Coalesce(
+                    "occurrence_report__species__taxonomy__scientific_name",
+                    "occurrence_report__community__taxonomy__community_name",
+                    output_field=CharField(),
+                ),
+                parent_id=F("occurrence_report__id"),
+            )
+            .values(
+                "id",
+                "parent_id",
+                "occurrence_report__occurrence_report_number",
+                "occurrence_report__group_type__name",
+                "name",
+                "processing_status",
+                "lodged_on",
+            )
+        )
+        outstanding_referrals_qs = outstanding_referrals_qs.union(ocr_referrals_qs)
+        logger.debug(
+            f"Outstanding referrals for user {request.user.id}: {outstanding_referrals_qs}"
+        )
+        serializer = OutstandingReferralSerializer(
+            outstanding_referrals_qs,
+            many=True,
+            context={"request": request},
+        )
+        return Response(serializer.data)
