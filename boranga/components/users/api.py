@@ -120,9 +120,6 @@ class SaveAreaOfInterest(views.APIView):
     permission_classes = [IsAuthenticated]
 
     def patch(self, request, format=None):
-        if not is_internal(request):
-            raise PermissionDenied("You do not have permission to perform this action.")
-
         user_system_settings, created = UserSystemSettings.objects.get_or_create(
             user=request.user.id
         )
