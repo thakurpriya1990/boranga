@@ -210,6 +210,9 @@ export default {
                 body: JSON.stringify(vm.external_referee_invite),
             })
                 .then((response) => {
+                    if (!response.ok) {
+                        throw response;
+                    }
                     swal.fire({
                         title: 'Success',
                         text: 'External referee invite sent',
