@@ -109,7 +109,7 @@ import CommunitiesDashTable from '@common-utils/communities_dashboard.vue';
 import FormSection from '@/components/forms/section_toggle.vue';
 import { api_endpoints } from '@/utils/hooks';
 export default {
-    name: 'InternalSpeciesCommunitiesDashboard',
+    name: 'ExternalSpeciesCommunitiesDashboard',
     components: {
         SpeciesFloraDashTable,
         SpeciesFaunaDashTable,
@@ -154,7 +154,7 @@ export default {
                     return this.group_types[i].id;
                 }
             }
-            return null;
+            return 0;
         },
     },
     watch: {},
@@ -167,6 +167,7 @@ export default {
                 console.log(error);
             }
         );
+        this.fetchProfile();
     },
     mounted: function () {
         let vm = this;
@@ -184,37 +185,40 @@ export default {
         });
     },
     methods: {
-        set_tabs: function () {
-            let vm = this;
-            /* set user preference tab by default on load of dashboard (Note: doesn't affect on the load group component)*/
-            if (vm.user_preference === 'flora') {
-                $('#pills-tab a[href="#pills-flora"]').tab('show');
-            }
-            if (vm.user_preference === 'fauna') {
-                $('#pills-tab a[href="#pills-fauna"]').tab('show');
-            }
-            if (vm.user_preference === 'community') {
-                $('#pills-tab a[href="#pills-community"]').tab('show');
-            }
-        },
-        /*load_group_datatable: function(grouptype){
-            if(grouptype === 'flora'){
-                this.filterGroupType = grouptype;
-            }
-            else if(grouptype === 'fauna'){
-                this.filterGroupType = grouptype;
-            }
-            else if(grouptype === 'community'){
-                this.filterGroupType = grouptype;
-            }
-        },*/
         set_active_tab: function (group_name) {
             this.group_name = group_name;
-            localStorage.setItem('speciesCommunitiesActiveTab', group_name);
+            if (!this.profile || !this.profile.area_of_interest) {
+                localStorage.setItem('speciesCommunitiesActiveTab', group_name);
+            }
             let elem = $('#pills-tab a[href="#pills-' + group_name + '"]');
             let tab = bootstrap.Tab.getInstance(elem);
             if (!tab) tab = new bootstrap.Tab(elem);
             tab.show();
+        },
+        fetchProfile: function () {
+            let vm = this;
+            fetch(api_endpoints.profile).then(
+                async (response) => {
+                    vm.profile = await response.json();
+                    vm.$nextTick(() => {
+                        let speciesCommunitiesActiveTab = localStorage.getItem(
+                            'speciesCommunitiesActiveTab'
+                        );
+                        if (vm.profile && vm.profile.area_of_interest) {
+                            vm.set_active_tab(vm.profile.area_of_interest);
+                            return;
+                        }
+                        if (speciesCommunitiesActiveTab === null) {
+                            vm.set_active_tab('flora');
+                        } else {
+                            vm.set_active_tab(speciesCommunitiesActiveTab);
+                        }
+                    });
+                },
+                (error) => {
+                    console.log(error);
+                }
+            );
         },
     },
 };
