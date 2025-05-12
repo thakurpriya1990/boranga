@@ -28,6 +28,7 @@ export default {
         },
         timeSince() {
             const seconds = Math.floor((this.now - this.dateTime) / 1000);
+            console.log(seconds);
             let interval = Math.floor(seconds / 31536000);
             let text = '';
             if (interval > 1) {
@@ -37,11 +38,6 @@ export default {
             interval = Math.floor(seconds / 2592000);
             if (interval > 1) {
                 text = `${interval} months`;
-                return `${this.prefix}${text}${this.suffix}`;
-            }
-            interval = Math.floor(seconds / 604800);
-            if (interval > 1) {
-                text = `${interval} weeks`;
                 return `${this.prefix}${text}${this.suffix}`;
             }
             interval = Math.floor(seconds / 86400);
