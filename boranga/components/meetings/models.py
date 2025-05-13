@@ -7,13 +7,14 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
 from django.utils import timezone
-from ordered_model.models import OrderedModel, OrderedModelManager
+from ordered_model.models import OrderedModel
 
 from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.main.models import (
     ArchivableModel,
     CommunicationsLogEntry,
     Document,
+    OrderedArchivableManager,
     UserAction,
 )
 from boranga.components.main.related_item import RelatedItem
@@ -40,7 +41,7 @@ def update_meeting_doc_filename(instance, filename):
 
 
 class MeetingRoom(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
 
     room_name = models.CharField(max_length=128, blank=True, null=True)
 
@@ -55,7 +56,7 @@ class MeetingRoom(OrderedModel, ArchivableModel):
 
 
 class Committee(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
 
     name = models.CharField(max_length=328, blank=True, null=True)
 
@@ -67,7 +68,7 @@ class Committee(OrderedModel, ArchivableModel):
 
 
 class CommitteeMembers(OrderedModel, ArchivableModel):
-    objects = OrderedModelManager()
+    objects = OrderedArchivableManager()
 
     first_name = models.CharField(max_length=128, blank=True, null=True)
     last_name = models.CharField(max_length=128, blank=True, null=True)
