@@ -41,7 +41,17 @@
                         />
 
                         <div class="card card-default sticky-top">
-                            <div class="card-header">Workflow</div>
+                            <div class="card-header">
+                                Workflow
+                                <button
+                                    class="float-end btn btn-secondary btn-sm"
+                                    @click.prevent="jumpToTabs"
+                                >
+                                    Jump to Tabs<i
+                                        class="bi bi-arrow-down-up ps-2"
+                                    ></i>
+                                </button>
+                            </div>
                             <div class="card-body card-collapse">
                                 <strong>Status</strong><br />
                                 {{ occurrence.processing_status }}
@@ -400,6 +410,14 @@ export default {
         });
     },
     methods: {
+        jumpToTabs: function () {
+            $('html, body').animate(
+                {
+                    scrollTop: $('#pills-tab').offset().top - 10,
+                },
+                0
+            );
+        },
         save: async function () {
             let vm = this;
 
