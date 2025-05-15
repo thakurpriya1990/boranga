@@ -1,0 +1,122 @@
+[
+    {
+        "model": "boranga.tilelayer",
+        "pk": 1,
+        "fields": {
+            "geoserver_url": 1,
+            "layer_name": "public:mapbox-streets",
+            "layer_title": "public:mapbox-streets",
+            "display_title": "Mapbox Streets",
+            "is_satellite_background": false,
+            "is_streets_background": true,
+            "is_external": true,
+            "is_internal": true,
+            "visible": false,
+            "active": true,
+            "min_zoom": 0,
+            "max_zoom": 21,
+            "is_tenure_intersects_query_layer": false,
+            "invert_xy": false
+        }
+    },
+    {
+        "model": "boranga.tilelayer",
+        "pk": 2,
+        "fields": {
+            "geoserver_url": 1,
+            "layer_name": "public:mapbox-satellite",
+            "layer_title": "public:mapbox-satellite",
+            "display_title": "Mapbox Satellite",
+            "is_satellite_background": true,
+            "is_streets_background": false,
+            "is_external": true,
+            "is_internal": true,
+            "visible": false,
+            "active": true,
+            "min_zoom": 0,
+            "max_zoom": 21,
+            "is_tenure_intersects_query_layer": false,
+            "invert_xy": false
+        }
+    },
+    {
+        "model": "boranga.tilelayer",
+        "pk": 3,
+        "fields": {
+            "geoserver_url": 2,
+            "layer_name": "kaartdijin-boodja-public:CPT_DBCA_DISTRICTS",
+            "layer_title": "kaartdijin-boodja-public:CPT_DBCA_DISTRICTS",
+            "display_title": "DBCA Districts",
+            "is_satellite_background": false,
+            "is_streets_background": false,
+            "is_external": true,
+            "is_internal": true,
+            "visible": false,
+            "active": true,
+            "min_zoom": 0,
+            "max_zoom": 21,
+            "is_tenure_intersects_query_layer": false,
+            "invert_xy": false
+        }
+    },
+    {
+        "model": "boranga.tilelayer",
+        "pk": 4,
+        "fields": {
+            "geoserver_url": 2,
+            "layer_name": "kaartdijin-boodja-public:CPT_DBCA_REGIONS",
+            "layer_title": "kaartdijin-boodja-public:CPT_DBCA_REGIONS",
+            "display_title": "DBCA Regions",
+            "is_satellite_background": false,
+            "is_streets_background": false,
+            "is_external": true,
+            "is_internal": true,
+            "visible": false,
+            "active": true,
+            "min_zoom": 0,
+            "max_zoom": 21,
+            "is_tenure_intersects_query_layer": false,
+            "invert_xy": false
+        }
+    },
+    {
+        "model": "boranga.tilelayer",
+        "pk": 5,
+        "fields": {
+            "geoserver_url": 2,
+            "layer_name": "kaartdijin-boodja-public:DFA_FMP_tenure",
+            "layer_title": "kaartdijin-boodja-public:DFA_FMP_tenure",
+            "display_title": "Tenure",
+            "is_satellite_background": false,
+            "is_streets_background": false,
+            "is_external": true,
+            "is_internal": true,
+            "visible": false,
+            "active": true,
+            "min_zoom": 0,
+            "max_zoom": 21,
+            "is_tenure_intersects_query_layer": false,
+            "invert_xy": true
+        }
+    },
+    {
+        "model": "boranga.tilelayer",
+        "pk": 6,
+        "fields": {
+            "geoserver_url": 4,
+            "layer_name": "CPT_CADASTRE_SCDB",
+            "layer_title": "CPT_CADASTRE_SCDB",
+            "display_title": "Cadastre",
+            "is_satellite_background": false,
+            "is_streets_background": false,
+            "is_external": false,
+            "is_internal": true,
+            "visible": false,
+            "active": true,
+            "min_zoom": 0,
+            "max_zoom": 21,
+            "is_tenure_intersects_query_layer": true,
+            "invert_xy": true
+        }
+    }
+]
