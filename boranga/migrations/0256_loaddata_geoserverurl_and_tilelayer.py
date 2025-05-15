@@ -24,6 +24,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(loaddata_geoserverurl),
-        migrations.RunPython(loaddata_tilelayer),
+        # migrations.RunPython(loaddata_geoserverurl),
+        # migrations.RunPython(loaddata_tilelayer),
     ]
