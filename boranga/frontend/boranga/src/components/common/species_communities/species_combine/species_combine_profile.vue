@@ -1634,7 +1634,7 @@
                         name="last_data_curation_date"
                         min="1990-01-01"
                         :max="new Date().toISOString().split('T')[0]"
-                        @change="checkDate()"
+                        @blur="checkDate()"
                     />
                 </div>
             </div>
