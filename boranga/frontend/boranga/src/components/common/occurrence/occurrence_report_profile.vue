@@ -377,7 +377,7 @@
                             name="start_date"
                             :max="new Date().toISOString().slice(0, 16)"
                             min="1990-01-01T00:00"
-                            @change="checkObservationDate"
+                            @blur="checkObservationDate"
                         />
                     </div>
                 </div>

@@ -748,7 +748,7 @@
                         class="form-control"
                         name="last_fire_date"
                         :max="new Date().toISOString().slice(0, 7)"
-                        @change="checkDate()"
+                        @blur="checkDate()"
                     />
                 </div>
             </div>
