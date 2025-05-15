@@ -375,7 +375,9 @@
                             type="datetime-local"
                             class="form-control"
                             name="start_date"
-                            @change="formatObservationDate()"
+                            :max="new Date().toISOString().slice(0, 16)"
+                            min="1990-01-01T00:00"
+                            @change="checkObservationDate"
                         />
                     </div>
                 </div>
@@ -511,7 +513,9 @@ export default {
             if (vm.isFauna) {
                 if (
                     vm.occurrence_report_obj &&
-                    vm.occurrence_report_obj.animal_observation
+                    vm.occurrence_report_obj.animal_observation &&
+                    vm.occurrence_report_obj.observation_date &&
+                    !isNaN(vm.occurrence_report_obj.observation_date)
                 ) {
                     vm.occurrence_report_obj.animal_observation.count_date =
                         vm.occurrence_report_obj.observation_date;
@@ -519,7 +523,9 @@ export default {
             } else if (vm.isCommunity) {
                 if (
                     vm.occurrence_report_obj &&
-                    vm.occurrence_report_obj.habitat_condition
+                    vm.occurrence_report_obj.habitat_condition &&
+                    vm.occurrence_report_obj.observation_date &&
+                    !isNaN(vm.occurrence_report_obj.observation_date)
                 ) {
                     vm.occurrence_report_obj.habitat_condition.count_date =
                         vm.occurrence_report_obj.observation_date;
@@ -527,7 +533,9 @@ export default {
             } else {
                 if (
                     vm.occurrence_report_obj &&
-                    vm.occurrence_report_obj.plant_count
+                    vm.occurrence_report_obj.plant_count &&
+                    vm.occurrence_report_obj.observation_date &&
+                    !isNaN(vm.occurrence_report_obj.observation_date)
                 ) {
                     vm.occurrence_report_obj.plant_count.count_date =
                         vm.occurrence_report_obj.observation_date;
@@ -858,9 +866,53 @@ export default {
         incrementComponentMapKey: function () {
             this.uuid = uuid();
         },
-        formatObservationDate: function () {
+        checkObservationDate: function () {
             if (this.occurrence_report_obj.observation_date === '') {
                 this.occurrence_report_obj.observation_date = null;
+                return;
+            }
+            if (isNaN(new Date(this.occurrence_report_obj.observation_date))) {
+                return;
+            }
+            if (
+                new Date(this.occurrence_report_obj.observation_date) >
+                new Date()
+            ) {
+                this.occurrence_report_obj.observation_date = new Date()
+                    .toISOString()
+                    .slice(0, 16);
+                this.$nextTick(() => {
+                    this.$refs.observation_date.focus();
+                });
+                swal.fire({
+                    title: 'Error',
+                    text: 'Last data curation date cannot be in the future',
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+            }
+            if (
+                new Date(this.occurrence_report_obj.observation_date) <
+                new Date('1990-01-01T00:00')
+            ) {
+                this.occurrence_report_obj.observation_date = new Date(
+                    '1990-01-01'
+                )
+                    .toISOString()
+                    .slice(0, 16);
+                this.$nextTick(() => {
+                    this.$refs.observation_date.focus();
+                });
+                swal.fire({
+                    title: 'Error',
+                    text: 'Last data curation date cannot be before 01/01/1990',
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
             }
         },
         has_comment_value: function () {
