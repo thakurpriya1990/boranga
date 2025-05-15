@@ -748,7 +748,7 @@
                         class="form-control"
                         name="last_fire_date"
                         :max="new Date().toISOString().slice(0, 7)"
-                        @blur="checkDate()"
+                        @change="checkDate()"
                     />
                 </div>
             </div>
@@ -1071,6 +1071,19 @@ export default {
                 });
         },
         checkDate: function () {
+            if (this.occurrence_obj.fire_history.last_fire_estimate === '') {
+                this.occurrence_obj.fire_history.last_fire_estimate = null;
+                return;
+            }
+            if (
+                isNaN(
+                    new Date(
+                        this.occurrence_obj.fire_history.last_fire_estimate
+                    )
+                )
+            ) {
+                return;
+            }
             if (
                 isNaN(
                     new Date(

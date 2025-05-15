@@ -1597,7 +1597,7 @@
                         name="last_data_curation_date"
                         min="1990-01-01"
                         :max="new Date().toISOString().split('T')[0]"
-                        @blur="checkDate()"
+                        @change="checkDate()"
                     />
                 </div>
             </div>
@@ -1999,6 +1999,10 @@ export default {
             });
         },
         checkDate: function () {
+            if (this.species_community.last_data_curation_date === '') {
+                this.species_community.last_data_curation_date = null;
+                return;
+            }
             if (
                 isNaN(new Date(this.species_community.last_data_curation_date))
             ) {
