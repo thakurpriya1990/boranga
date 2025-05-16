@@ -729,7 +729,10 @@ export default {
                 this.threatObj.date_observed = null;
                 return;
             }
-            if (isNaN(new Date(this.threatObj.date_observed))) {
+            if (
+                this.threatObj.observation_date === null ||
+                isNaN(new Date(this.threatObj.date_observed))
+            ) {
                 return;
             }
             if (new Date(this.threatObj.date_observed) > new Date()) {

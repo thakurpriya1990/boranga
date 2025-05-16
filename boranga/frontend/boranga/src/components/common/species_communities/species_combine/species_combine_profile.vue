@@ -1949,6 +1949,7 @@ export default {
                 return;
             }
             if (
+                this.species_community.last_data_curation_date === null ||
                 isNaN(new Date(this.species_community.last_data_curation_date))
             ) {
                 return;

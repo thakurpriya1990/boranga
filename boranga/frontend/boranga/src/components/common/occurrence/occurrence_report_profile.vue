@@ -871,7 +871,10 @@ export default {
                 this.occurrence_report_obj.observation_date = null;
                 return;
             }
-            if (isNaN(new Date(this.occurrence_report_obj.observation_date))) {
+            if (
+                this.occurrence_report_obj.observation_date === null ||
+                isNaN(new Date(this.occurrence_report_obj.observation_date))
+            ) {
                 return;
             }
             if (
