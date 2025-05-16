@@ -482,6 +482,15 @@
                                             v-model="threatObj.date_observed"
                                             :disabled="isReadOnly"
                                             type="date"
+                                            :min="
+                                                date_observed_minimum
+                                                    ? new Date(
+                                                          date_observed_minimum
+                                                      )
+                                                          .toISOString()
+                                                          .split('T')[0]
+                                                    : '1990-01-01'
+                                            "
                                             :max="
                                                 new Date()
                                                     .toISOString()
@@ -489,6 +498,7 @@
                                             "
                                             class="form-control"
                                             name="date_observed"
+                                            @blur="checkDate()"
                                         />
                                     </div>
                                 </div>
@@ -580,6 +590,11 @@ export default {
             required: true,
         },
         change_warning: {
+            type: String,
+            required: false,
+        },
+        // 'YYYY-MM-DD' format
+        date_observed_minimum: {
             type: String,
             required: false,
         },
@@ -707,6 +722,78 @@ export default {
                     .finally(() => {
                         vm.addingThreat = false;
                     });
+            }
+        },
+        checkDate: function () {
+            if (this.threatObj.date_observed === '') {
+                this.threatObj.date_observed = null;
+                return;
+            }
+            if (isNaN(new Date(this.threatObj.date_observed))) {
+                return;
+            }
+            if (new Date(this.threatObj.date_observed) > new Date()) {
+                this.threatObj.date_observed = new Date()
+                    .toISOString()
+                    .split('T')[0];
+                this.$nextTick(() => {
+                    this.$refs.last_data_curation_date.focus();
+                });
+                swal.fire({
+                    title: 'Error',
+                    text: 'Last data curation date cannot be in the future',
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
+            }
+            if (this.date_observed_minimum) {
+                if (
+                    new Date(this.threatObj.date_observed) <
+                    new Date(
+                        new Date(this.date_observed_minimum).toLocaleDateString(
+                            'en-AU'
+                        )
+                    )
+                ) {
+                    this.threatObj.date_observed = new Date(
+                        this.date_observed_minimum
+                    )
+                        .toISOString()
+                        .split('T')[0];
+                    this.$nextTick(() => {
+                        this.$refs.date_observed.focus();
+                    });
+                    swal.fire({
+                        title: 'Error',
+                        text:
+                            'Last data curation date cannot be before ' +
+                            this.date_observed_minimum,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    return;
+                }
+            } else if (
+                new Date(this.threatObj.date_observed) < new Date('1990-01-01')
+            ) {
+                this.threatObj.date_observed = new Date('1990-01-01')
+                    .toISOString()
+                    .split('T')[0];
+                this.$nextTick(() => {
+                    this.$refs.date_observed.focus();
+                });
+                swal.fire({
+                    title: 'Error',
+                    text: 'Last data curation date cannot be before 01/01/1990',
+                    icon: 'error',
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                });
             }
         },
     },
