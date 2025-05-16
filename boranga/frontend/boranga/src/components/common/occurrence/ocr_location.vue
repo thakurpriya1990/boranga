@@ -47,7 +47,6 @@
                         collapse: false,
                         property_display_map: ocrPropertyDisplayMap,
                     }"
-                    @validate-feature="validateFeature.bind(this)()"
                     @refresh-from-response="refreshFromResponse"
                     @crs-select-search="searchForCRS"
                 ></MapComponent>
