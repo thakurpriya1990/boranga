@@ -133,6 +133,11 @@
         <ThreatDetail
             ref="threat_detail"
             :url="ocr_threat_url"
+            :date_observed_minimum="
+                occurrence_report_obj.observation_date
+                    ? occurrence_report_obj.observation_date.slice(0, 10)
+                    : null
+            "
             @refresh-from-response="refreshFromResponse"
         >
         </ThreatDetail>
