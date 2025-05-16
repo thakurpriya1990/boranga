@@ -1827,6 +1827,11 @@ export default {
             required: false,
             default: false,
         },
+        zoomToFeaturesOnLoad: {
+            type: Boolean,
+            required: false,
+            default: true,
+        },
         /**
          * Tolerance for considering the pointer close enough to a segment or vertex for editing
          * See: https://openlayers.org/en/latest/apidoc/module-ol_interaction_Modify-Modify.html
@@ -2404,6 +2409,9 @@ export default {
 
                 console.log('Done fetching map initilisation data');
                 this.setLoadingMap(false);
+                if (this.zoomToFeaturesOnLoad) {
+                    this.displayAllFeatures();
+                }
             }
         );
 
