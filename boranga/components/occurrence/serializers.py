@@ -2189,6 +2189,12 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
         )
         read_only_fields = ("id",)
 
+    def to_internal_value(self, data):
+        if data["observation_date"] == "":
+            data["observation_date"] = None
+
+        return super().to_internal_value(data)
+
 
 class OccurrenceReportUserActionSerializer(serializers.ModelSerializer):
     who = serializers.SerializerMethodField()
