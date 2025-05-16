@@ -722,10 +722,10 @@
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateAnimalObservationDetails()"
                     >
-                        Update
+                        Save Section
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
-                        Updating
+                        Saving
                         <span
                             class="spinner-border spinner-border-sm"
                             role="status"

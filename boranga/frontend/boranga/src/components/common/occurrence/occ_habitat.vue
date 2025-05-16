@@ -375,10 +375,10 @@
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateHabitatCompositionDetails()"
                     >
-                        Update
+                        Save Section
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
-                        Updating
+                        Saving
                         <span
                             class="spinner-border spinner-border-sm"
                             role="status"
@@ -588,10 +588,10 @@
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateHabitatConditionDetails()"
                     >
-                        Update
+                        Save Section
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
-                        Updating
+                        Saving
                         <span
                             class="spinner-border spinner-border-sm"
                             role="status"
@@ -706,10 +706,10 @@
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateVegetationStructure()"
                     >
-                        Update
+                        Save Section
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
-                        Updating
+                        Saving
                         <span
                             class="spinner-border spinner-border-sm"
                             role="status"
@@ -839,10 +839,10 @@
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateFireHistoryDetails()"
                     >
-                        Update
+                        Save Section
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
-                        Updating
+                        Saving
                     </button>
                 </div>
             </div>
@@ -905,10 +905,10 @@
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateAssociatedSpeciesDetails()"
                     >
-                        Update
+                        Save Section
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
-                        Updating
+                        Saving
                         <span
                             class="spinner-border spinner-border-sm"
                             role="status"

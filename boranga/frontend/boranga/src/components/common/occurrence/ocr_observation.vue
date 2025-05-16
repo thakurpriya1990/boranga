@@ -141,10 +141,10 @@
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateObservationDetails()"
                     >
-                        Update
+                        Save Section
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
-                        Updating
+                        Saving
                         <span
                             class="spinner-border spinner-border-sm"
                             role="status"
@@ -574,10 +574,10 @@
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateIdentificationDetails()"
                     >
-                        Update
+                        Save Section
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
-                        Updating
+                        Saving
                         <span
                             class="spinner-border spinner-border-sm"
                             role="status"
