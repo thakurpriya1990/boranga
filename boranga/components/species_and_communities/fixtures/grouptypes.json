@@ -1,0 +1,5 @@
+[
+  { "model": "boranga.grouptype", "pk": 1, "fields": { "name": "flora" } },
+  { "model": "boranga.grouptype", "pk": 2, "fields": { "name": "fauna" } },
+  { "model": "boranga.grouptype", "pk": 3, "fields": { "name": "community" } }
+]
