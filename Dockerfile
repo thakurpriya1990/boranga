@@ -114,11 +114,6 @@ RUN $VIRTUAL_ENV_PATH/bin/pip3 install --upgrade pip && \
     $VIRTUAL_ENV_PATH/bin/pip3 install --no-cache-dir -r requirements.txt && \
     rm -rf /var/lib/{apt,dpkg,cache,log}/ /tmp/* /var/tmp/*
 
-# Libgeos patch. If not used when deploying to production then may be removed.
-# COPY libgeos.py.patch /app/
-# RUN patch /usr/local/lib/python3.8/dist-packages/django/contrib/gis/geos/libgeos.py /app/libgeos.py.patch
-# RUN rm /app/libgeos.py.patch
-
 FROM python_dependencies_boranga AS build_vue_boranga
 
 RUN cd /app/boranga/frontend/boranga; npm ci --omit=dev && \
@@ -134,6 +129,3 @@ FROM collectstatic_boranga AS launch_boranga
 EXPOSE 8080
 HEALTHCHECK --interval=1m --timeout=5s --start-period=10s --retries=3 CMD ["wget", "-q", "-O", "-", "http://localhost:8080/"]
 CMD ["/startup.sh"]
-
-# When first deploying to a new environment (e.g. prod)
-# patch /home/container/.local/lib/python3.10/site-packages/reversion/migrations/0001_squashed_0004_auto_20160611_1202.py 0001_squashed_0004_auto_20160611_1202.patch
