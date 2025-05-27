@@ -9,44 +9,108 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('boranga', '0077_auto_20220929_0931'),
+        ("boranga", "0077_auto_20220929_0931"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ConservationStatusProposalRequest',
+            name="ConservationStatusProposalRequest",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('subject', models.CharField(blank=True, max_length=200)),
-                ('text', models.TextField(blank=True)),
-                ('officer', models.IntegerField()),
-                ('conservation_status', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='boranga.conservationstatus')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("subject", models.CharField(blank=True, max_length=200)),
+                ("text", models.TextField(blank=True)),
+                ("officer", models.IntegerField()),
+                (
+                    "conservation_status",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="boranga.conservationstatus",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='ConservationStatusAmendmentRequest',
+            name="ConservationStatusAmendmentRequest",
             fields=[
-                ('conservationstatusproposalrequest_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='boranga.conservationstatusproposalrequest')),
-                ('status', models.CharField(choices=[('requested', 'Requested'), ('amended', 'Amended')], default='requested', max_length=30, verbose_name='Status')),
-                ('reason', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='boranga.amendmentreason')),
+                (
+                    "conservationstatusproposalrequest_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="boranga.conservationstatusproposalrequest",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("requested", "Requested"), ("amended", "Amended")],
+                        default="requested",
+                        max_length=30,
+                        verbose_name="Status",
+                    ),
+                ),
+                # Removing field as the amendmentreason model no longer exists
+                # ('reason', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='boranga.amendmentreason')),
             ],
-            bases=('boranga.conservationstatusproposalrequest',),
+            bases=("boranga.conservationstatusproposalrequest",),
         ),
         migrations.CreateModel(
-            name='ConservationStatusAmendmentRequestDocument',
+            name="ConservationStatusAmendmentRequestDocument",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(blank=True, max_length=255, verbose_name='name')),
-                ('description', models.TextField(blank=True, verbose_name='description')),
-                ('uploaded_date', models.DateTimeField(auto_now_add=True)),
-                ('_file', models.FileField(max_length=500, storage=django.core.files.storage.FileSystemStorage(base_url='/private-media/', location='/home/priya/projects/boranga/private-media/'), upload_to=boranga.components.conservation_status.models.update_conservation_status_amendment_request_doc_filename)),
-                ('input_name', models.CharField(blank=True, max_length=255, null=True)),
-                ('can_delete', models.BooleanField(default=True)),
-                ('visible', models.BooleanField(default=True)),
-                ('conservation_status_amendment_request', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cs_amendment_request_documents', to='boranga.conservationstatusamendmentrequest')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(blank=True, max_length=255, verbose_name="name"),
+                ),
+                (
+                    "description",
+                    models.TextField(blank=True, verbose_name="description"),
+                ),
+                ("uploaded_date", models.DateTimeField(auto_now_add=True)),
+                (
+                    "_file",
+                    models.FileField(
+                        max_length=500,
+                        storage=django.core.files.storage.FileSystemStorage(
+                            base_url="/private-media/",
+                            location="/home/priya/projects/boranga/private-media/",
+                        ),
+                        upload_to=boranga.components.conservation_status.models.update_conservation_status_amendment_request_doc_filename,
+                    ),
+                ),
+                ("input_name", models.CharField(blank=True, max_length=255, null=True)),
+                ("can_delete", models.BooleanField(default=True)),
+                ("visible", models.BooleanField(default=True)),
+                (
+                    "conservation_status_amendment_request",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="cs_amendment_request_documents",
+                        to="boranga.conservationstatusamendmentrequest",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]
