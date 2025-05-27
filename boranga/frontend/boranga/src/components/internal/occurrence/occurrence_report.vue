@@ -114,7 +114,15 @@
                 </div>
 
                 <div class="card card-default sticky-top">
-                    <div class="card-header">Workflow</div>
+                    <div class="card-header">
+                        Workflow
+                        <button
+                            class="float-end btn btn-secondary btn-sm"
+                            @click.prevent="jumpToTabs"
+                        >
+                            Jump to Tabs<i class="bi bi-arrow-down-up ps-2"></i>
+                        </button>
+                    </div>
                     <div class="card-body border-bottom">
                         <strong>Status</strong><br />
                         {{ occurrence_report.processing_status }}
@@ -453,7 +461,7 @@
                             <button
                                 v-if="with_assessor"
                                 style="width: 80%"
-                                class="btn btn-primary mb-4"
+                                class="btn btn-primary mb-2"
                                 @click.prevent="amendmentRequest()"
                             >
                                 Request Amendment
@@ -461,7 +469,7 @@
                             <button
                                 v-if="with_approver || unlocked"
                                 style="width: 80%"
-                                class="btn btn-primary mb-4"
+                                class="btn btn-primary mb-2"
                                 @click.prevent="backToAssessor()"
                             >
                                 Back to Assessor
@@ -478,7 +486,7 @@
                             <button
                                 v-if="with_assessor"
                                 style="width: 80%"
-                                class="btn btn-primary mb-4"
+                                class="btn btn-primary mb-2"
                                 @click.prevent="proposeDecline"
                             >
                                 Propose Decline
@@ -487,7 +495,7 @@
                             <button
                                 v-if="display_approve_button"
                                 style="width: 80%"
-                                class="btn btn-primary mb-4"
+                                class="btn btn-primary mb-2"
                                 @click.prevent="approve()"
                             >
                                 Approve
@@ -495,7 +503,7 @@
                             <button
                                 v-if="display_decline_button"
                                 style="width: 80%"
-                                class="btn btn-primary mb-4"
+                                class="btn btn-primary mb-2"
                                 @click.prevent="decline()"
                             >
                                 Decline
@@ -504,7 +512,7 @@
                             <button
                                 v-if="approved"
                                 style="width: 80%"
-                                class="btn btn-primary mb-4"
+                                class="btn btn-primary mb-2"
                                 @click.prevent="unlock()"
                             >
                                 Unlock
@@ -512,7 +520,7 @@
                             <button
                                 v-if="unlocked"
                                 style="width: 80%"
-                                class="btn btn-primary mb-4"
+                                class="btn btn-primary mb-2"
                                 @click.prevent="lock()"
                             >
                                 Lock
@@ -1006,6 +1014,14 @@ export default {
         });
     },
     methods: {
+        jumpToTabs: function () {
+            $('html, body').animate(
+                {
+                    scrollTop: $('#pills-tab').offset().top - 10,
+                },
+                0
+            );
+        },
         discardOCRProposal: function () {
             let vm = this;
             swal.fire({
@@ -1231,6 +1247,7 @@ export default {
                 vm.$refs.occurrence_report.$refs.ocr_location.$refs.component_map.setLoadingMap(
                     false
                 );
+                vm.$refs.occurrence_report.$refs.ocr_location.incrementComponentMapKey();
             });
         },
         save_exit: async function () {

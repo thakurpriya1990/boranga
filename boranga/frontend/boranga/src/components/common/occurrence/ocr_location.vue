@@ -47,7 +47,6 @@
                         collapse: false,
                         property_display_map: ocrPropertyDisplayMap,
                     }"
-                    @validate-feature="validateFeature.bind(this)()"
                     @refresh-from-response="refreshFromResponse"
                     @crs-select-search="searchForCRS"
                 ></MapComponent>
@@ -397,10 +396,10 @@
                         :disabled="isReadOnly"
                         @click.prevent="updateLocationDetails()"
                     >
-                        Update
+                        Save Section
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
-                        Updating
+                        Saving
                         <span
                             class="spinner-border spinner-border-sm"
                             role="status"

@@ -375,10 +375,10 @@
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateHabitatCompositionDetails()"
                     >
-                        Update
+                        Save Section
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
-                        Updating
+                        Saving
                         <span
                             class="spinner-border spinner-border-sm"
                             role="status"
@@ -588,10 +588,10 @@
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateHabitatConditionDetails()"
                     >
-                        Update
+                        Save Section
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
-                        Updating
+                        Saving
                         <span
                             class="spinner-border spinner-border-sm"
                             role="status"
@@ -706,10 +706,10 @@
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateVegetationStructure()"
                     >
-                        Update
+                        Save Section
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
-                        Updating
+                        Saving
                         <span
                             class="spinner-border spinner-border-sm"
                             role="status"
@@ -748,7 +748,7 @@
                         class="form-control"
                         name="last_fire_date"
                         :max="new Date().toISOString().slice(0, 7)"
-                        @change="checkDate()"
+                        @blur="checkDate()"
                     />
                 </div>
             </div>
@@ -839,10 +839,10 @@
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateFireHistoryDetails()"
                     >
-                        Update
+                        Save Section
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
-                        Updating
+                        Saving
                     </button>
                 </div>
             </div>
@@ -905,10 +905,10 @@
                         class="btn btn-primary btn-sm float-end"
                         @click.prevent="updateAssociatedSpeciesDetails()"
                     >
-                        Update
+                        Save Section
                     </button>
                     <button v-else disabled class="float-end btn btn-primary">
-                        Updating
+                        Saving
                         <span
                             class="spinner-border spinner-border-sm"
                             role="status"
@@ -1071,6 +1071,19 @@ export default {
                 });
         },
         checkDate: function () {
+            if (this.occurrence_obj.fire_history.last_fire_estimate === '') {
+                this.occurrence_obj.fire_history.last_fire_estimate = null;
+                return;
+            }
+            if (
+                isNaN(
+                    new Date(
+                        this.occurrence_obj.fire_history.last_fire_estimate
+                    )
+                )
+            ) {
+                return;
+            }
             if (
                 isNaN(
                     new Date(

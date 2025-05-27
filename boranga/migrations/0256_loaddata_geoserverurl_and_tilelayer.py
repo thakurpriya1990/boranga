@@ -8,11 +8,13 @@ fixtures_path = "boranga/components/spatial/fixtures/"
 
 
 def loaddata_geoserverurl(apps, schema_editor):
-    call_command("loaddata", fixtures_path + "geoserverurl.json", verbosity=0)
+    call_command(
+        "loaddata", fixtures_path + "geoserverurl.2024-08-09.json", verbosity=0
+    )
 
 
 def loaddata_tilelayer(apps, schema_editor):
-    call_command("loaddata", fixtures_path + "tilelayer.json", verbosity=0)
+    call_command("loaddata", fixtures_path + "tilelayer.2024-06-13.json", verbosity=0)
 
 
 class Migration(migrations.Migration):
@@ -22,6 +24,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(loaddata_geoserverurl),
-        migrations.RunPython(loaddata_tilelayer),
+        # migrations.RunPython(loaddata_geoserverurl),
+        # migrations.RunPython(loaddata_tilelayer),
     ]

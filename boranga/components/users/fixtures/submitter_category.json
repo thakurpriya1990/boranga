@@ -1,23 +1,142 @@
 [
-    {
-        "model": "boranga.submittercategory",
-        "pk": 1,
-        "fields": {
-            "name": "Consultant"
-        }
-    },
-    {
-        "model": "boranga.submittercategory",
-        "pk": 2,
-        "fields": {
-            "name": "Citizen Scientist"
-        }
-    },
-    {
-        "model": "boranga.submittercategory",
-        "pk": 3,
-        "fields": {
-            "name": "Researcher"
-        }
+  {
+    "model": "boranga.submittercategory",
+    "pk": 1,
+    "fields": {
+      "order": 0,
+      "archived": false,
+      "name": "Consultant",
+      "visible_to": "external"
     }
+  },
+  {
+    "model": "boranga.submittercategory",
+    "pk": 2,
+    "fields": {
+      "order": 13,
+      "archived": true,
+      "name": "Researcher",
+      "visible_to": "external"
+    }
+  },
+  {
+    "model": "boranga.submittercategory",
+    "pk": 3,
+    "fields": {
+      "order": 1,
+      "archived": false,
+      "name": "Public Citizen",
+      "visible_to": "external"
+    }
+  },
+  {
+    "model": "boranga.submittercategory",
+    "pk": 4,
+    "fields": {
+      "order": 2,
+      "archived": false,
+      "name": "DBCA BCS",
+      "visible_to": "internal"
+    }
+  },
+  {
+    "model": "boranga.submittercategory",
+    "pk": 5,
+    "fields": {
+      "order": 4,
+      "archived": false,
+      "name": "DBCA CEM",
+      "visible_to": "internal"
+    }
+  },
+  {
+    "model": "boranga.submittercategory",
+    "pk": 6,
+    "fields": {
+      "order": 3,
+      "archived": false,
+      "name": "DBCA PVS",
+      "visible_to": "internal"
+    }
+  },
+  {
+    "model": "boranga.submittercategory",
+    "pk": 7,
+    "fields": {
+      "order": 8,
+      "archived": false,
+      "name": "DBCA RIA",
+      "visible_to": "internal"
+    }
+  },
+  {
+    "model": "boranga.submittercategory",
+    "pk": 8,
+    "fields": {
+      "order": 7,
+      "archived": false,
+      "name": "DBCA BGPA",
+      "visible_to": "internal"
+    }
+  },
+  {
+    "model": "boranga.submittercategory",
+    "pk": 9,
+    "fields": {
+      "order": 6,
+      "archived": false,
+      "name": "DBCA ZPA",
+      "visible_to": "internal"
+    }
+  },
+  {
+    "model": "boranga.submittercategory",
+    "pk": 10,
+    "fields": {
+      "order": 5,
+      "archived": false,
+      "name": "DBCA RFMS",
+      "visible_to": "internal"
+    }
+  },
+  {
+    "model": "boranga.submittercategory",
+    "pk": 11,
+    "fields": {
+      "order": 9,
+      "archived": false,
+      "name": "Non Government Organisation",
+      "visible_to": "external"
+    }
+  },
+  {
+    "model": "boranga.submittercategory",
+    "pk": 12,
+    "fields": {
+      "order": 10,
+      "archived": false,
+      "name": "Local Government",
+      "visible_to": "external"
+    }
+  },
+  {
+    "model": "boranga.submittercategory",
+    "pk": 13,
+    "fields": {
+      "order": 11,
+      "archived": false,
+      "name": "State Government Organisation",
+      "visible_to": "external"
+    }
+  },
+  {
+    "model": "boranga.submittercategory",
+    "pk": 14,
+    "fields": {
+      "order": 12,
+      "archived": false,
+      "name": "Research Institution",
+      "visible_to": "external"
+    }
+  }
 ]

@@ -1406,6 +1406,11 @@ class SaveSpeciesSerializer(BaseSpeciesSerializer):
         )
         read_only_fields = ("id", "group_type")
 
+    def to_internal_value(self, data):
+        if data["last_data_curation_date"] == "":
+            data["last_data_curation_date"] = None
+        return super().to_internal_value(data)
+
 
 class CreateSpeciesSerializer(BaseSpeciesSerializer):
     group_type_id = serializers.IntegerField(required=True, write_only=True)
@@ -1452,6 +1457,11 @@ class SaveCommunitySerializer(BaseCommunitySerializer):
             "department_file_numbers",
         )
         read_only_fields = ("id", "group_type")
+
+    def to_internal_value(self, data):
+        if data["last_data_curation_date"] == "":
+            data["last_data_curation_date"] = None
+        return super().to_internal_value(data)
 
 
 class RenameCommunitySerializer(serializers.Serializer):

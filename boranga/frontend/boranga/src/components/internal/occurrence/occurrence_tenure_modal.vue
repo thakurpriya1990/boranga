@@ -13,11 +13,6 @@
                         <alert v-if="errorString" type="danger"
                             ><strong>{{ errorString }}</strong></alert
                         >
-                        <alert
-                            v-if="changeWarning && !isReadOnly"
-                            type="warning"
-                            ><strong>{{ changeWarning }}</strong>
-                        </alert>
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <div class="row mb-3">
@@ -309,11 +304,6 @@ export default {
             type: String,
             required: false,
             default: 'Object',
-        },
-        changeWarning: {
-            type: String,
-            required: false,
-            default: '',
         },
         occurrenceId: {
             type: Number,

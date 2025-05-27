@@ -2960,6 +2960,35 @@ class OCRPlantCount(models.Model):
     class Meta:
         app_label = "boranga"
 
+    def save(self, *args, **kwargs):
+        # Set fields to None based on count status field
+        if self.count_status == settings.COUNT_STATUS_NOT_COUNTED:
+            self.detailed_alive_mature = None
+            self.detailed_dead_mature = None
+            self.detailed_alive_juvenile = None
+            self.detailed_dead_juvenile = None
+            self.detailed_alive_seedling = None
+            self.detailed_dead_seedling = None
+            self.detailed_alive_unknown = None
+            self.detailed_dead_unknown = None
+
+            self.simple_alive = None
+            self.simple_dead = None
+        elif self.count_status == settings.COUNT_STATUS_SIMPLE_COUNT:
+            self.detailed_alive_mature = None
+            self.detailed_dead_mature = None
+            self.detailed_alive_juvenile = None
+            self.detailed_dead_juvenile = None
+            self.detailed_alive_seedling = None
+            self.detailed_dead_seedling = None
+            self.detailed_alive_unknown = None
+            self.detailed_dead_unknown = None
+        elif self.count_status == settings.COUNT_STATUS_COUNTED:
+            self.simple_alive = None
+            self.simple_dead = None
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"OCR Plant Count: {self.id} for Occurrence Report: {self.occurrence_report}"
 
