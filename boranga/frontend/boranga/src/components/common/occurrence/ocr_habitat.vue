@@ -616,7 +616,7 @@
         >
             <div class="row mb-3">
                 <label for="" class="col-sm-6 control-label"
-                    >Vegetation Structure - Layer 1:</label
+                    >Vegetation Structure - Layer 1 (Ground Layer):</label
                 >
                 <div class="col-sm-9">
                     <textarea
@@ -635,7 +635,7 @@
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-6 control-label"
-                    >Vegetation Structure - Layer 2:</label
+                    >Vegetation Structure - Layer 2 (Lower Layer):</label
                 >
                 <div class="col-sm-9">
                     <textarea
@@ -654,7 +654,7 @@
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-6 control-label"
-                    >Vegetation Structure - Layer 3:</label
+                    >Vegetation Structure - Layer 3 (Mid Layer):</label
                 >
                 <div class="col-sm-9">
                     <textarea
@@ -673,7 +673,7 @@
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-6 control-label"
-                    >Vegetation Structure - Layer 4:</label
+                    >Vegetation Structure - Layer 4 (Upper Layer):</label
                 >
                 <div class="col-sm-9">
                     <textarea
