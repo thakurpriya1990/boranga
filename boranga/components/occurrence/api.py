@@ -50,6 +50,7 @@ from boranga.components.occurrence.models import (
     LandForm,
     LocationAccuracy,
     ObservationMethod,
+    ObservationTime,
     OCCAnimalObservation,
     OCCAssociatedSpecies,
     OCCConservationThreat,
@@ -135,6 +136,7 @@ from boranga.components.occurrence.serializers import (
     ListOccurrenceSerializer,
     ListOccurrenceTenureSerializer,
     ListOCRReportMinimalSerializer,
+    ObservationTimeSerializer,
     OCCConservationThreatSerializer,
     OCCContactDetailSerializer,
     OccurrenceDocumentSerializer,
@@ -780,6 +782,7 @@ class OccurrenceReportViewSet(
             section_fields = section_value._meta.get_fields()
 
             for i in section_fields:
+                logger.debug(f"Processing field: {i.name} of type {type(i)}")
                 if (
                     i.name == "id"
                     or i.name == "occurrence_report"
@@ -830,6 +833,10 @@ class OccurrenceReportViewSet(
 
                 elif getattr(section_value, i.name) is not None:
                     res_json[i.name] = str(getattr(section_value, i.name))
+                else:
+                    logger.warning(
+                        f"Field {i.name} of section {section} is None for Occurrence Report {ocr.id}"
+                    )
 
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
@@ -907,6 +914,21 @@ class OccurrenceReportViewSet(
             related_species = Taxonomy.objects.none()
         serializer = TaxonomySerializer(
             related_species, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
+
+    @list_route(
+        methods=[
+            "GET",
+        ],
+        detail=False,
+        permission_classes=[OccurrenceReportPermission],
+    )
+    def observation_times(self, request, *args, **kwargs):
+        """used for Occurrence Report external form"""
+        qs = ObservationTime.objects.active()
+        serializer = ObservationTimeSerializer(
+            qs, many=True, context={"request": request}
         )
         return Response(serializer.data)
 
@@ -1732,6 +1754,7 @@ class OccurrenceReportViewSet(
         # ocr geometry data to save seperately
         geometry_data = proposal_data.get("ocr_geometry", None)
         if geometry_data:
+            logger.debug(f"geometry_data: {geometry_data}")
             save_geometry(request, instance, geometry_data, "occurrence_report")
         serializer = SaveOccurrenceReportSerializer(
             instance, data=proposal_data, partial=True
