@@ -152,6 +152,22 @@ class OccurrenceReportManager(models.Manager):
         )
 
 
+class ObservationTime(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
+
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        validators=[no_commas_validator],
+    )
+
+    class Meta(OrderedModel.Meta):
+        app_label = "boranga"
+
+    def __str__(self):
+        return str(self.name)
+
+
 class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     """
     Occurrence Report for any particular species or community
@@ -298,7 +314,14 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         max_length=50, blank=True, null=True, unique=True
     )
 
-    observation_date = models.DateTimeField(null=True, blank=True)
+    observation_date = models.DateField(null=True, blank=True)
+    observation_time = models.ForeignKey(
+        ObservationTime,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="occurrence_reports",
+    )
     reported_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     submitter_information = models.OneToOneField(
         SubmitterInformation,
@@ -328,6 +351,7 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
     approver_comment = models.TextField(blank=True)
     internal_application = models.BooleanField(default=False)
     site = models.TextField(null=True, blank=True)
+    record_source = models.TextField(null=True, blank=True)
     comments = models.TextField(null=True, blank=True)
     # Allows the OCR submitter to hint the assessor to which occurrence to assign to
     # without forcefully linking the occurrence to the OCR
@@ -1021,7 +1045,10 @@ class OccurrenceReport(SubmitterInformationModelMixin, RevisionedMixin):
         if self.approval_details.occurrence:
             occurrence = self.approval_details.occurrence
 
-            if self.approval_details.copy_ocr_comments_to_occ_comments:
+            if (
+                self.approval_details.copy_ocr_comments_to_occ_comments
+                and self.comments
+            ):
                 if not occurrence.comment:
                     occurrence.comment = self.comments
                 else:
@@ -2589,7 +2616,7 @@ class OCRHabitatCondition(models.Model):
             MaxValueValidator(Decimal("100.00")),
         ],
     )
-    count_date = models.DateTimeField(null=True, blank=True)
+    obs_date = models.DateField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -2920,6 +2947,8 @@ class OCRPlantCount(models.Model):
         choices=settings.COUNT_STATUS_CHOICES,
         max_length=20,
         default=settings.COUNT_STATUS_NOT_COUNTED,
+        null=True,
+        blank=True,
     )
 
     detailed_alive_mature = models.IntegerField(null=True, blank=True)
@@ -2955,7 +2984,7 @@ class OCRPlantCount(models.Model):
     dehisced_fruit_present = models.BooleanField(null=True, blank=True)
     pollinator_observation = models.CharField(max_length=1000, null=True, blank=True)
     comment = models.CharField(max_length=1000, null=True, blank=True)
-    count_date = models.DateTimeField(null=True, blank=True)
+    obs_date = models.DateField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -3170,6 +3199,8 @@ class OCRAnimalObservation(models.Model):
         choices=settings.COUNT_STATUS_CHOICES,
         max_length=20,
         default=settings.COUNT_STATUS_NOT_COUNTED,
+        null=True,
+        blank=True,
     )
 
     alive_adult_male = models.IntegerField(null=True, blank=True, default=0)
@@ -3196,7 +3227,7 @@ class OCRAnimalObservation(models.Model):
     simple_alive = models.IntegerField(null=True, blank=True, default=0)
     simple_dead = models.IntegerField(null=True, blank=True, default=0)
 
-    count_date = models.DateTimeField(null=True, blank=True)
+    obs_date = models.DateField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -4835,7 +4866,7 @@ class OCCHabitatCondition(models.Model):
             MaxValueValidator(Decimal("100.00")),
         ],
     )
-    count_date = models.DateTimeField(null=True, blank=True)
+    obs_date = models.DateField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -5007,6 +5038,8 @@ class OCCPlantCount(models.Model):
         choices=settings.COUNT_STATUS_CHOICES,
         max_length=20,
         default=settings.COUNT_STATUS_NOT_COUNTED,
+        null=True,
+        blank=True,
     )
 
     detailed_alive_mature = models.IntegerField(null=True, blank=True)
@@ -5042,7 +5075,7 @@ class OCCPlantCount(models.Model):
     dehisced_fruit_present = models.BooleanField(null=True, blank=True)
     pollinator_observation = models.CharField(max_length=1000, null=True, blank=True)
     comment = models.CharField(max_length=1000, null=True, blank=True)
-    count_date = models.DateTimeField(null=True, blank=True)
+    obs_date = models.DateField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
@@ -5126,6 +5159,8 @@ class OCCAnimalObservation(models.Model):
         choices=settings.COUNT_STATUS_CHOICES,
         max_length=20,
         default=settings.COUNT_STATUS_NOT_COUNTED,
+        null=True,
+        blank=True,
     )
 
     alive_adult_male = models.IntegerField(null=True, blank=True, default=0)
@@ -5152,7 +5187,7 @@ class OCCAnimalObservation(models.Model):
     simple_alive = models.IntegerField(null=True, blank=True, default=0)
     simple_dead = models.IntegerField(null=True, blank=True, default=0)
 
-    count_date = models.DateTimeField(null=True, blank=True)
+    obs_date = models.DateField(null=True, blank=True)
 
     class Meta:
         app_label = "boranga"
