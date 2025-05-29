@@ -21,6 +21,7 @@ from boranga.components.occurrence.models import (
     Datum,
     GeometryType,
     LandForm,
+    ObservationTime,
     OCCAnimalObservation,
     OCCAssociatedSpecies,
     OCCConservationThreat,
@@ -255,8 +256,9 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
     scientific_name = serializers.SerializerMethodField()
     community_name = serializers.SerializerMethodField()
     customer_status = serializers.CharField(source="get_customer_status_display")
-    observation_date = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
+    observation_date = serializers.DateField(format="%d/%m/%Y", allow_null=True)
+    observation_time = serializers.CharField(
+        source="observation_time.name", allow_null=True
     )
     main_observer = serializers.SerializerMethodField()
     can_user_edit = serializers.SerializerMethodField()
@@ -274,6 +276,7 @@ class ListOccurrenceReportSerializer(serializers.ModelSerializer):
             "can_user_view",
             "can_user_edit",
             "observation_date",
+            "observation_time",
             "main_observer",
         )
         datatables_always_serialize = (
@@ -337,9 +340,7 @@ class ListInternalOccurrenceReportSerializer(serializers.ModelSerializer):
         source="occurrence.occurrence_number", allow_null=True
     )
     is_new_contributor = serializers.SerializerMethodField()
-    observation_date = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", allow_null=True
-    )
+    observation_date = serializers.DateField(format="%d/%m/%Y", allow_null=True)
     location_accuracy = serializers.SerializerMethodField()
     identification_certainty = serializers.SerializerMethodField()
     main_observer = serializers.SerializerMethodField()
@@ -555,7 +556,7 @@ class OCRHabitatCompositionSerializer(serializers.ModelSerializer):
 
 
 class OCRHabitatConditionSerializer(serializers.ModelSerializer):
-    count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
+    obs_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
 
     class Meta:
         model = OCRHabitatCondition
@@ -568,7 +569,7 @@ class OCRHabitatConditionSerializer(serializers.ModelSerializer):
             "good",
             "degraded",
             "completely_degraded",
-            "count_date",
+            "obs_date",
         )
 
 
@@ -633,7 +634,7 @@ class OCRObservationDetailSerializer(serializers.ModelSerializer):
 
 
 class OCRPlantCountSerializer(serializers.ModelSerializer):
-    count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
+    obs_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
     plant_count_method = serializers.CharField(
         source="plant_count_method.name", allow_null=True
     )
@@ -686,7 +687,7 @@ class OCRPlantCountSerializer(serializers.ModelSerializer):
             "detailed_dead_seedling",
             "detailed_alive_unknown",
             "detailed_dead_unknown",
-            "count_date",
+            "obs_date",
             "count_status",
         )
 
@@ -696,7 +697,7 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
     primary_detection_method = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
     )
-    count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
+    obs_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
     secondary_sign_name = serializers.CharField(
         source="secondary_sign.name", allow_null=True
     )
@@ -749,7 +750,7 @@ class OCRAnimalObservationSerializer(serializers.ModelSerializer):
             "dead_unsure_unknown",
             "simple_alive",
             "simple_dead",
-            "count_date",
+            "obs_date",
             "count_status",
         )
 
@@ -1099,6 +1100,12 @@ class ListOccurrenceSerializer(OccurrenceSerializer):
         return obj.can_user_edit(request)
 
 
+class ObservationTimeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ObservationTime
+        fields = ("id", "name", "order", "archived")
+
+
 class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     readonly = serializers.SerializerMethodField(read_only=True)
     group_type = serializers.SerializerMethodField(read_only=True)
@@ -1131,13 +1138,17 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
     lodgement_date = serializers.DateTimeField(
         format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
     )
-    observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    observation_date = serializers.DateField(format="%Y-%m-%d")
+    observation_time = serializers.CharField(
+        source="observation_time.name", allow_null=True, read_only=True
+    )
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     submitter_information = SubmitterInformationSerializer()
     number_of_observers = serializers.IntegerField(read_only=True)
     has_main_observer = serializers.BooleanField(read_only=True)
     is_submitter = serializers.SerializerMethodField()
     can_user_edit = serializers.SerializerMethodField()
+    common_names = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OccurrenceReport
@@ -1182,14 +1193,18 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             "model_name",
             "occurrence",
             "observation_date",
+            "observation_time",
+            "observation_time_id",
             "site",
             "submitter_information",
             "number_of_observers",
             "has_main_observer",
             "is_submitter",
+            "record_source",
             "comments",
             "ocr_for_occ_number",
             "ocr_for_occ_name",
+            "common_names",
         )
 
     def get_readonly(self, obj):
@@ -1273,6 +1288,14 @@ class BaseOccurrenceReportSerializer(serializers.ModelSerializer):
             return OCRIdentificationSerializer(qs).data
         except OCRIdentification.DoesNotExist:
             return OCRIdentificationSerializer().data
+
+    def get_common_names(self, obj):
+        if not obj.species:
+            return []
+
+        return obj.species.taxonomy.vernaculars.values_list(
+            "vernacular_name", flat=True
+        )
 
     def get_label(self, obj):
         return "Occurrence Report"
@@ -1417,9 +1440,11 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
     lodgement_date = serializers.DateTimeField(
         format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
     )
-    observation_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    observation_date = serializers.DateField(format="%Y-%m-%d")
+    observation_time = serializers.CharField(
+        source="observation_time.name", allow_null=True
+    )
     reported_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
-    common_names = serializers.SerializerMethodField(read_only=True)
     community_migrated_id = serializers.CharField(
         source="community.taxonomy.community_migrated_id", allow_null=True
     )
@@ -1483,6 +1508,8 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "finalised",
             "is_new_contributor",
             "observation_date",
+            "observation_time",
+            "observation_time_id",
             "site",
             "ocr_for_occ_number",
             "ocr_for_occ_name",
@@ -1493,6 +1520,7 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
             "is_submitter",
             "migrated_from_id",
             "user_is_assessor",
+            "record_source",
             "comments",
             "common_names",
         )
@@ -1586,14 +1614,6 @@ class InternalOccurrenceReportSerializer(OccurrenceReportSerializer):
 
     def get_is_new_contributor(self, obj):
         return is_new_external_contributor(obj.submitter)
-
-    def get_common_names(self, obj):
-        if not obj.species:
-            return []
-
-        return obj.species.taxonomy.vernaculars.values_list(
-            "vernacular_name", flat=True
-        )
 
 
 class DTOccurrenceReportReferralSerializer(serializers.ModelSerializer):
@@ -1742,9 +1762,7 @@ class SaveOCRHabitatConditionSerializer(serializers.ModelSerializer):
     # occurrence_report_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
     # write_only removed from below as the serializer will not return that field in serializer.data
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
-    count_date = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
-    )
+    obs_date = serializers.DateField(format="%Y-%m-%d", required=False, allow_null=True)
 
     class Meta:
         model = OCRHabitatCondition
@@ -1757,18 +1775,18 @@ class SaveOCRHabitatConditionSerializer(serializers.ModelSerializer):
             "good",
             "degraded",
             "completely_degraded",
-            "count_date",
+            "obs_date",
         )
 
 
 class SaveBeforeSubmitOCRHabitatConditionSerializer(SaveOCRHabitatConditionSerializer):
 
     def validate(self, attrs):
-        count_date = attrs.get("count_date")
-        if count_date:
+        obs_date = attrs.get("obs_date")
+        if obs_date:
             try:
                 # Check if the date is in the future
-                if count_date > timezone.now():
+                if obs_date > timezone.now():
                     raise serializers.ValidationError(
                         "Count date cannot be in the future."
                     )
@@ -1867,9 +1885,7 @@ class SaveOCRPlantCountSerializer(serializers.ModelSerializer):
     plant_count_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
     counted_subject_id = serializers.IntegerField(required=False, allow_null=True)
     plant_condition_id = serializers.IntegerField(required=False, allow_null=True)
-    count_date = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
-    )
+    obs_date = serializers.DateField(format="%Y-%m-%d", required=False, allow_null=True)
 
     class Meta:
         model = OCRPlantCount
@@ -1906,7 +1922,7 @@ class SaveOCRPlantCountSerializer(serializers.ModelSerializer):
             "detailed_dead_seedling",
             "detailed_alive_unknown",
             "detailed_dead_unknown",
-            "count_date",
+            "obs_date",
             "count_status",
         )
 
@@ -1916,9 +1932,7 @@ class SaveOCRAnimalObservationSerializer(serializers.ModelSerializer):
     primary_detection_method = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
     )
-    count_date = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
-    )
+    obs_date = serializers.DateField(format="%Y-%m-%d", required=False, allow_null=True)
 
     class Meta:
         model = OCRAnimalObservation
@@ -1955,7 +1969,7 @@ class SaveOCRAnimalObservationSerializer(serializers.ModelSerializer):
             "dead_unsure_unknown",
             "simple_alive",
             "simple_dead",
-            "count_date",
+            "obs_date",
             "count_status",
         )
 
@@ -2160,8 +2174,11 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
     community_id = serializers.IntegerField(
         required=False, allow_null=True, write_only=True
     )
-    observation_date = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
+    observation_time_id = serializers.IntegerField(
+        required=False, allow_null=True, write_only=True
+    )
+    observation_date = serializers.DateField(
+        format="%Y-%m-%d", required=False, allow_null=True
     )
 
     class Meta:
@@ -2183,8 +2200,10 @@ class SaveOccurrenceReportSerializer(BaseOccurrenceReportSerializer):
             "assessor_data",
             "site",
             "observation_date",
+            "observation_time_id",
             "ocr_for_occ_number",
             "ocr_for_occ_name",
+            "record_source",
             "comments",
         )
         read_only_fields = ("id",)
@@ -2748,7 +2767,7 @@ class OCCHabitatCompositionSerializer(serializers.ModelSerializer):
 class OCCHabitatConditionSerializer(serializers.ModelSerializer):
 
     copied_ocr = serializers.SerializerMethodField()
-    count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
+    obs_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
 
     class Meta:
         model = OCCHabitatCondition
@@ -2762,7 +2781,7 @@ class OCCHabitatConditionSerializer(serializers.ModelSerializer):
             "good",
             "degraded",
             "completely_degraded",
-            "count_date",
+            "obs_date",
         )
 
     def get_copied_ocr(self, obj):
@@ -2885,7 +2904,7 @@ class OCCObservationDetailSerializer(serializers.ModelSerializer):
 
 class OCCPlantCountSerializer(serializers.ModelSerializer):
     copied_ocr = serializers.SerializerMethodField()
-    count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
+    obs_date = serializers.DateField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
     plant_count_method = serializers.CharField(
         source="plant_count_method.name", allow_null=True
     )
@@ -2939,7 +2958,7 @@ class OCCPlantCountSerializer(serializers.ModelSerializer):
             "detailed_dead_seedling",
             "detailed_alive_unknown",
             "detailed_dead_unknown",
-            "count_date",
+            "obs_date",
             "count_status",
         )
 
@@ -2954,7 +2973,7 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
         choices=[], allow_null=True, allow_blank=True, required=False
     )
     copied_ocr = serializers.SerializerMethodField()
-    count_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", allow_null=True)
+    obs_date = serializers.DateField(format="%Y-%m-%d", allow_null=True)
     secondary_sign_name = serializers.CharField(
         source="secondary_sign.name", allow_null=True
     )
@@ -3008,7 +3027,7 @@ class OCCAnimalObservationSerializer(serializers.ModelSerializer):
             "dead_unsure_unknown",
             "simple_alive",
             "simple_dead",
-            "count_date",
+            "obs_date",
             "count_status",
         )
 
@@ -3146,9 +3165,7 @@ class SaveOCCHabitatConditionSerializer(serializers.ModelSerializer):
     # occurrence_id = serializers.IntegerField(required=False, allow_null=True, write_only= True)
     # write_only removed from below as the serializer will not return that field in serializer.data
     occurrence_id = serializers.IntegerField(required=False, allow_null=True)
-    count_date = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
-    )
+    obs_date = serializers.DateField(format="%Y-%m-%d", required=False, allow_null=True)
 
     class Meta:
         model = OCCHabitatCondition
@@ -3161,7 +3178,7 @@ class SaveOCCHabitatConditionSerializer(serializers.ModelSerializer):
             "good",
             "degraded",
             "completely_degraded",
-            "count_date",
+            "obs_date",
         )
 
 
@@ -3220,9 +3237,7 @@ class SaveOCCPlantCountSerializer(serializers.ModelSerializer):
     plant_count_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
     counted_subject_id = serializers.IntegerField(required=False, allow_null=True)
     plant_condition_id = serializers.IntegerField(required=False, allow_null=True)
-    count_date = serializers.DateTimeField(
-        format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
-    )
+    obs_date = serializers.DateField(format="%Y-%m-%d", required=False, allow_null=True)
 
     class Meta:
         model = OCCPlantCount
@@ -3259,7 +3274,7 @@ class SaveOCCPlantCountSerializer(serializers.ModelSerializer):
             "detailed_dead_seedling",
             "detailed_alive_unknown",
             "detailed_dead_unknown",
-            "count_date",
+            "obs_date",
             "count_status",
         )
 
@@ -3269,7 +3284,7 @@ class SaveOCCAnimalObservationSerializer(serializers.ModelSerializer):
     primary_detection_method = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
     )
-    count_date = serializers.DateTimeField(
+    obs_date = serializers.DateField(
         format="%Y-%m-%d %H:%M:%S", required=False, allow_null=True
     )
 
@@ -3308,7 +3323,7 @@ class SaveOCCAnimalObservationSerializer(serializers.ModelSerializer):
             "dead_unsure_unknown",
             "simple_alive",
             "simple_dead",
-            "count_date",
+            "obs_date",
             "count_status",
         )
 
