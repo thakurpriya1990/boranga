@@ -20,6 +20,7 @@ from boranga.components.occurrence.models import (
     LandForm,
     LocationAccuracy,
     ObservationMethod,
+    ObservationTime,
     ObserverCategory,
     ObserverRole,
     OccurrenceGeometry,
@@ -706,6 +707,18 @@ class ObserverCategoryAdmin(
     ordering = ("order",)
 
 
+class ObservationTimeAdmin(
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
+):
+    list_display = ["name", "move_up_down_links"]
+    list_filter = ["archived"]
+    search_fields = ["name"]
+    ordering = ("order",)
+
+
 class AnimalHealthAdmin(
     CsvExportMixin,
     ArchivableModelAdminMixin,
@@ -729,6 +742,7 @@ admin.site.register(Drainage, DrainageAdmin)
 admin.site.register(Intensity, IntensityAdmin)
 admin.site.register(ObserverRole, ObserverRoleAdmin)
 admin.site.register(ObserverCategory, ObserverCategoryAdmin)
+admin.site.register(ObservationTime, ObservationTimeAdmin)
 admin.site.register(ObservationMethod, ObservationMethodAdmin)
 admin.site.register(PlantCountMethod, PlantCountMethodAdmin)
 admin.site.register(PlantCountAccuracy, PlantCountAccuracyAdmin)
