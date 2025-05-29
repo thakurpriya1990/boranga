@@ -23,6 +23,7 @@ export default {
     help_text_entries: '/api/help_text_entries',
     lookup_schema_types:
         '/api/occurrence_report_bulk_import_schema_columns/get_lookup_filter_types/',
+    observation_times: '/api/occurrence_report/observation_times/',
     occurrence_report_bulk_imports: '/api/occurrence_report_bulk_imports/',
     occurrence_report_bulk_import_schemas:
         '/api/occurrence_report_bulk_import_schemas/',

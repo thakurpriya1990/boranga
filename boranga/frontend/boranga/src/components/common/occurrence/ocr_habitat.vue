@@ -570,20 +570,20 @@
             </div>
             <div
                 v-if="occurrence_report_obj.group_type == 'community'"
-                class="row mb-3"
+                class="row mt-3 mb-3"
             >
                 <label for="" class="col-sm-3 control-label"
-                    >Count Date:
+                    >Observation Date:
                 </label>
                 <div class="col-sm-9">
                     <input
                         v-model="
-                            occurrence_report_obj.habitat_condition.count_date
+                            occurrence_report_obj.habitat_condition.obs_date
                         "
                         :disabled="true"
-                        type="datetime-local"
+                        type="date"
                         class="form-control"
-                        name="count_date"
+                        name="obs_date"
                     />
                 </div>
             </div>
@@ -616,7 +616,7 @@
         >
             <div class="row mb-3">
                 <label for="" class="col-sm-6 control-label"
-                    >Vegetation Structure - Layer 1:</label
+                    >Vegetation Structure - Layer 1 (Ground Layer):</label
                 >
                 <div class="col-sm-9">
                     <textarea
@@ -635,7 +635,7 @@
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-6 control-label"
-                    >Vegetation Structure - Layer 2:</label
+                    >Vegetation Structure - Layer 2 (Lower Layer):</label
                 >
                 <div class="col-sm-9">
                     <textarea
@@ -654,7 +654,7 @@
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-6 control-label"
-                    >Vegetation Structure - Layer 3:</label
+                    >Vegetation Structure - Layer 3 (Mid Layer):</label
                 >
                 <div class="col-sm-9">
                     <textarea
@@ -673,7 +673,7 @@
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-6 control-label"
-                    >Vegetation Structure - Layer 4:</label
+                    >Vegetation Structure - Layer 4 (Upper Layer):</label
                 >
                 <div class="col-sm-9">
                     <textarea

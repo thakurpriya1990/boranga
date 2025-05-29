@@ -310,15 +310,15 @@
             </div>
             <div class="row mb-3">
                 <label for="" class="col-sm-3 control-label"
-                    >Animal Count Date:
+                    >Observation Date:
                 </label>
                 <div class="col-sm-9">
                     <input
-                        v-model="animal_observation.count_date"
+                        v-model="animal_observation.obs_date"
                         :disabled="true"
-                        type="datetime-local"
+                        type="date"
                         class="form-control"
-                        name="animal_count_date"
+                        name="animal_obs_date"
                     />
                 </div>
             </div>
