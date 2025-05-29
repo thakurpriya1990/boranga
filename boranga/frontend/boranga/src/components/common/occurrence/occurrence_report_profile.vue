@@ -372,12 +372,92 @@
                         <input
                             v-model="occurrence_report_obj.observation_date"
                             :disabled="isReadOnly"
-                            type="datetime-local"
+                            type="date"
                             class="form-control"
                             name="start_date"
-                            :max="new Date().toISOString().slice(0, 16)"
-                            min="1990-01-01T00:00"
+                            :max="new Date().toISOString().slice(0, 10)"
+                            min="1990-01-01"
                             @blur="checkObservationDate"
+                        />
+                    </div>
+                </div>
+                <div
+                    v-if="occurrence_report_obj.group_type == 'fauna'"
+                    class="row mb-3"
+                >
+                    <label for="" class="col-sm-3 control-label"
+                        >Observation Time:</label
+                    >
+                    <div class="col-sm-9">
+                        <template v-if="!isReadOnly">
+                            <template
+                                v-if="
+                                    observationTimes &&
+                                    observationTimes.length > 0 &&
+                                    occurrence_report_obj.observation_time_id &&
+                                    !observationTimes
+                                        .map((d) => d.id)
+                                        .includes(
+                                            occurrence_report_obj.observation_time_id
+                                        )
+                                "
+                            >
+                                <input
+                                    v-if="
+                                        occurrence_report_obj.observation_time
+                                    "
+                                    type="text"
+                                    class="form-control mb-3"
+                                    :value="
+                                        occurrence_report_obj.observation_time +
+                                        ' (Now Archived)'
+                                    "
+                                    disabled
+                                />
+                                <div class="mb-3 text-muted">
+                                    Change observation time to:
+                                </div>
+                            </template>
+                            <select
+                                v-model="
+                                    occurrence_report_obj.observation_time_id
+                                "
+                                class="form-select"
+                            >
+                                <option :value="null">
+                                    Select an Observation Time if Applicable
+                                </option>
+                                <option
+                                    v-for="observationTime in observationTimes"
+                                    :key="observationTime.id"
+                                    :value="observationTime.id"
+                                >
+                                    {{ observationTime.name }}
+                                </option>
+                            </select>
+                        </template>
+                        <template v-else>
+                            <input
+                                v-model="occurrence_report_obj.observation_time"
+                                class="form-control"
+                                type="text"
+                                :disabled="isReadOnly"
+                            />
+                        </template>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="" class="col-sm-3 col-form-label"
+                        >Record Source:
+                    </label>
+                    <div class="col-sm-9">
+                        <textarea
+                            v-model="occurrence_report_obj.record_source"
+                            :disabled="isReadOnly"
+                            class="form-control"
+                            name="record_source"
+                            rows="7"
                         />
                     </div>
                 </div>
@@ -462,6 +542,7 @@ export default {
             common_name_lookup: 'common_name_lookup' + uuid(),
             community_name_lookup: 'community_name_lookup' + uuid(),
             community_id_lookup: 'community_id_lookup' + uuid(),
+            observationTimes: null,
             select_community_name: 'select_community_name' + uuid(),
             select_common_name: 'select_common_name' + uuid(),
             select_community_id: 'select_community_id' + uuid(),
@@ -517,7 +598,7 @@ export default {
                     vm.occurrence_report_obj.observation_date &&
                     !isNaN(vm.occurrence_report_obj.observation_date)
                 ) {
-                    vm.occurrence_report_obj.animal_observation.count_date =
+                    vm.occurrence_report_obj.animal_observation.obs_date =
                         vm.occurrence_report_obj.observation_date;
                 }
             } else if (vm.isCommunity) {
@@ -527,7 +608,7 @@ export default {
                     vm.occurrence_report_obj.observation_date &&
                     !isNaN(vm.occurrence_report_obj.observation_date)
                 ) {
-                    vm.occurrence_report_obj.habitat_condition.count_date =
+                    vm.occurrence_report_obj.habitat_condition.obs_date =
                         vm.occurrence_report_obj.observation_date;
                 }
             } else {
@@ -537,7 +618,7 @@ export default {
                     vm.occurrence_report_obj.observation_date &&
                     !isNaN(vm.occurrence_report_obj.observation_date)
                 ) {
-                    vm.occurrence_report_obj.plant_count.count_date =
+                    vm.occurrence_report_obj.plant_count.obs_date =
                         vm.occurrence_report_obj.observation_date;
                 }
             }
@@ -571,6 +652,7 @@ export default {
                 console.log(error);
             }
         );
+        vm.fetchObservationTimes();
         if (!vm.is_external) {
             this.generateReferralCommentBoxes();
         }
@@ -883,7 +965,7 @@ export default {
             ) {
                 this.occurrence_report_obj.observation_date = new Date()
                     .toISOString()
-                    .slice(0, 16);
+                    .slice(0, 10);
                 this.$nextTick(() => {
                     this.$refs.observation_date.focus();
                 });
@@ -898,13 +980,13 @@ export default {
             }
             if (
                 new Date(this.occurrence_report_obj.observation_date) <
-                new Date('1990-01-01T00:00')
+                new Date('1990-01-01')
             ) {
                 this.occurrence_report_obj.observation_date = new Date(
                     '1990-01-01'
                 )
                     .toISOString()
-                    .slice(0, 16);
+                    .slice(0, 10);
                 this.$nextTick(() => {
                     this.$refs.observation_date.focus();
                 });
@@ -971,6 +1053,27 @@ export default {
             if (!e.target.className.includes('select2-')) {
                 this.$emit('saveOccurrenceReport');
             }
+        },
+        fetchObservationTimes: function () {
+            fetch(api_endpoints.observation_times)
+                .then(async (response) => {
+                    if (!response.ok) {
+                        swal.fire({
+                            title: 'Error',
+                            text: 'Failed to fetch observer times',
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
+                    const data = await response.json();
+                    this.observationTimes = data;
+                })
+                .catch((error) => {
+                    console.error('Error fetching observer times:', error);
+                });
         },
     },
 };
