@@ -1,166 +1,104 @@
 # Boranga
 
+This project is to consolidate threatened species and communities’ data into a modern system application platform, as the existing system and associated legacy data platforms are in formats no longer supported by OIM.
+
+Stack:
+
+- Ubuntu
+- Postgres (PostGIS)
+- Python / Django
+- Node / Vite / Vue 3
+
+# Install and Configure Ledger
+
+Boranga requires ledger to be set up and running first.
+
+See: https://github.com/dbca-wa/ledger for instructions.
+
 # Install Boranga Project
-```
- cd /var/www
- git clone https://github.com/dbca-wa/boranga.git
- cd boranga
-
- virtualenv venv
- . venv/bin/activate
-
- pip install -r requirements.txt
-```
-test
-
-## Create a DB
-```
- docker@docker:/var/www/pipsim$ sudo -u postgres psql
- psql (12.9 (Ubuntu 12.9-0ubuntu0.20.04.1))
- Type "help" for help.
-
- postgres=# CREATE ROLE test WITH PASSWORD 'my_passwd' SUPERUSER;
- CREATE ROLE
-
- postgres=# ALTER ROLE test LOGIN;
- ALTER ROLE
-
- postgres=# create database boranga_dev;
- CREATE DATABASE
-
- postgres=# quit
-
- # Check Connection to new DB
- /var/www/boranga$ psql -U test -W -h localhost -d boranga_dev -p 5432
- Password:
-
- psql (12.9 (Ubuntu 12.9-0ubuntu0.20.04.1))
- SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, bits: 256, compression: off)
- Type "help" for help.
-
- boranga_dev=#
-
- If importing database from a copy you will need to rename django_admin_log user to user_id
-
- ALTER TABLE django_admin_log RENAME COLUMN "user" TO user_id;
 
 ```
-
-## Add in .env
-```
- DATABASE_URL="postgis://test:my_passwd@localhost:5432/boranga_dev"
-
- ./apply_initial_migrations.sh
-
- # If a user exists in the Ledger DB Server, test to see if you can connect to it (Assumes Ledger server is running - see below)
- EmailUserRO.objects.get(email='firstname.lastname@dbca.wa.gov.au')
-
- # Build NPM
- cd /var/www/boranga/boranga/frontend/boranga
- npm install
- npm run build
-
- cd /var/www/boranga/boranga
- ./manage.py collectstatic --noinput
- ./manage.py runserver 0.0.0.0:8000
-
- # GO TO:
-     http://localhost:8000/ledger/admin/
-     1. Create 'Boranga Admin' Group
+git clone https://github.com/dbca-wa/boranga.git
+cd boranga
 ```
 
-## .env file for Boranga Application
-NOTE:
-    1. LEDGER_API_KEY can be retrived from the LEDGER Server Admin (under group API)
-    2. In Boranga Admin, must create SYSTEM GROUP 'Boranga Admin'
+Create and activate a virtual environment if required
+
+```
+pip install -r requirements.txt
+```
+
+## Database Migration
+
+```
+See [Migration Steps](migration_steps.md)
+```
+
+## Create and Populate the .env File
 
 ```
 DEBUG=True
-DATABASE_URL="postgis://test:my_passwd@localhost:5432/boranga_dev"
-LEDGER_DATABASE_URL='postgis://test:my_passwd@localhost:5432/boranga_dev'
+DATABASE_URL="postgis://<username>:<password>@localhost:5432/boranga_dev"
+LEDGER_DATABASE_URL='postgis://<username>:<password>@localhost:5432/das_dev'
 LEDGER_API_URL="http://localhost:8000"
-LEDGER_API_KEY="ledger_api_key__from__ledger_api_admin"
+LEDGER_API_KEY="<ledger_api_key>"
 SITE_PREFIX='boranga-dev'
 SITE_DOMAIN='dbca.wa.gov.au'
 SECRET_KEY='SECRET_KEY_YO'
 PRODUCTION_EMAIL=False
-NOTIFICATION_EMAIL='firstname.lastname@dbca.wa.gov.au'
-CRON_NOTIFICATION_EMAIL='[firstname.lastname]'
-NON_PROD_EMAIL='firstname.lastname@dbca.wa.gov.au'
+NOTIFICATION_EMAIL='<email1>,<email2>'
+NON_PROD_EMAIL='<email1>'
 EMAIL_INSTANCE='DEV'
-EMAIL_HOST='smtp.corporateict.domain'
+EMAIL_HOST='<email_host>'
 DJANGO_HTTPS=True
 DEFAULT_FROM_EMAIL='no-reply@dbca.wa.gov.au'
-ALLOWED_HOSTS=['*']
-VUE3_ENTRY_SCRIPT="src/main.js"
-
-
-```
-
-# Install Ledger as an Independent Server
-```
-cd /var/www/ledger
-git clone https://github.com/dbca-wa/ledger.git .
-
-virtualenv venv (-p python3.8)
-. venv/bin/activate
-pip install -r requirements.txt
-
-patch venv/lib/python3.8/site-packages/django/contrib/gis/geos/libgeos.py libgeos.py.patch
-
-./manage_ledgergw.py shell_plus
-## check user exists
-u=EmailUser.objects.get(email='firstname.lastname@dbca.wa.gov.au')
-u.is_staff=True
-u.is_superuser=True
-u.save()
-
-## change password for above user
-./manage_ledgergw.py changepassword firstname.lastname@dbca.wa.gov.au
-
-## start server
-./manage_ledgergw.py runserver 0.0.0.0:8000
-
-# go to http://localhost:8000/admin
-# Login with the above credentials (email: firstname.lastname@dbca.wa.gov.au, pw: my_password)
-# From th Admin view
-#     1. create group 'Boranga Admin' (in Group section)
-#     2. in API sections
-         a. click Add API
-         b. System Name: Boranga
-            System id:   0111 (some aritrary number for now)
-            Allowed ips: 127.0.0.1/32
-            Active:      active
-         c. Click save, and this should generate an Api key (shown in the screenshot below)
-         d. this Api key is needed to be set in your .env file
-```
-
-### .env file for Ledger Server
-```
-DEBUG=True
-ALLOWED_HOSTS=['*']
-SECRET_KEY='my_secret_key'
-DATABASE_URL='postgis://test:my_passwd@localhost:5432/db_name'
-EMAIL_HOST='my_smtp_server'
-BPOINT_USERNAME='bpoint_username'
-BPOINT_PASSWORD='bpoint_password'
-BPOINT_BILLER_CODE='bpoint_biller_code'
-BPOINT_MERCHANT_NUM='bpoint_merchant_number'
-BPAY_BILLER_CODE='bpay_biller_code'
-CMS_URL="https://itassets.dbca.wa.gov.au"
-DEFAULT_FROM_EMAIL='no-reply@dbca.wa.gov.au'
-NOTIFICATION_EMAIL='firstname.lastname@dbca.wa.gov.au'
-CRON_NOTIFICATION_EMAIL='firstname.lastname@dbca.wa.gov.au'
-NON_PROD_EMAIL='firstname.lastname@dbca.wa.gov.au'
-EMAIL_INSTANCE='DEV'
-PRODUCTION_EMAIL=False
-BPAY_ALLOWED=False
-LEDGER_GST=10
-SITE_PREFIX=''
-SITE_DOMAIN=''
-SITE_URL='localhost:8000'
-DISABLE_EMAIL=False
+ALLOWED_HOSTS='["*"]'
 CONSOLE_EMAIL_BACKEND=True
-SUPPORT_EMAIL="support@dbca.wa.gov.au"
-CSRF_MIDDLEWARE_TOKEN='my_csrf_middleware_token'
+ENABLE_DJANGO_LOGIN=True
+EMAIL_DELIVERY='on'
+NOMOS_USERNAME='<username>'
+NOMOS_PASSWORD='<password>'
+SILENCE_SYSTEM_CHECKS=False
+LOG_CONSOLE_LEVEL='DEBUG'
+NOMOS_URL="https://wagyl.bio.wa.gov.au/api"
+SHOW_DEBUG_TOOLBAR=False
+SITE_SUBDOMAIN_INTERNAL_SUFFIX=None
+NOMOS_BLOB_URL="https://stproponentdata.blob.core.windows.net/public-downloads/taxonomy/species_taxo_export_current.json"
+OCR_BULK_IMPORT_PROCESS_TASKS_IMMEDIATELY=True
+SECURE_CROSS_ORIGIN_OPENER_POLICY=None
+```
+
+_NOTE: The LEDGER_API_KEY can be generated by adding a new api entry in the api app via ledger's django admin_
+
+https://<ledger_url>/admin/api/
+
+# Build the Front End
+
+```
+cd boranga/frontend/boranga
+```
+
+Create and activate a virtual environment if required
+
+```
+npm install
+npm run build
+```
+
+# Collect Static
+
+```
+./manage.py collectstatic
+```
+
+# Run Front End Dev Server
+
+```
+npm run dev
+```
+
+# Run the Django Server
+
+```
+./manage.py runserver <UNUSED_PORT>
 ```
