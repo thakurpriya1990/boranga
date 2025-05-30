@@ -919,7 +919,19 @@ export default {
                     body: JSON.stringify(vm.plant_count),
                 }
             ).then(
-                () => {
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     vm.updatingPlantCountDetails = false;
                     swal.fire({
                         title: 'Saved',

@@ -117,7 +117,19 @@ export default {
                     body: JSON.stringify(vm.back_to_assessor),
                 }
             ).then(
-                () => {
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     swal.fire({
                         title: 'Sent Back',
                         text: `${vm.occurrence_report_number} has been sent back to the assessor with the provided reason.`,

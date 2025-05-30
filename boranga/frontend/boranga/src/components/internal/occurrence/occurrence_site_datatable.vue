@@ -333,41 +333,50 @@ export default {
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then(
-                (result) => {
-                    if (result.isConfirmed) {
-                        fetch(
-                            helpers.add_endpoint_json(
-                                api_endpoints.occ_site,
-                                id + '/discard'
-                            ),
-                            {
-                                method: 'PATCH',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                            }
-                        ).then(
-                            () => {
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(
+                        helpers.add_endpoint_json(
+                            api_endpoints.occ_site,
+                            id + '/discard'
+                        ),
+                        {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        }
+                    ).then(
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
                                 swal.fire({
-                                    title: 'Discarded',
-                                    text: 'The Site has been discarded',
-                                    icon: 'success',
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
                                     customClass: {
                                         confirmButton: 'btn btn-primary',
                                     },
-                                }).then(() => {
-                                    vm.updatedSites();
                                 });
-                            },
-                            (error) => {
-                                console.log(error);
+                                return;
                             }
-                        );
-                    }
-                },
-                () => {}
-            );
+                            swal.fire({
+                                title: 'Discarded',
+                                text: 'The Site has been discarded',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            }).then(() => {
+                                vm.updatedSites();
+                            });
+                        },
+                        (error) => {
+                            console.log(error);
+                        }
+                    );
+                }
+            });
         },
         reinstateSite: function (id) {
             let vm = this;
@@ -383,7 +392,19 @@ export default {
                     },
                 }
             ).then(
-                () => {
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     swal.fire({
                         title: 'Reinstated',
                         text: 'The Site has been reinstated',

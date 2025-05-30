@@ -361,10 +361,6 @@ export default {
     mounted: function () {
         let vm = this;
         vm.form = document.forms.modalForm;
-
-        this.$nextTick(() => {
-            //
-        });
     },
     methods: {
         fetchSelectionValues: function (url, payload, target_list_names) {

@@ -264,7 +264,19 @@ export default {
                                     '/amendment_request'
                             )
                         ).then(
-                            async () => {
+                            async (response) => {
+                                if (!response.ok) {
+                                    const data = await response.json();
+                                    swal.fire({
+                                        title: 'Error',
+                                        text: data,
+                                        icon: 'error',
+                                        customClass: {
+                                            confirmButton: 'btn btn-primary',
+                                        },
+                                    });
+                                    return;
+                                }
                                 vm.setAmendmentData(data);
                             },
                             (err) => {

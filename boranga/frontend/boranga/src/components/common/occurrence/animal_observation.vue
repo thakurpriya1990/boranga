@@ -926,7 +926,11 @@ export default {
                     body: JSON.stringify(vm.animal_observation),
                 }
             ).then(
-                () => {
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        throw new Error(data);
+                    }
                     vm.updatingAnimalOnservationDetails = false;
                     swal.fire({
                         title: 'Saved',

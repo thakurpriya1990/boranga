@@ -180,7 +180,19 @@ export default {
                         '/add_related_species?species=' +
                         vm.selected_scientific_name
                 ).then(
-                    () => {
+                    async (response) => {
+                        if (!response.ok) {
+                            const data = await response.json();
+                            swal.fire({
+                                title: 'Error',
+                                text: data,
+                                icon: 'error',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            return;
+                        }
                         swal.fire({
                             title: 'Added',
                             text: 'Related Species has been added',
@@ -213,34 +225,43 @@ export default {
                     cancelButton: 'btn btn-secondary',
                 },
                 reverseButtons: true,
-            }).then(
-                (result) => {
-                    if (result.isConfirmed) {
-                        fetch(
-                            '/api/occurrence/' +
-                                this.occurrence_obj.id +
-                                '/remove_related_species?species=' +
-                                id
-                        ).then(
-                            () => {
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(
+                        '/api/occurrence/' +
+                            this.occurrence_obj.id +
+                            '/remove_related_species?species=' +
+                            id
+                    ).then(
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
                                 swal.fire({
-                                    title: 'Removed',
-                                    text: 'Related Species has been removed',
-                                    icon: 'success',
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
                                     customClass: {
                                         confirmButton: 'btn btn-primary',
                                     },
                                 });
-                                vm.$refs.related_species_datatable.vmDataTable.ajax.reload();
-                            },
-                            (error) => {
-                                console.log(error);
+                                return;
                             }
-                        );
-                    }
-                },
-                () => {}
-            );
+                            swal.fire({
+                                title: 'Removed',
+                                text: 'Related Species has been removed',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.$refs.related_species_datatable.vmDataTable.ajax.reload();
+                        },
+                        (error) => {
+                            console.log(error);
+                        }
+                    );
+                }
+            });
         },
         initialiseScientificNameLookup: function () {
             let vm = this;

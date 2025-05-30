@@ -1610,7 +1610,19 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            () => {
+                            async (response) => {
+                                if (!response.ok) {
+                                    const data = await response.json();
+                                    swal.fire({
+                                        title: 'Error',
+                                        text: data,
+                                        icon: 'error',
+                                        customClass: {
+                                            confirmButton: 'btn btn-primary',
+                                        },
+                                    });
+                                    return;
+                                }
                                 swal.fire({
                                     title: 'Discarded',
                                     text: 'The flora record has been discarded',
@@ -1660,7 +1672,19 @@ export default {
                                 headers: { 'Content-Type': 'application/json' },
                             }
                         ).then(
-                            () => {
+                            async (response) => {
+                                if (!response.ok) {
+                                    const data = await response.json();
+                                    swal.fire({
+                                        title: 'Error',
+                                        text: data,
+                                        icon: 'error',
+                                        customClass: {
+                                            confirmButton: 'btn btn-primary',
+                                        },
+                                    });
+                                    return;
+                                }
                                 swal.fire({
                                     title: 'Reinstated',
                                     text: 'The flora record has been reinstated',

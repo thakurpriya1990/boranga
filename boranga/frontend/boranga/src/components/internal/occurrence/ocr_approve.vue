@@ -11,6 +11,9 @@
         >
             <div class="container">
                 <form id="approve-form">
+                    <alert v-if="errorString" type="danger"
+                        ><strong>{{ errorString }}</strong></alert
+                    >
                     <div
                         v-if="approval_details.occurrence"
                         class="row mb-3 border-bottom"
@@ -97,12 +100,14 @@
 </template>
 
 <script>
+import alert from '@vue-utils/alert.vue';
 import modal from '@vue-utils/bootstrap-modal.vue';
 
 import { helpers, api_endpoints } from '@/utils/hooks.js';
 export default {
     name: 'OcrApprove',
     components: {
+        alert,
         modal,
     },
     props: {
@@ -127,7 +132,7 @@ export default {
         };
     },
     computed: {
-        proposeApproveButtonDisabled: function () {
+        approveButtonDisabled: function () {
             return (
                 !this.approve.create_new_occurrence && !this.approve.occurrence
             );
@@ -152,7 +157,7 @@ export default {
         ok: function () {
             let vm = this;
             if (vm.form.checkValidity()) {
-                vm.proposeApprove();
+                vm.approve();
             } else {
                 vm.form.reportValidity();
             }
@@ -161,7 +166,7 @@ export default {
             this.isModalOpen = false;
             this.errorString = '';
         },
-        proposeApprove: function () {
+        approve: function () {
             let vm = this;
             let confirmation = `Are you sure you want to approve occurrence report ${vm.occurrence_report_number}`;
             if (!this.approval_details.occurrence) {
@@ -195,7 +200,12 @@ export default {
                             body: JSON.stringify(vm.approve),
                         }
                     ).then(
-                        () => {
+                        async (response) => {
+                            const data = await response.json();
+                            if (!response.ok) {
+                                vm.errorString = data;
+                                return;
+                            }
                             swal.fire({
                                 title: 'Occurrence Report Successfully Approved',
                                 text: `Occurrence Report: ${vm.occurrence_report_number} has been successfully approved.`,

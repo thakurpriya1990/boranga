@@ -698,7 +698,19 @@ export default {
                     body: JSON.stringify(vm.user),
                 }
             ).then(
-                () => {
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     swal({
                         title: 'Update Personal Details',
                         html: 'User personal details has been successfully updated.',
@@ -827,70 +839,72 @@ export default {
                 type: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Accept',
-            }).then(
-                (result) => {
-                    if (result.value) {
-                        fetch(
-                            helpers.add_endpoint_json(
-                                api_endpoints.organisations,
-                                org.id + '/unlink_user'
-                            ),
-                            {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({ user_id: vm.user.id }),
-                            }
-                        ).then(
-                            () => {
-                                fetch(
-                                    helpers.add_endpoint_json(
-                                        api_endpoints.users,
-                                        vm.user.id
-                                    )
-                                ).then(
-                                    async (response) => {
-                                        vm.user = await response.json();
-                                        if (
-                                            vm.user.residential_address == null
-                                        ) {
-                                            vm.user.residential_address = {};
-                                        }
-                                        if (
-                                            vm.user
-                                                .borangacompliance_organisations &&
-                                            vm.user
-                                                .borangacompliance_organisations
-                                                .length > 0
-                                        ) {
-                                            vm.managesOrg = 'Yes';
-                                        }
-                                        swal(
-                                            'Unlink',
-                                            'The user has been successfully unlinked from ' +
-                                                org_name +
-                                                '.',
-                                            'success'
-                                        );
-                                    },
-                                    () => {}
-                                );
+            }).then((result) => {
+                if (result.value) {
+                    fetch(
+                        helpers.add_endpoint_json(
+                            api_endpoints.organisations,
+                            org.id + '/unlink_user'
+                        ),
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
                             },
-                            () => {
+                            body: JSON.stringify({ user_id: vm.user.id }),
+                        }
+                    ).then(
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
+                                swal.fire({
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                return;
+                            }
+                            fetch(
+                                helpers.add_endpoint_json(
+                                    api_endpoints.users,
+                                    vm.user.id
+                                )
+                            ).then(async (response) => {
+                                vm.user = await response.json();
+                                if (vm.user.residential_address == null) {
+                                    vm.user.residential_address = {};
+                                }
+                                if (
+                                    vm.user.borangacompliance_organisations &&
+                                    vm.user.borangacompliance_organisations
+                                        .length > 0
+                                ) {
+                                    vm.managesOrg = 'Yes';
+                                }
                                 swal(
                                     'Unlink',
-                                    'There was an error unlinking the user from ' +
+                                    'The user has been successfully unlinked from ' +
                                         org_name +
                                         '.',
-                                    'error'
+                                    'success'
                                 );
-                            }
-                        );
-                    }
-                },
-                () => {}
-            );
+                            });
+                        },
+                        () => {
+                            swal(
+                                'Unlink',
+                                'There was an error unlinking the user from ' +
+                                    org_name +
+                                    '.',
+                                'error'
+                            );
+                        }
+                    );
+                }
+            });
         },
         readFileID: function () {
             let vm = this;
@@ -934,7 +948,19 @@ export default {
                         body: data,
                     }
                 ).then(
-                    () => {
+                    async (response) => {
+                        if (!response.ok) {
+                            const data = await response.json();
+                            swal.fire({
+                                title: 'Error',
+                                text: data,
+                                icon: 'error',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            return;
+                        }
                         vm.uploadingID = false;
                         vm.uploadedID = null;
                         swal({

@@ -400,7 +400,19 @@ export default {
                 },
                 body: JSON.stringify(payload),
             }).then(
-                async () => {
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     let swalHtml =
                         '<p>Your conservation status proposal has been saved as a draft.</p>';
                     if (vm.saveExitCSProposal) {
@@ -470,7 +482,20 @@ export default {
                 },
                 body: JSON.stringify(this.conservation_status_obj),
             }).then(
-                async () => {},
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
+                },
                 (err) => {
                     console.log(err);
                 }
@@ -486,7 +511,20 @@ export default {
                 },
                 body: JSON.stringify(vm.conservation_status_obj),
             }).then(
-                async () => {},
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
+                },
                 (err) => {
                     vm.saveError = true;
                     swal.fire({

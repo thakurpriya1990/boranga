@@ -617,39 +617,48 @@ export default {
                     cancelButton: 'btn btn-secondary',
                 },
                 reverseButtons: true,
-            }).then(
-                (result) => {
-                    if (result.isConfirmed) {
-                        fetch(
-                            helpers.add_endpoint_json(
-                                api_endpoints.threat,
-                                id + '/discard'
-                            ),
-                            {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                            }
-                        ).then(
-                            () => {
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(
+                        helpers.add_endpoint_json(
+                            api_endpoints.threat,
+                            id + '/discard'
+                        ),
+                        {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                        }
+                    ).then(
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
                                 swal.fire({
-                                    title: 'Discarded',
-                                    text: 'Your threat has been discarded',
-                                    icon: 'success',
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
                                     customClass: {
                                         confirmButton: 'btn btn-primary',
                                     },
                                 });
-                                vm.$refs.threats_datatable.vmDataTable.ajax.reload();
-                                vm.refreshSpeciesCommunity();
-                            },
-                            (error) => {
-                                console.log(error);
+                                return;
                             }
-                        );
-                    }
-                },
-                () => {}
-            );
+                            swal.fire({
+                                title: 'Discarded',
+                                text: 'Your threat has been discarded',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.$refs.threats_datatable.vmDataTable.ajax.reload();
+                            vm.refreshSpeciesCommunity();
+                        },
+                        (error) => {
+                            console.log(error);
+                        }
+                    );
+                }
+            });
         },
         reinstateThreat: function (id) {
             let vm = this;
@@ -674,39 +683,48 @@ export default {
                     cancelButton: 'btn btn-secondary',
                 },
                 reverseButtons: true,
-            }).then(
-                (result) => {
-                    if (result.isConfirmed) {
-                        fetch(
-                            helpers.add_endpoint_json(
-                                api_endpoints.threat,
-                                id + '/reinstate'
-                            ),
-                            {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                            }
-                        ).then(
-                            () => {
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(
+                        helpers.add_endpoint_json(
+                            api_endpoints.threat,
+                            id + '/reinstate'
+                        ),
+                        {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                        }
+                    ).then(
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
                                 swal.fire({
-                                    title: 'Reinstated',
-                                    text: 'Your threat has been reinstated',
-                                    icon: 'success',
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
                                     customClass: {
                                         confirmButton: 'btn btn-primary',
                                     },
                                 });
-                                vm.$refs.threats_datatable.vmDataTable.ajax.reload();
-                                vm.refreshSpeciesCommunity();
-                            },
-                            (error) => {
-                                console.log(error);
+                                return;
                             }
-                        );
-                    }
-                },
-                () => {}
-            );
+                            swal.fire({
+                                title: 'Reinstated',
+                                text: 'Your threat has been reinstated',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.$refs.threats_datatable.vmDataTable.ajax.reload();
+                            vm.refreshSpeciesCommunity();
+                        },
+                        (error) => {
+                            console.log(error);
+                        }
+                    );
+                }
+            });
         },
         updatedThreats() {
             this.$refs.threats_datatable.vmDataTable.ajax.reload();

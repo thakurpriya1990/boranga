@@ -249,7 +249,19 @@ export default {
                 },
                 body: JSON.stringify(payload),
             }).then(
-                async () => {
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     swal.fire({
                         title: 'Saved',
                         text: 'Your changes have been saved',
@@ -309,7 +321,19 @@ export default {
                             },
                             body: JSON.stringify(payload),
                         }).then(
-                            async () => {
+                            async (response) => {
+                                if (!response.ok) {
+                                    const data = await response.json();
+                                    swal.fire({
+                                        title: 'Error',
+                                        text: data,
+                                        icon: 'error',
+                                        customClass: {
+                                            confirmButton: 'btn btn-primary',
+                                        },
+                                    });
+                                    return;
+                                }
                                 fetch(
                                     helpers.add_endpoint_json(
                                         api_endpoints.cs_referrals,

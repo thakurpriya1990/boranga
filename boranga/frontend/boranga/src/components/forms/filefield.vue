@@ -289,28 +289,37 @@ export default {
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then(
-                () => {
-                    fetch(vm.delete_url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
+            }).then(async (response) => {
+                if (!response.ok) {
+                    const data = await response.json();
+                    swal.fire({
+                        title: 'Error',
+                        text: data,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
                         },
-                        body: JSON.stringify(data),
-                    }).then(
-                        async (response) => {
-                            const data = await response.json();
-                            vm.uploaded_documents = data;
-                            vm.$emit('refreshFromResponse', data);
-                            vm.show_spinner = false;
-                        },
-                        (err) => {
-                            console.log(err);
-                        }
-                    );
-                },
-                () => {}
-            );
+                    });
+                    return;
+                }
+                fetch(vm.delete_url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                }).then(
+                    async (response) => {
+                        const data = await response.json();
+                        vm.uploaded_documents = data;
+                        vm.$emit('refreshFromResponse', data);
+                        vm.show_spinner = false;
+                    },
+                    (err) => {
+                        console.log(err);
+                    }
+                );
+            });
         },
         num_documents: function () {
             let vm = this;
