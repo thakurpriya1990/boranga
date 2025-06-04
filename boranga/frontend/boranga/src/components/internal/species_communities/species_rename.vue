@@ -176,7 +176,7 @@ export default {
                     if (!response.ok) {
                         swal.fire({
                             title: 'Submit Error',
-                            text: data,
+                            text: JSON.stringify(data),
                             icon: 'error',
                             customClass: {
                                 confirmButton: 'btn btn-primary',
