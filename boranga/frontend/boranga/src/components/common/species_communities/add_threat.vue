@@ -482,15 +482,7 @@
                                             v-model="threatObj.date_observed"
                                             :disabled="isReadOnly"
                                             type="date"
-                                            :min="
-                                                date_observed_minimum
-                                                    ? new Date(
-                                                          date_observed_minimum
-                                                      )
-                                                          .toISOString()
-                                                          .split('T')[0]
-                                                    : '1990-01-01'
-                                            "
+                                            :min="date_observed_minimum"
                                             :max="
                                                 new Date()
                                                     .toISOString()
@@ -596,7 +588,7 @@ export default {
         // 'YYYY-MM-DD' format
         date_observed_minimum: {
             type: String,
-            required: false,
+            default: '1990-01-01',
         },
     },
     data: function () {
@@ -744,7 +736,7 @@ export default {
                 });
                 swal.fire({
                     title: 'Error',
-                    text: 'Last data curation date cannot be in the future',
+                    text: 'Date observed cannot be in the future',
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
@@ -771,8 +763,10 @@ export default {
                     swal.fire({
                         title: 'Error',
                         text:
-                            'Last data curation date cannot be before ' +
-                            this.date_observed_minimum,
+                            'Date observed cannot be before ' +
+                            new Date(
+                                this.date_observed_minimum
+                            ).toLocaleDateString('en-AU'),
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
@@ -791,7 +785,11 @@ export default {
                 });
                 swal.fire({
                     title: 'Error',
-                    text: 'Last data curation date cannot be before 01/01/1990',
+                    text:
+                        'Date observed cannot be before ' +
+                        new Date(this.date_observed_minimum).toLocaleDateString(
+                            'en-AU'
+                        ),
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',

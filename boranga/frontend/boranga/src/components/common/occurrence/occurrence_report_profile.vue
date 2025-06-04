@@ -595,8 +595,7 @@ export default {
                 if (
                     vm.occurrence_report_obj &&
                     vm.occurrence_report_obj.animal_observation &&
-                    vm.occurrence_report_obj.observation_date &&
-                    !isNaN(vm.occurrence_report_obj.observation_date)
+                    vm.occurrence_report_obj.observation_date
                 ) {
                     vm.occurrence_report_obj.animal_observation.obs_date =
                         vm.occurrence_report_obj.observation_date;
@@ -605,8 +604,7 @@ export default {
                 if (
                     vm.occurrence_report_obj &&
                     vm.occurrence_report_obj.habitat_condition &&
-                    vm.occurrence_report_obj.observation_date &&
-                    !isNaN(vm.occurrence_report_obj.observation_date)
+                    vm.occurrence_report_obj.observation_date
                 ) {
                     vm.occurrence_report_obj.habitat_condition.obs_date =
                         vm.occurrence_report_obj.observation_date;
@@ -615,8 +613,7 @@ export default {
                 if (
                     vm.occurrence_report_obj &&
                     vm.occurrence_report_obj.plant_count &&
-                    vm.occurrence_report_obj.observation_date &&
-                    !isNaN(vm.occurrence_report_obj.observation_date)
+                    vm.occurrence_report_obj.observation_date
                 ) {
                     vm.occurrence_report_obj.plant_count.obs_date =
                         vm.occurrence_report_obj.observation_date;

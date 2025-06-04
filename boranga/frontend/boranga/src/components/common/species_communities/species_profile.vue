@@ -1877,7 +1877,6 @@ export default {
                 this.$nextTick(() => {
                     this.$refs.last_data_curation_date.focus();
                 });
-                alert(this.species_community.last_data_curation_date);
                 swal.fire({
                     title: 'Error',
                     text: 'Last data curation date cannot be before 01/01/1990',

@@ -405,7 +405,7 @@ export default {
                         const data = await response.json();
                         swal.fire({
                             title: 'Error',
-                            text: data,
+                            text: JSON.stringify(data),
                             icon: 'error',
                             customClass: {
                                 confirmButton: 'btn btn-primary',
@@ -487,7 +487,7 @@ export default {
                         const data = await response.json();
                         swal.fire({
                             title: 'Error',
-                            text: data,
+                            text: JSON.stringify(data),
                             icon: 'error',
                             customClass: {
                                 confirmButton: 'btn btn-primary',
@@ -516,7 +516,7 @@ export default {
                         const data = await response.json();
                         swal.fire({
                             title: 'Error',
-                            text: data,
+                            text: JSON.stringify(data),
                             icon: 'error',
                             customClass: {
                                 confirmButton: 'btn btn-primary',
