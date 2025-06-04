@@ -482,15 +482,7 @@
                                             v-model="threatObj.date_observed"
                                             :disabled="isReadOnly"
                                             type="date"
-                                            :min="
-                                                date_observed_minimum
-                                                    ? new Date(
-                                                          date_observed_minimum
-                                                      )
-                                                          .toISOString()
-                                                          .split('T')[0]
-                                                    : '1990-01-01'
-                                            "
+                                            :min="date_observed_minimum"
                                             :max="
                                                 new Date()
                                                     .toISOString()
@@ -596,7 +588,7 @@ export default {
         // 'YYYY-MM-DD' format
         date_observed_minimum: {
             type: String,
-            required: false,
+            default: '1990-01-01',
         },
     },
     data: function () {
@@ -772,9 +764,9 @@ export default {
                         title: 'Error',
                         text:
                             'Date observed cannot be before ' +
-                            this.date_observed_minimum.toLocaleDateString(
-                                'en-AU'
-                            ),
+                            new Date(
+                                this.date_observed_minimum
+                            ).toLocaleDateString('en-AU'),
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
@@ -795,7 +787,9 @@ export default {
                     title: 'Error',
                     text:
                         'Date observed cannot be before ' +
-                        this.date_observed_minimum.toLocaleDateString('en-AU'),
+                        new Date(this.date_observed_minimum).toLocaleDateString(
+                            'en-AU'
+                        ),
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
