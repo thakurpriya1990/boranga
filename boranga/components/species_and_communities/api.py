@@ -301,7 +301,8 @@ class GetCommonName(views.APIView):
             )
 
         data_transform = [
-            {"id": vern["id"], "text": vern["vernacular_name"]} for vern in queryset
+            {"id": vern["id"], "text": vern["vernacular_name"]}
+            for vern in queryset[: settings.DEFAULT_SELECT2_RECORDS_LIMIT]
         ]
         return Response({"results": data_transform})
 
