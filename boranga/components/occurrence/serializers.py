@@ -13,6 +13,7 @@ from boranga.components.conservation_status.models import ConservationStatus
 from boranga.components.main.serializers import (
     CommunicationLogEntrySerializer,
     EmailUserSerializer,
+    IntegerFieldEmptytoNullSerializerMixin,
     LimitedEmailUserSerializer,
 )
 from boranga.components.main.utils import get_geometry_source
@@ -1879,7 +1880,9 @@ class SaveOCRObservationDetailSerializer(serializers.ModelSerializer):
         )
 
 
-class SaveOCRPlantCountSerializer(serializers.ModelSerializer):
+class SaveOCRPlantCountSerializer(
+    IntegerFieldEmptytoNullSerializerMixin, serializers.ModelSerializer
+):
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
     plant_count_method_id = serializers.IntegerField(required=False, allow_null=True)
     plant_count_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
@@ -1927,7 +1930,9 @@ class SaveOCRPlantCountSerializer(serializers.ModelSerializer):
         )
 
 
-class SaveOCRAnimalObservationSerializer(serializers.ModelSerializer):
+class SaveOCRAnimalObservationSerializer(
+    IntegerFieldEmptytoNullSerializerMixin, serializers.ModelSerializer
+):
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
     primary_detection_method = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
@@ -3231,7 +3236,9 @@ class SaveOCCObservationDetailSerializer(serializers.ModelSerializer):
         )
 
 
-class SaveOCCPlantCountSerializer(serializers.ModelSerializer):
+class SaveOCCPlantCountSerializer(
+    IntegerFieldEmptytoNullSerializerMixin, serializers.ModelSerializer
+):
     occurrence_id = serializers.IntegerField(required=False, allow_null=True)
     plant_count_method_id = serializers.IntegerField(required=False, allow_null=True)
     plant_count_accuracy_id = serializers.IntegerField(required=False, allow_null=True)
