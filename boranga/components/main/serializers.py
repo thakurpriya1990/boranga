@@ -202,3 +202,20 @@ class AbstractOrderedListSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     order = serializers.IntegerField()
     item = serializers.CharField()
+
+
+class IntegerFieldEmptytoNullSerializerMixin:
+    """
+    A mixin to convert empty integer fields to None.
+    This is useful for serializers where an empty integer field should be treated as null.
+    """
+
+    def to_internal_value(self, data):
+        data = data.copy()
+        for field_name, field in self.fields.items():
+            if (
+                isinstance(field, serializers.IntegerField)
+                and data.get(field_name) == ""
+            ):
+                data[field_name] = None
+        return super().to_internal_value(data)
