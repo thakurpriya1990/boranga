@@ -592,7 +592,6 @@ export default {
         'occurrence_report_obj.observation_date': function () {
             let vm = this;
             if (vm.isFauna) {
-                console.log('Updating observation date for fauna');
                 if (
                     vm.occurrence_report_obj &&
                     vm.occurrence_report_obj.animal_observation &&
@@ -602,8 +601,6 @@ export default {
                         vm.occurrence_report_obj.observation_date;
                 }
             } else if (vm.isCommunity) {
-                console.log('Updating observation date for community');
-
                 if (
                     vm.occurrence_report_obj &&
                     vm.occurrence_report_obj.habitat_condition &&
@@ -618,10 +615,6 @@ export default {
                     vm.occurrence_report_obj.plant_count &&
                     vm.occurrence_report_obj.observation_date
                 ) {
-                    console.log(
-                        'Updating plant count observation date',
-                        vm.occurrence_report_obj.observation_date
-                    );
                     vm.occurrence_report_obj.plant_count.obs_date =
                         vm.occurrence_report_obj.observation_date;
                 }
