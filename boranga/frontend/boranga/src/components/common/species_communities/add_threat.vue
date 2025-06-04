@@ -744,7 +744,7 @@ export default {
                 });
                 swal.fire({
                     title: 'Error',
-                    text: 'Last data curation date cannot be in the future',
+                    text: 'Date observed cannot be in the future',
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
@@ -771,8 +771,10 @@ export default {
                     swal.fire({
                         title: 'Error',
                         text:
-                            'Last data curation date cannot be before ' +
-                            this.date_observed_minimum,
+                            'Date observed cannot be before ' +
+                            this.date_observed_minimum.toLocaleDateString(
+                                'en-AU'
+                            ),
                         icon: 'error',
                         customClass: {
                             confirmButton: 'btn btn-primary',
@@ -791,7 +793,9 @@ export default {
                 });
                 swal.fire({
                     title: 'Error',
-                    text: 'Last data curation date cannot be before 01/01/1990',
+                    text:
+                        'Date observed cannot be before ' +
+                        this.date_observed_minimum.toLocaleDateString('en-AU'),
                     icon: 'error',
                     customClass: {
                         confirmButton: 'btn btn-primary',
