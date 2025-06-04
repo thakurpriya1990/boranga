@@ -336,15 +336,15 @@ export default {
                             };
                             return query;
                         },
-                        // results: function (data, page) { // parse the results into the format expected by Select2.
-                        //     // since we are using custom formatting functions we do not need to alter remote JSON data
-                        //     return {results: data};
-                        // },
                     },
                 })
                 .on('select2:select', function (e) {
                     let data = e.params.data.id;
                     vm.selected_scientific_name = data;
+                    vm.selected_common_name = null;
+                    vm.$nextTick(() => {
+                        vm.initialiseCommonNameLookup();
+                    });
                 })
                 .on('select2:unselect', function () {
                     vm.selected_scientific_name = null;
@@ -388,9 +388,6 @@ export default {
                     },
                 })
                 .on('select2:select', function (e) {
-                    vm.selected_common_name = e.params.data.common_names_list;
-                    // Unfortunate to call this twice but the change event on the fieldset fires before
-                    // the select2:select event
                     vm.selected_scientific_name = e.params.data.id;
                     var newOption = new Option(
                         e.params.data.scientific_name,
@@ -401,19 +398,15 @@ export default {
                     $('#' + vm.scientific_name_lookup)
                         .append(newOption)
                         .trigger('change');
-
-                    $(vm.$refs[vm.select_common_name]).select2('destroy');
+                    vm.$nextTick(() => {
+                        $(vm.$refs[vm.select_common_name]).select2('destroy');
+                    });
+                    vm.selected_common_name = e.params.data.common_names_list;
                 })
-                .on('select2:unselect', function (e) {
-                    // eslint-disable-next-line no-unused-vars
-                    var selected = $(e.currentTarget);
-                    vm.occurrence_report_obj.species_id = null;
-                    vm.species_display = '';
-                    vm.taxon_previous_name = '';
-                    vm.$emit('saveOccurrenceReport');
+                .on('select2:unselect', function () {
+                    vm.selected_common_name = null;
                 })
-                // eslint-disable-next-line no-unused-vars
-                .on('select2:open', function (e) {
+                .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-' +
                             vm.select_common_name +
