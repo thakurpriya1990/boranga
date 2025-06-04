@@ -376,46 +376,55 @@ export default {
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then(
-                (result) => {
-                    if (result.isConfirmed) {
-                        fetch(
-                            helpers.add_endpoint_json(
-                                api_endpoints.contact_detail,
-                                id + '/discard'
-                            ),
-                            {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                            }
-                        ).then(
-                            () => {
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(
+                        helpers.add_endpoint_json(
+                            api_endpoints.contact_detail,
+                            id + '/discard'
+                        ),
+                        {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                        }
+                    ).then(
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
                                 swal.fire({
-                                    title: 'Discarded',
-                                    text: 'The Contact has been discarded',
-                                    icon: 'success',
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
                                     customClass: {
                                         confirmButton: 'btn btn-primary',
                                     },
-                                }).then(() => {
-                                    vm.$refs.contact_detail_datatable.vmDataTable.ajax.reload();
-                                    vm.$emit('refreshOccurrenceReport');
-                                    if (
-                                        vm.occurrence_obj.processing_status ==
-                                        'Unlocked'
-                                    ) {
-                                        vm.$router.go();
-                                    }
                                 });
-                            },
-                            (error) => {
-                                console.log(error);
+                                return;
                             }
-                        );
-                    }
-                },
-                () => {}
-            );
+                            swal.fire({
+                                title: 'Discarded',
+                                text: 'The Contact has been discarded',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            }).then(() => {
+                                vm.$refs.contact_detail_datatable.vmDataTable.ajax.reload();
+                                vm.$emit('refreshOccurrenceReport');
+                                if (
+                                    vm.occurrence_obj.processing_status ==
+                                    'Unlocked'
+                                ) {
+                                    vm.$router.go();
+                                }
+                            });
+                        },
+                        (error) => {
+                            console.log(error);
+                        }
+                    );
+                }
+            });
         },
         reinstateContactDetail: function (id) {
             let vm = this;
@@ -429,7 +438,19 @@ export default {
                     headers: { 'Content-Type': 'application/json' },
                 }
             ).then(
-                () => {
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     swal.fire({
                         title: 'Reinstated',
                         text: 'The Contact has been reinstated',

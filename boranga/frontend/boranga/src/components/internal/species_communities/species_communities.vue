@@ -951,7 +951,19 @@ export default {
                             },
                         }
                     ).then(
-                        async () => {
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
+                                swal.fire({
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                return;
+                            }
                             swal.fire({
                                 title: 'Reopened',
                                 text: 'Record has been reopened',
@@ -999,7 +1011,19 @@ export default {
                     pk: image.id,
                 }
             )
-                .then(() => {
+                .then(async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     this.speciesCommunitiesImage = image.url;
                     this.species_community.image_doc = image.url;
                 })
@@ -1108,41 +1132,50 @@ export default {
                     cancelButton: 'btn btn-secondary',
                 },
                 reverseButtons: true,
-            }).then(
-                (swalresult) => {
-                    if (swalresult.isConfirmed) {
-                        fetch(
-                            api_endpoints.discard_species_proposal(
-                                vm.species_community.id
-                            ),
-                            {
-                                method: 'PATCH',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                            }
-                        ).then(
-                            () => {
+            }).then((swalresult) => {
+                if (swalresult.isConfirmed) {
+                    fetch(
+                        api_endpoints.discard_species_proposal(
+                            vm.species_community.id
+                        ),
+                        {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        }
+                    ).then(
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
                                 swal.fire({
-                                    title: 'Discarded',
-                                    text: 'The proposal has been discarded',
-                                    icon: 'success',
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
                                     customClass: {
                                         confirmButton: 'btn btn-primary',
                                     },
                                 });
-                                vm.$router.push({
-                                    name: 'internal-species-communities-dash',
-                                });
-                            },
-                            (error) => {
-                                console.log(error);
+                                return;
                             }
-                        );
-                    }
-                },
-                () => {}
-            );
+                            swal.fire({
+                                title: 'Discarded',
+                                text: 'The proposal has been discarded',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.$router.push({
+                                name: 'internal-species-communities-dash',
+                            });
+                        },
+                        (error) => {
+                            console.log(error);
+                        }
+                    );
+                }
+            });
         },
         save: async function () {
             let vm = this;
@@ -1253,8 +1286,19 @@ export default {
                     'Content-Type': 'application/json',
                 },
             }).then(
-                async () => {
-                    //return true;
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                 },
                 (err) => {
                     var errorText = helpers.apiVueResourceError(err);
@@ -1449,7 +1493,19 @@ export default {
                     'Content-Type': 'application/json',
                 },
             }).then(
-                () => {
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     vm.species_community_original = helpers.copyObject(
                         vm.species_community
                     ); //update original after save

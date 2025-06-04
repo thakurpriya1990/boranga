@@ -383,38 +383,47 @@ export default {
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then(
-                (result) => {
-                    if (result.isConfirmed) {
-                        fetch(
-                            helpers.add_endpoint_json(
-                                api_endpoints.conservation_status_documents,
-                                id + '/discard'
-                            ),
-                            {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                            }
-                        ).then(
-                            () => {
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(
+                        helpers.add_endpoint_json(
+                            api_endpoints.conservation_status_documents,
+                            id + '/discard'
+                        ),
+                        {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                        }
+                    ).then(
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
                                 swal.fire({
-                                    title: 'Discarded',
-                                    text: 'The document has been discarded',
-                                    icon: 'success',
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
                                     customClass: {
                                         confirmButton: 'btn btn-primary',
                                     },
                                 });
-                                vm.$refs.documents_datatable.vmDataTable.ajax.reload();
-                            },
-                            (error) => {
-                                console.log(error);
+                                return;
                             }
-                        );
-                    }
-                },
-                () => {}
-            );
+                            swal.fire({
+                                title: 'Discarded',
+                                text: 'The document has been discarded',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.$refs.documents_datatable.vmDataTable.ajax.reload();
+                        },
+                        (error) => {
+                            console.log(error);
+                        }
+                    );
+                }
+            });
         },
         reinstateDocument: function (id) {
             let vm = this;
@@ -429,38 +438,47 @@ export default {
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then(
-                (result) => {
-                    if (result.isConfirmed) {
-                        fetch(
-                            helpers.add_endpoint_json(
-                                api_endpoints.conservation_status_documents,
-                                id + '/reinstate'
-                            ),
-                            {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                            }
-                        ).then(
-                            () => {
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(
+                        helpers.add_endpoint_json(
+                            api_endpoints.conservation_status_documents,
+                            id + '/reinstate'
+                        ),
+                        {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                        }
+                    ).then(
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
                                 swal.fire({
-                                    title: 'Reinstated',
-                                    text: 'Your document has been reinstated',
-                                    icon: 'success',
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
                                     customClass: {
                                         confirmButton: 'btn btn-primary',
                                     },
                                 });
-                                vm.$refs.documents_datatable.vmDataTable.ajax.reload();
-                            },
-                            (error) => {
-                                console.log(error);
+                                return;
                             }
-                        );
-                    }
-                },
-                () => {}
-            );
+                            swal.fire({
+                                title: 'Reinstated',
+                                text: 'Your document has been reinstated',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.$refs.documents_datatable.vmDataTable.ajax.reload();
+                        },
+                        (error) => {
+                            console.log(error);
+                        }
+                    );
+                }
+            });
         },
         updatedDocuments() {
             this.$refs.documents_datatable.vmDataTable.ajax.reload();

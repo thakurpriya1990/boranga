@@ -1034,7 +1034,19 @@ export default {
                     },
                 }
             ).then(
-                () => {
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     swal.fire({
                         title: 'Combined',
                         text: 'Selected Occurrences have been combined.',

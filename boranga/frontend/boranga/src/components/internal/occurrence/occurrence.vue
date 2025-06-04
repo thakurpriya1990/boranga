@@ -540,8 +540,19 @@ export default {
                 },
                 body: JSON.stringify(payload),
             }).then(
-                async () => {
-                    //return true;
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                 },
                 (err) => {
                     var errorText = helpers.apiVueResourceError(err);
@@ -718,7 +729,19 @@ export default {
                     },
                 }
             ).then(
-                async () => {
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     swal.fire({
                         title: 'Locked',
                         text: 'Occurrence has been Locked',
@@ -753,7 +776,19 @@ export default {
                     },
                 }
             ).then(
-                async () => {
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     swal.fire({
                         title: 'Unlocked',
                         text: 'Occurrence has been Unlocked',
@@ -802,7 +837,19 @@ export default {
                             },
                         }
                     ).then(
-                        async () => {
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
+                                swal.fire({
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                return;
+                            }
                             swal.fire({
                                 title: 'Closed',
                                 text: 'Occurrence has been Closed',
@@ -854,7 +901,19 @@ export default {
                             },
                         }
                     ).then(
-                        async () => {
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
+                                swal.fire({
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                return;
+                            }
                             swal.fire({
                                 title: 'Reopened',
                                 text: 'Occurrence has been Reopened',

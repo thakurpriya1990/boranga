@@ -318,52 +318,49 @@ export default {
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then(
-                (result) => {
-                    if (result.isConfirmed) {
-                        let payload = new Object();
-                        payload.conservation_status_id = conservation_status_id;
-                        fetch(
-                            `/api/meeting/${vm.meeting_obj.id}/remove_agenda_item.json`,
-                            {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify(payload),
-                            }
-                        ).then(
-                            async (response) => {
-                                swal.fire({
-                                    title: 'Removed',
-                                    text: 'Your agenda item is removed',
-                                    icon: 'success',
-                                    customClass: {
-                                        confirmButton: 'btn btn-primary',
-                                    },
-                                });
-                                vm.meeting_obj.agenda_items_arr =
-                                    await response.json();
-                                vm.$refs.cs_queue_datatable.vmDataTable.ajax.reload(
-                                    vm.addTableListeners,
-                                    false
-                                );
-                                // Open the CS details page in a new tab
-                                var new_window = window.open(
-                                    `/internal/conservation-status/${conservation_status_id}?action=view`,
-                                    '_blank'
-                                );
-                                new_window.blur();
-                                window.focus();
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let payload = new Object();
+                    payload.conservation_status_id = conservation_status_id;
+                    fetch(
+                        `/api/meeting/${vm.meeting_obj.id}/remove_agenda_item.json`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
                             },
-                            (error) => {
-                                console.log(error);
-                            }
-                        );
-                    }
-                },
-                () => {}
-            );
+                            body: JSON.stringify(payload),
+                        }
+                    ).then(
+                        async (response) => {
+                            swal.fire({
+                                title: 'Removed',
+                                text: 'Your agenda item is removed',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.meeting_obj.agenda_items_arr =
+                                await response.json();
+                            vm.$refs.cs_queue_datatable.vmDataTable.ajax.reload(
+                                vm.addTableListeners,
+                                false
+                            );
+                            // Open the CS details page in a new tab
+                            var new_window = window.open(
+                                `/internal/conservation-status/${conservation_status_id}?action=view`,
+                                '_blank'
+                            );
+                            new_window.blur();
+                            window.focus();
+                        },
+                        (error) => {
+                            console.log(error);
+                        }
+                    );
+                }
+            });
         },
         addTableListeners: function () {
             let vm = this;

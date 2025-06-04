@@ -229,9 +229,6 @@ MEDIA_APP_DIR = env("MEDIA_APP_DIR", "boranga")
 CRON_RUN_AT_TIMES = env("CRON_RUN_AT_TIMES", "04:05")
 CRON_EMAIL = env("CRON_EMAIL", "cron@" + SITE_DOMAIN).lower()
 EMAIL_FROM = DEFAULT_FROM_EMAIL
-CRON_NOTIFICATION_EMAIL = ""
-if NOTIFICATION_EMAIL:
-    CRON_NOTIFICATION_EMAIL = env("CRON_NOTIFICATION_EMAIL", NOTIFICATION_EMAIL).lower()
 
 CRON_CLASSES = [
     "appmonitor_client.cron.CronJobAppMonitorClient",
@@ -284,11 +281,6 @@ APPLICATION_VERSION = env("APPLICATION_VERSION", "1.0.0") + "-" + GIT_COMMIT_HAS
 
 RUNNING_DEVSERVER = len(sys.argv) > 1 and sys.argv[1] == "runserver"
 
-SECURE_CROSS_ORIGIN_OPENER_POLICY = env(
-    "SECURE_CROSS_ORIGIN_OPENER_POLICY",
-    "same-origin",
-)
-
 # Sentry settings
 SENTRY_DSN = env("SENTRY_DSN", default=None)
 SENTRY_SAMPLE_RATE = env("SENTRY_SAMPLE_RATE", default=1.0)  # Error sampling rate
@@ -329,11 +321,22 @@ GIS_SERVER_URL = env(
 # Proxy prefix for basic authentication
 BASIC_AUTH_PROXY_PREFIX = env("BASIC_AUTH_PROXY_PREFIX", "kb-proxy/")
 
+
 # Set USE_X_FORWARDED_HOST env to True to ensure that if the request is https
 # then urls generated for file fields are also https
 USE_X_FORWARDED_HOST = env("USE_X_FORWARDED_HOST", False)
 if USE_X_FORWARDED_HOST:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+SESSION_COOKIE_SECURE = env("SESSION_COOKIE_SECURE", True)
+CSRF_COOKIE_SECURE = env("CSRF_COOKIE_SECURE", True)
+CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
+SESSION_COOKIE_AGE = env("SESSION_COOKIE_AGE", 3600)
+
+SECURE_CROSS_ORIGIN_OPENER_POLICY = env(
+    "SECURE_CROSS_ORIGIN_OPENER_POLICY",
+    "same-origin",
+)
 
 
 # Make sure this returns true when in local development
@@ -522,8 +525,6 @@ OCR_BULK_IMPORT_LOOKUP_TABLE_RECORD_LIMIT = env(
 )
 
 OCR_BULK_IMPORT_M2M_DELIMITER = env("OCR_BULK_IMPORT_M2M_DELIMITER", "||")
-
-CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
 
 COUNT_STATUS_NOT_COUNTED = "not_counted"
 COUNT_STATUS_COUNTED = "detailed_count"

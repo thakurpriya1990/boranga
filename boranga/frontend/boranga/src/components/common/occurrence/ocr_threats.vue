@@ -595,45 +595,54 @@ export default {
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then(
-                (result) => {
-                    if (result.isConfirmed) {
-                        fetch(
-                            helpers.add_endpoint_json(
-                                api_endpoints.ocr_threat,
-                                id + '/discard'
-                            ),
-                            {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                            }
-                        ).then(
-                            () => {
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(
+                        helpers.add_endpoint_json(
+                            api_endpoints.ocr_threat,
+                            id + '/discard'
+                        ),
+                        {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                        }
+                    ).then(
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
                                 swal.fire({
-                                    title: 'Discarded',
-                                    text: 'Your threat has been discarded',
-                                    icon: 'success',
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
                                     customClass: {
                                         confirmButton: 'btn btn-primary',
                                     },
-                                }).then(() => {
-                                    vm.$refs.threats_datatable.vmDataTable.ajax.reload();
-                                    if (
-                                        vm.occurrence_report_obj
-                                            .processing_status == 'Unlocked'
-                                    ) {
-                                        vm.$router.go();
-                                    }
                                 });
-                            },
-                            (error) => {
-                                console.log(error);
+                                return;
                             }
-                        );
-                    }
-                },
-                () => {}
-            );
+                            swal.fire({
+                                title: 'Discarded',
+                                text: 'Your threat has been discarded',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            }).then(() => {
+                                vm.$refs.threats_datatable.vmDataTable.ajax.reload();
+                                if (
+                                    vm.occurrence_report_obj
+                                        .processing_status == 'Unlocked'
+                                ) {
+                                    vm.$router.go();
+                                }
+                            });
+                        },
+                        (error) => {
+                            console.log(error);
+                        }
+                    );
+                }
+            });
         },
         reinstateThreat: function (id) {
             let vm = this;
@@ -658,7 +667,19 @@ export default {
                             headers: { 'Content-Type': 'application/json' },
                         }
                     ).then(
-                        () => {
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
+                                swal.fire({
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                return;
+                            }
                             swal.fire({
                                 title: 'Reinstated',
                                 text: 'Your threat has been reinstated',

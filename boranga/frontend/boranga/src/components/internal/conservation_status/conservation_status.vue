@@ -1463,7 +1463,19 @@ export default {
                             },
                         }
                     ).then(
-                        () => {
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
+                                swal.fire({
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                return;
+                            }
                             swal.fire({
                                 title: 'Discarded',
                                 text: 'Your proposal has been discarded',
@@ -1527,7 +1539,19 @@ export default {
                             },
                         }
                     ).then(
-                        () => {
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
+                                swal.fire({
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                return;
+                            }
                             swal.fire({
                                 title: 'Delisted',
                                 text: `Conservation Status ${this.conservation_status_obj.conservation_status_number} has been delisted.`,
@@ -1666,7 +1690,19 @@ export default {
                 },
                 body: JSON.stringify(payload),
             }).then(
-                async () => {
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     swal.fire({
                         title: 'Saved',
                         text: 'Your changes have been saved',
@@ -1731,7 +1767,20 @@ export default {
                 },
                 body: JSON.stringify(payload),
             }).then(
-                async () => {},
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
+                },
                 (err) => {
                     var errorText = helpers.apiVueResourceError(err);
                     swal.fire({
@@ -2238,7 +2287,19 @@ export default {
                     },
                 }
             )
-                .then(() => {
+                .then(async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     swal.fire({
                         title: 'Reminder Email Sent',
                         text: `A reminder email was successfully sent to ${external_referee_invite.full_name} (${external_referee_invite.email}).`,
@@ -2277,7 +2338,19 @@ export default {
                             },
                         }
                     )
-                        .then(() => {
+                        .then(async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
+                                swal.fire({
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                return;
+                            }
                             this.fetchConservationStatus();
                             swal.fire({
                                 title: 'External Referee Invite Retracted',
@@ -2308,7 +2381,19 @@ export default {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload),
-            }).then(async () => {
+            }).then(async (response) => {
+                if (!response.ok) {
+                    const data = await response.json();
+                    swal.fire({
+                        title: 'Error',
+                        text: data,
+                        icon: 'error',
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                        },
+                    });
+                    return;
+                }
                 let data = {
                     email: vm.selected_referral,
                     text: vm.referral_text,
@@ -2328,6 +2413,17 @@ export default {
                 ).then(
                     async (response) => {
                         const data = await response.json();
+                        if (!response.ok) {
+                            swal.fire({
+                                title: 'Error',
+                                text: data,
+                                icon: 'error',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            return;
+                        }
                         vm.sendingReferral = false;
                         vm.original_conservation_status_obj =
                             helpers.copyObject(data);

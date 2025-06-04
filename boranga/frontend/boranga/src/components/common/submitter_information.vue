@@ -303,8 +303,15 @@ export default {
                 },
                 body: JSON.stringify(this.submitter_information),
             })
-                .then((response) => response.json())
-                .then(() => {})
+                .then(async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        throw new Error(
+                            'Failed to save submitter information: ' + data
+                        );
+                    }
+                    return await response.json();
+                })
                 .catch((error) => {
                     console.log(error);
                 });

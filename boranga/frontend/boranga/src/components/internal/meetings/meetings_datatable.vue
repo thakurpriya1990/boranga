@@ -553,7 +553,19 @@ export default {
                             'Content-Type': 'application/json',
                         },
                     }).then(
-                        () => {
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
+                                swal.fire({
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                return;
+                            }
                             swal.fire({
                                 title: 'Discarded',
                                 text: 'Your meeting has been discarded',
@@ -595,7 +607,19 @@ export default {
                             'Content-Type': 'application/json',
                         },
                     }).then(
-                        () => {
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
+                                swal.fire({
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                return;
+                            }
                             swal.fire({
                                 title: 'Reinstated',
                                 text: 'Your meeting has been reinstated',

@@ -147,7 +147,19 @@ export default {
                             body: JSON.stringify(vm.decline),
                         }
                     ).then(
-                        () => {
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
+                                swal.fire({
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                return;
+                            }
                             swal.fire({
                                 title: 'Occurrence Report Successfully Declined',
                                 text: `Occurrence Report ${vm.occurrence_report_number} has been successfully declined. The proponent has been notified via email.`,

@@ -1035,41 +1035,50 @@ export default {
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then(
-                (swalresult) => {
-                    if (swalresult.isConfirmed) {
-                        fetch(
-                            api_endpoints.discard_ocr_proposal(
-                                vm.occurrence_report.id
-                            ),
-                            {
-                                method: 'PATCH',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                            }
-                        ).then(
-                            () => {
+            }).then((swalresult) => {
+                if (swalresult.isConfirmed) {
+                    fetch(
+                        api_endpoints.discard_ocr_proposal(
+                            vm.occurrence_report.id
+                        ),
+                        {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        }
+                    ).then(
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
                                 swal.fire({
-                                    title: 'Discarded',
-                                    text: 'Your report has been discarded',
-                                    icon: 'success',
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
                                     customClass: {
                                         confirmButton: 'btn btn-primary',
                                     },
                                 });
-                                vm.$router.push({
-                                    name: 'internal-species-communities-dash',
-                                });
-                            },
-                            (error) => {
-                                console.log(error);
+                                return;
                             }
-                        );
-                    }
-                },
-                () => {}
-            );
+                            swal.fire({
+                                title: 'Discarded',
+                                text: 'Your report has been discarded',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.$router.push({
+                                name: 'internal-species-communities-dash',
+                            });
+                        },
+                        (error) => {
+                            console.log(error);
+                        }
+                    );
+                }
+            });
         },
         unlock: function () {
             let vm = this;
@@ -1084,37 +1093,34 @@ export default {
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then(
-                (swalresult) => {
-                    if (swalresult.isConfirmed) {
-                        fetch(
-                            `/api/occurrence_report/${vm.occurrence_report.id}/unlock_occurrence_report.json`,
-                            {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                            }
-                        ).then(
-                            async (response) => {
-                                swal.fire({
-                                    title: 'Unlocked',
-                                    text: 'The approved occurrence report has been unlocked for editing',
-                                    icon: 'success',
-                                    customClass: {
-                                        confirmButton: 'btn btn-primary',
-                                    },
-                                });
-                                vm.occurrence_report = await response.json();
+            }).then((swalresult) => {
+                if (swalresult.isConfirmed) {
+                    fetch(
+                        `/api/occurrence_report/${vm.occurrence_report.id}/unlock_occurrence_report.json`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
                             },
-                            (error) => {
-                                console.log(error);
-                            }
-                        );
-                    }
-                },
-                () => {}
-            );
+                        }
+                    ).then(
+                        async (response) => {
+                            swal.fire({
+                                title: 'Unlocked',
+                                text: 'The approved occurrence report has been unlocked for editing',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.occurrence_report = await response.json();
+                        },
+                        (error) => {
+                            console.log(error);
+                        }
+                    );
+                }
+            });
         },
         lock: function () {
             let vm = this;
@@ -1129,37 +1135,34 @@ export default {
                     cancelButton: 'btn btn-secondary me-2',
                 },
                 reverseButtons: true,
-            }).then(
-                (swalresult) => {
-                    if (swalresult.isConfirmed) {
-                        fetch(
-                            `/api/occurrence_report/${vm.occurrence_report.id}/lock_occurrence_report.json`,
-                            {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                            }
-                        ).then(
-                            async (response) => {
-                                swal.fire({
-                                    title: 'Locked',
-                                    text: 'The approved occurrence report has been locked from editing',
-                                    icon: 'success',
-                                    customClass: {
-                                        confirmButton: 'btn btn-primary',
-                                    },
-                                });
-                                vm.occurrence_report = await response.json();
+            }).then((swalresult) => {
+                if (swalresult.isConfirmed) {
+                    fetch(
+                        `/api/occurrence_report/${vm.occurrence_report.id}/lock_occurrence_report.json`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
                             },
-                            (error) => {
-                                console.log(error);
-                            }
-                        );
-                    }
-                },
-                () => {}
-            );
+                        }
+                    ).then(
+                        async (response) => {
+                            swal.fire({
+                                title: 'Locked',
+                                text: 'The approved occurrence report has been locked from editing',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.occurrence_report = await response.json();
+                        },
+                        (error) => {
+                            console.log(error);
+                        }
+                    );
+                }
+            });
         },
         amendmentRequest: function () {
             this.$refs.amendment_request.isModalOpen = true;
@@ -1840,7 +1843,19 @@ export default {
                     },
                 }
             )
-                .then(() => {
+                .then(async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     swal.fire({
                         title: 'Reminder Email Sent',
                         text: `A reminder email was successfully sent to ${external_referee_invite.full_name} (${external_referee_invite.email}).`,
@@ -1879,7 +1894,19 @@ export default {
                             },
                         }
                     )
-                        .then(() => {
+                        .then(async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
+                                swal.fire({
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                return;
+                            }
                             this.refreshOccurrenceReport();
                             swal.fire({
                                 title: 'External Referee Invite Retracted',
@@ -2013,7 +2040,19 @@ export default {
                         vm.occurrence_report.id + '/unassign'
                     )
                 ).then(
-                    async () => {
+                    async (response) => {
+                        if (!response.ok) {
+                            const data = await response.json();
+                            swal.fire({
+                                title: 'Error',
+                                text: data,
+                                icon: 'error',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            return;
+                        }
                         vm.occurrence_report = data;
                         vm.original_occurrence_report =
                             helpers.copyObject(data);

@@ -313,7 +313,19 @@ export default {
                 method: 'POST',
                 body: formData,
             }).then(
-                () => {
+                async (response) => {
+                    if (!response.ok) {
+                        const data = await response.json();
+                        swal.fire({
+                            title: 'Error',
+                            text: data,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        return;
+                    }
                     vm.refreshFromResponse();
                     vm.$parent.updatedThreats();
                 },

@@ -11,7 +11,7 @@
                     class="form-control"
                 />
             </div>
-            <div class="col-sm-12">
+            <div class="col-sm-3">
                 <div class="text-end">
                     <button
                         :disabled="isReadOnly || adding_species"
@@ -23,6 +23,37 @@
                         Add Related Species
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <div class="row mb-4 border-bottom pb-4">
+            <label for="" class="col-sm-3 col-form-label">Common Name:</label>
+            <div :id="select_common_name" class="col-sm-6">
+                <template v-if="!selected_common_name">
+                    <select
+                        :id="select_common_name"
+                        :ref="select_common_name"
+                        :disabled="isReadOnly"
+                        :name="select_common_name"
+                        class="form-control"
+                    />
+                </template>
+                <template
+                    v-else-if="
+                        selected_common_name && selected_common_name.length > 0
+                    "
+                >
+                    <template
+                        v-for="commonName in selected_common_name"
+                        :key="commonName"
+                    >
+                        <h5 class="d-inline">
+                            <span class="badge bg-primary me-2">{{
+                                commonName
+                            }}</span>
+                        </h5></template
+                    >
+                </template>
             </div>
         </div>
 
@@ -65,6 +96,8 @@ export default {
             select_scientific_name:
                 'select_scientific_name' + vm.occurrence_obj.id,
             selected_scientific_name: null,
+            select_common_name: 'select_common_name' + uuid(),
+            selected_common_name: null,
             adding_species: false,
             uuid: 0,
             datatable_id: uuid(),
@@ -162,6 +195,7 @@ export default {
         let vm = this;
         this.$nextTick(() => {
             vm.initialiseScientificNameLookup();
+            vm.initialiseCommonNameLookup();
             vm.addEventListeners();
         });
     },
@@ -180,7 +214,19 @@ export default {
                         '/add_related_species?species=' +
                         vm.selected_scientific_name
                 ).then(
-                    () => {
+                    async (response) => {
+                        if (!response.ok) {
+                            const data = await response.json();
+                            swal.fire({
+                                title: 'Error',
+                                text: data,
+                                icon: 'error',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            return;
+                        }
                         swal.fire({
                             title: 'Added',
                             text: 'Related Species has been added',
@@ -191,6 +237,13 @@ export default {
                         });
                         vm.$refs.related_species_datatable.vmDataTable.ajax.reload();
                         vm.selected_scientific_name = null;
+                        $(vm.$refs[vm.scientific_name_lookup])
+                            .val(null)
+                            .trigger('change');
+                        vm.selected_common_name = null;
+                        vm.$nextTick(() => {
+                            vm.initialiseCommonNameLookup();
+                        });
                         vm.adding_species = false;
                     },
                     (error) => {
@@ -213,34 +266,43 @@ export default {
                     cancelButton: 'btn btn-secondary',
                 },
                 reverseButtons: true,
-            }).then(
-                (result) => {
-                    if (result.isConfirmed) {
-                        fetch(
-                            '/api/occurrence/' +
-                                this.occurrence_obj.id +
-                                '/remove_related_species?species=' +
-                                id
-                        ).then(
-                            () => {
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(
+                        '/api/occurrence/' +
+                            this.occurrence_obj.id +
+                            '/remove_related_species?species=' +
+                            id
+                    ).then(
+                        async (response) => {
+                            if (!response.ok) {
+                                const data = await response.json();
                                 swal.fire({
-                                    title: 'Removed',
-                                    text: 'Related Species has been removed',
-                                    icon: 'success',
+                                    title: 'Error',
+                                    text: data,
+                                    icon: 'error',
                                     customClass: {
                                         confirmButton: 'btn btn-primary',
                                     },
                                 });
-                                vm.$refs.related_species_datatable.vmDataTable.ajax.reload();
-                            },
-                            (error) => {
-                                console.log(error);
+                                return;
                             }
-                        );
-                    }
-                },
-                () => {}
-            );
+                            swal.fire({
+                                title: 'Removed',
+                                text: 'Related Species has been removed',
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.$refs.related_species_datatable.vmDataTable.ajax.reload();
+                        },
+                        (error) => {
+                            console.log(error);
+                        }
+                    );
+                }
+            });
         },
         initialiseScientificNameLookup: function () {
             let vm = this;
@@ -270,14 +332,74 @@ export default {
                 .on('select2:select', function (e) {
                     let data = e.params.data.id;
                     vm.selected_scientific_name = data;
+                    vm.selected_common_name = null;
+                    vm.$nextTick(() => {
+                        vm.initialiseCommonNameLookup();
+                    });
                 })
                 .on('select2:unselect', function () {
                     vm.selected_scientific_name = null;
+                    vm.selected_common_name = null;
+                    vm.$nextTick(() => {
+                        vm.initialiseCommonNameLookup();
+                    });
                 })
                 .on('select2:open', function () {
                     const searchField = $(
                         '[aria-controls="select2-' +
                             vm.scientific_name_lookup +
+                            '-results"]'
+                    );
+                    // move focus to select2 field
+                    searchField[0].focus();
+                });
+        },
+        initialiseCommonNameLookup: function () {
+            let vm = this;
+            $(vm.$refs[vm.select_common_name])
+                .select2({
+                    minimumInputLength: 2,
+                    dropdownParent: $('#' + vm.select_common_name),
+                    theme: 'bootstrap-5',
+                    allowClear: true,
+                    placeholder: 'Select Common Name',
+                    ajax: {
+                        url: api_endpoints.common_name_lookup_ocr_select,
+                        dataType: 'json',
+                        data: function (params) {
+                            var query = {
+                                term: params.term,
+                                type: 'public',
+                                group_type_id: vm.occurrence_obj.group_type_id,
+                                has_species: true,
+                            };
+                            return query;
+                        },
+                    },
+                })
+                .on('select2:select', function (e) {
+                    vm.selected_scientific_name = e.params.data.id;
+                    var newOption = new Option(
+                        e.params.data.scientific_name,
+                        e.params.data.id,
+                        false,
+                        true
+                    );
+                    $('#' + vm.scientific_name_lookup)
+                        .append(newOption)
+                        .trigger('change');
+                    vm.$nextTick(() => {
+                        $(vm.$refs[vm.select_common_name]).select2('destroy');
+                    });
+                    vm.selected_common_name = e.params.data.common_names_list;
+                })
+                .on('select2:unselect', function () {
+                    vm.selected_common_name = null;
+                })
+                .on('select2:open', function () {
+                    const searchField = $(
+                        '[aria-controls="select2-' +
+                            vm.select_common_name +
                             '-results"]'
                     );
                     // move focus to select2 field
