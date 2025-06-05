@@ -605,6 +605,9 @@ class OCRFireHistorySerializer(serializers.ModelSerializer):
 
 
 class OCRAssociatedSpeciesSerializer(serializers.ModelSerializer):
+    species_list_relates_to = serializers.CharField(
+        source="species_list_relates_to.name", allow_null=True
+    )
 
     class Meta:
         model = OCRAssociatedSpecies
@@ -612,6 +615,8 @@ class OCRAssociatedSpeciesSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_report_id",
             "comment",
+            "species_list_relates_to",
+            "species_list_relates_to_id",
             "related_species",
         )
 
@@ -1853,6 +1858,9 @@ class SaveOCRFireHistorySerializer(serializers.ModelSerializer):
 
 class SaveOCRAssociatedSpeciesSerializer(serializers.ModelSerializer):
     occurrence_report_id = serializers.IntegerField(required=False, allow_null=True)
+    species_list_relates_to_id = serializers.IntegerField(
+        required=False, allow_null=True
+    )
 
     class Meta:
         model = OCRAssociatedSpecies
@@ -1860,6 +1868,7 @@ class SaveOCRAssociatedSpeciesSerializer(serializers.ModelSerializer):
             "id",
             "occurrence_report_id",
             "comment",
+            "species_list_relates_to_id",
             # "related_species",
         )
 
@@ -3286,7 +3295,9 @@ class SaveOCCPlantCountSerializer(
         )
 
 
-class SaveOCCAnimalObservationSerializer(serializers.ModelSerializer):
+class SaveOCCAnimalObservationSerializer(
+    IntegerFieldEmptytoNullSerializerMixin, serializers.ModelSerializer
+):
     occurrence_id = serializers.IntegerField(required=False, allow_null=True)
     primary_detection_method = serializers.MultipleChoiceField(
         choices=[], allow_null=True, allow_blank=True, required=False
