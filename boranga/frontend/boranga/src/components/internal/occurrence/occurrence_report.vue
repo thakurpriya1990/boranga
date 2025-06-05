@@ -226,13 +226,16 @@
                                         class="form-control"
                                         name="referral_text"
                                     ></textarea>
-                                    <a
-                                        v-if="canAction"
-                                        class="btn btn-sm btn-primary mt-2 float-end"
-                                        role="button"
-                                        @click.prevent="sendReferral()"
-                                        ><i class="bi bi-send me-2"></i>Send</a
-                                    >
+                                    <div class="d-flex justify-content-end">
+                                        <a
+                                            v-if="canAction"
+                                            class="btn btn-sm btn-primary mt-2"
+                                            role="button"
+                                            @click.prevent="sendReferral()"
+                                            ><i class="bi bi-send me-2"></i
+                                            >Send</a
+                                        >
+                                    </div>
                                 </template>
                             </div>
                             <div class="mb-3" v-else>
@@ -240,9 +243,10 @@
                                     v-if="canAction"
                                     disabled
                                     class="btn btn-sm btn-primary mt-2 float-end"
+                                    role="button"
                                     @click.prevent="sendReferral()"
                                 >
-                                    Sending Referral&nbsp;
+                                    Sending Referral
                                     <span
                                         class="spinner-border spinner-border-sm"
                                         role="status"
