@@ -46,6 +46,7 @@ from boranga.components.occurrence.models import (
     SoilColour,
     SoilCondition,
     SoilType,
+    SpeciesListRelatesTo,
     WildStatus,
 )
 from boranga.components.spatial.utils import wkb_to_geojson
@@ -731,38 +732,52 @@ class AnimalHealthAdmin(
     ordering = ("order",)
 
 
+class SpeciesListRelatesToAdmin(
+    CsvExportMixin,
+    ArchivableModelAdminMixin,
+    OrderedModelAdmin,
+    DeleteProtectedModelAdmin,
+):
+    list_display = ["name", "move_up_down_links"]
+    list_filter = ["archived"]
+    search_fields = ["name"]
+    ordering = ("order",)
+
+
 # Each of the following models will be available to Django Admin.
-admin.site.register(LandForm, LandFormAdmin)
-admin.site.register(RockType, RockTypeAdmin)
-admin.site.register(SoilType, SoilTypeAdmin)
-admin.site.register(SiteType, SiteTypeAdmin)
-admin.site.register(SoilColour, SoilColourAdmin)
-admin.site.register(SoilCondition, SoilConditionAdmin)
-admin.site.register(Drainage, DrainageAdmin)
-admin.site.register(Intensity, IntensityAdmin)
-admin.site.register(ObserverRole, ObserverRoleAdmin)
-admin.site.register(ObserverCategory, ObserverCategoryAdmin)
-admin.site.register(ObservationTime, ObservationTimeAdmin)
-admin.site.register(ObservationMethod, ObservationMethodAdmin)
-admin.site.register(PlantCountMethod, PlantCountMethodAdmin)
-admin.site.register(PlantCountAccuracy, PlantCountAccuracyAdmin)
-admin.site.register(CountedSubject, CountedSubjectAdmin)
-admin.site.register(PlantCondition, PlantConditionAdmin)
-admin.site.register(PrimaryDetectionMethod, PrimaryDetectionMethodAdmin)
-admin.site.register(SecondarySign, SecondarySignAdmin)
-admin.site.register(ReproductiveState, ReproductiveStateAdmin)
-admin.site.register(DeathReason, DeathReasonAdmin)
+
 admin.site.register(AnimalHealth, AnimalHealthAdmin)
-admin.site.register(IdentificationCertainty, IdentificationCertaintyAdmin)
-admin.site.register(SampleType, SampleTypeAdmin)
-admin.site.register(SampleDestination, SampleDestinationAdmin)
-admin.site.register(PermitType, PermitTypeAdmin)
-admin.site.register(Datum, DatumAdmin)
 admin.site.register(CoordinateSource, CoordinateSourceAdmin)
+admin.site.register(CountedSubject, CountedSubjectAdmin)
+admin.site.register(Datum, DatumAdmin)
+admin.site.register(DeathReason, DeathReasonAdmin)
+admin.site.register(Drainage, DrainageAdmin)
+admin.site.register(IdentificationCertainty, IdentificationCertaintyAdmin)
+admin.site.register(Intensity, IntensityAdmin)
+admin.site.register(LandForm, LandFormAdmin)
 admin.site.register(LocationAccuracy, LocationAccuracyAdmin)
-admin.site.register(WildStatus, WildStatusAdmin)
-admin.site.register(OccurrenceSite)
-admin.site.register(OccurrenceReportBulkImportTask, OccurrenceReportBulkImportTaskAdmin)
+admin.site.register(ObservationMethod, ObservationMethodAdmin)
+admin.site.register(ObservationTime, ObservationTimeAdmin)
+admin.site.register(ObserverCategory, ObserverCategoryAdmin)
+admin.site.register(ObserverRole, ObserverRoleAdmin)
 admin.site.register(
     OccurrenceReportBulkImportSchema, OccurrenceReportBulkImportSchemaAdmin
 )
+admin.site.register(OccurrenceReportBulkImportTask, OccurrenceReportBulkImportTaskAdmin)
+admin.site.register(OccurrenceSite)
+admin.site.register(PermitType, PermitTypeAdmin)
+admin.site.register(PlantCondition, PlantConditionAdmin)
+admin.site.register(PlantCountAccuracy, PlantCountAccuracyAdmin)
+admin.site.register(PlantCountMethod, PlantCountMethodAdmin)
+admin.site.register(PrimaryDetectionMethod, PrimaryDetectionMethodAdmin)
+admin.site.register(ReproductiveState, ReproductiveStateAdmin)
+admin.site.register(RockType, RockTypeAdmin)
+admin.site.register(SampleDestination, SampleDestinationAdmin)
+admin.site.register(SampleType, SampleTypeAdmin)
+admin.site.register(SecondarySign, SecondarySignAdmin)
+admin.site.register(SiteType, SiteTypeAdmin)
+admin.site.register(SoilColour, SoilColourAdmin)
+admin.site.register(SoilCondition, SoilConditionAdmin)
+admin.site.register(SoilType, SoilTypeAdmin)
+admin.site.register(SpeciesListRelatesTo, SpeciesListRelatesToAdmin)
+admin.site.register(WildStatus, WildStatusAdmin)

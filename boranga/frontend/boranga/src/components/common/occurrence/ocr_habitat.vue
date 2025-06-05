@@ -842,6 +842,77 @@
             label="Associated Species"
             :Index="associatedSpeciesBody"
         >
+            <div class="row mb-3 border-bottom pb-3">
+                <label for="" class="col-sm-3 control-label"
+                    >Species List Relates To:</label
+                >
+                <div class="col-sm-9">
+                    <template v-if="!isReadOnly">
+                        <template
+                            v-if="
+                                speciesListRelatesToOptions &&
+                                speciesListRelatesToOptions.length > 0 &&
+                                occurrence_report_obj.associated_species
+                                    .species_list_relates_to_id &&
+                                !speciesListRelatesToOptions
+                                    .map((d) => d.id)
+                                    .includes(
+                                        occurrence_report_obj.associated_species
+                                            .species_list_relates_to_id
+                                    )
+                            "
+                        >
+                            <input
+                                v-if="
+                                    occurrence_report_obj.associated_species
+                                        .species_list_relates_to
+                                "
+                                type="text"
+                                class="form-control mb-3"
+                                :value="
+                                    occurrence_report_obj.associated_species
+                                        .species_list_relates_to +
+                                    ' (Now Archived)'
+                                "
+                                disabled
+                            />
+                            <div class="mb-3 text-muted">
+                                Change what the species list relates to:
+                            </div>
+                        </template>
+                        <select
+                            v-model="
+                                occurrence_report_obj.associated_species
+                                    .species_list_relates_to_id
+                            "
+                            class="form-select"
+                        >
+                            <option :value="null">
+                                Select what the species list relates to
+                            </option>
+                            <option
+                                v-for="speciesListRelatesTo in speciesListRelatesToOptions"
+                                :key="speciesListRelatesTo.id"
+                                :value="speciesListRelatesTo.id"
+                            >
+                                {{ speciesListRelatesTo.name }}
+                            </option>
+                        </select>
+                    </template>
+                    <template v-else>
+                        <input
+                            v-model="
+                                occurrence_report_obj.associated_species
+                                    .species_list_relates_to
+                            "
+                            class="form-control"
+                            type="text"
+                            :disabled="isReadOnly"
+                        />
+                    </template>
+                </div>
+            </div>
+
             <RelatedSpecies
                 ref="related_species"
                 :is-read-only="isReadOnly"
@@ -939,6 +1010,7 @@ export default {
             land_form_list: [],
             drainage_list: [],
             intensity_list: [],
+            speciesListRelatesToOptions: [],
             updatingHabitatCompositionDetails: false,
             updatingHabitatConditionDetails: false,
             updatingVegetationStructure: false,
@@ -1011,6 +1083,8 @@ export default {
             id: null,
             name: null,
         });
+        vm.speciesListRelatesToOptions =
+            vm.listOfValuesDict.species_list_relates_to_list;
     },
     mounted: function () {
         let vm = this;

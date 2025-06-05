@@ -773,6 +773,7 @@ export default {
             default: false,
         },
     },
+    emits: ['update-animal-observation'],
     data: function () {
         return {
             //----list of values dictionary
@@ -843,7 +844,9 @@ export default {
             let vm = this;
             vm.total_seen = 0;
             $('input.animal-count-input').each(function (i, n) {
-                vm.total_seen += parseInt($(n).val(), 10);
+                if (!isNaN($(n).val()) && $(n).val() !== '') {
+                    vm.total_seen += parseInt($(n).val(), 10);
+                }
             });
             return vm.total_seen;
         },
@@ -925,41 +928,45 @@ export default {
                     },
                     body: JSON.stringify(vm.animal_observation),
                 }
-            ).then(
-                async (response) => {
-                    if (!response.ok) {
+            )
+                .then(
+                    async (response) => {
                         const data = await response.json();
-                        throw new Error(data);
-                    }
-                    vm.updatingAnimalOnservationDetails = false;
-                    swal.fire({
-                        title: 'Saved',
-                        text: 'Animal Observation details have been saved',
-                        icon: 'success',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    }).then(() => {
-                        if (vm.processing_status == 'Unlocked') {
-                            vm.$router.go();
+                        if (!response.ok) {
+                            throw new Error(data);
                         }
-                    });
-                },
-                (error) => {
-                    var text = helpers.apiVueResourceError(error);
-                    swal.fire({
-                        title: 'Error',
-                        text:
-                            'Animal Observation details cannot be saved because of the following error: ' +
-                            text,
-                        icon: 'error',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    });
+                        vm.$emit('update-animal-observation', data);
+                        swal.fire({
+                            title: 'Saved',
+                            text: 'Animal Observation details have been saved',
+                            icon: 'success',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        }).then(() => {
+                            if (vm.processing_status == 'Unlocked') {
+                                vm.$router.go();
+                            }
+                        });
+                    },
+                    (error) => {
+                        var text = helpers.apiVueResourceError(error);
+                        swal.fire({
+                            title: 'Error',
+                            text:
+                                'Animal Observation details cannot be saved because of the following error: ' +
+                                text,
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        vm.updatingAnimalOnservationDetails = false;
+                    }
+                )
+                .finally(() => {
                     vm.updatingAnimalOnservationDetails = false;
-                }
-            );
+                });
         },
     },
 };

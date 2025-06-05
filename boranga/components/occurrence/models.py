@@ -2714,6 +2714,26 @@ class OCRFireHistory(models.Model):
         return f"OCR Fire History: {self.id} for Occurrence Report: {self.occurrence_report}"
 
 
+class SpeciesListRelatesTo(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
+
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
+
+    class Meta(OrderedModel.Meta):
+        app_label = "boranga"
+        verbose_name = "Species List Relates To"
+        verbose_name_plural = "Species List Relates To"
+
+    def __str__(self):
+        return str(self.name)
+
+
 class OCRAssociatedSpecies(models.Model):
     BULK_IMPORT_ABBREVIATION = "ocrspe"
 
@@ -2733,7 +2753,13 @@ class OCRAssociatedSpecies(models.Model):
         related_name="associated_species",
     )
     comment = models.TextField(blank=True)
-
+    species_list_relates_to = models.ForeignKey(
+        SpeciesListRelatesTo,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="associated_species",
+    )
     related_species = models.ManyToManyField(Taxonomy, blank=True)
 
     class Meta:
@@ -3203,6 +3229,10 @@ class OCRAnimalObservation(models.Model):
         blank=True,
     )
 
+    STATES = ["alive", "dead"]
+    SEXES = ["male", "female", "unknown"]
+    AGES = ["adult", "juvenile", "unsure"]
+
     alive_adult_male = models.IntegerField(null=True, blank=True, default=0)
     dead_adult_male = models.IntegerField(null=True, blank=True, default=0)
     alive_adult_female = models.IntegerField(null=True, blank=True, default=0)
@@ -3241,15 +3271,45 @@ class OCRAnimalObservation(models.Model):
             PrimaryDetectionMethod.objects.values_list("id", "name")
         )
 
+    def save(self, *args, **kwargs):
+        # Set fields to None based on count status field
+        if self.count_status == settings.COUNT_STATUS_NOT_COUNTED:
+            for st in self.STATES:
+                for a in self.AGES:
+                    for s in self.SEXES:
+                        setattr(self, f"{st}_{a}_{s}", None)
+            self.simple_alive = None
+            self.simple_dead = None
+
+        elif self.count_status == settings.COUNT_STATUS_SIMPLE_COUNT:
+            for st in self.STATES:
+                for a in self.AGES:
+                    for s in self.SEXES:
+                        setattr(self, f"{st}_{a}_{s}", None)
+
+        elif self.count_status == settings.COUNT_STATUS_COUNTED:
+            self.simple_alive = None
+            self.simple_dead = None
+
+        super().save(*args, **kwargs)
+
     @property
     def total_count(self):
-        state = ["alive", "dead"]
-        sex = ["male", "female", "unknown"]
-        age = ["adult", "juvenile", "unsure"]
+        if self.count_status == settings.COUNT_STATUS_NOT_COUNTED:
+            return None
+
+        if self.count_status == settings.COUNT_STATUS_SIMPLE_COUNT:
+            return (
+                self.simple_alive + self.simple_dead
+                if self.simple_alive or self.simple_dead
+                else 0
+            )
+
+        # If count_status is COUNTED, calculate total from detailed counts
         total = 0
-        for st in state:
-            for a in age:
-                for s in sex:
+        for st in self.STATES:
+            for a in self.AGES:
+                for s in self.SEXES:
                     value = getattr(self, f"{st}_{a}_{s}")
                     if value:
                         total += value
@@ -5163,6 +5223,10 @@ class OCCAnimalObservation(models.Model):
         blank=True,
     )
 
+    STATES = ["alive", "dead"]
+    SEXES = ["male", "female", "unknown"]
+    AGES = ["adult", "juvenile", "unsure"]
+
     alive_adult_male = models.IntegerField(null=True, blank=True, default=0)
     dead_adult_male = models.IntegerField(null=True, blank=True, default=0)
     alive_adult_female = models.IntegerField(null=True, blank=True, default=0)
@@ -5201,15 +5265,45 @@ class OCCAnimalObservation(models.Model):
             PrimaryDetectionMethod.objects.values_list("id", "name")
         )
 
+    def save(self, *args, **kwargs):
+        # Set fields to None based on count status field
+        if self.count_status == settings.COUNT_STATUS_NOT_COUNTED:
+            for st in self.STATES:
+                for a in self.AGES:
+                    for s in self.SEXES:
+                        setattr(self, f"{st}_{a}_{s}", None)
+            self.simple_alive = None
+            self.simple_dead = None
+
+        elif self.count_status == settings.COUNT_STATUS_SIMPLE_COUNT:
+            for st in self.STATES:
+                for a in self.AGES:
+                    for s in self.SEXES:
+                        setattr(self, f"{st}_{a}_{s}", None)
+
+        elif self.count_status == settings.COUNT_STATUS_COUNTED:
+            self.simple_alive = None
+            self.simple_dead = None
+
+        super().save(*args, **kwargs)
+
     @property
     def total_count(self):
-        state = ["alive", "dead"]
-        sex = ["male", "female", "unknown"]
-        age = ["adult", "juvenile", "unsure"]
+        if self.count_status == settings.COUNT_STATUS_NOT_COUNTED:
+            return None
+
+        if self.count_status == settings.COUNT_STATUS_SIMPLE_COUNT:
+            return (
+                self.simple_alive + self.simple_dead
+                if self.simple_alive or self.simple_dead
+                else 0
+            )
+
+        # If count_status is COUNTED, calculate total from detailed counts
         total = 0
-        for st in state:
-            for a in age:
-                for s in sex:
+        for st in self.STATES:
+            for a in self.AGES:
+                for s in self.SEXES:
                     value = getattr(self, f"{st}_{a}_{s}")
                     if value:
                         total += value

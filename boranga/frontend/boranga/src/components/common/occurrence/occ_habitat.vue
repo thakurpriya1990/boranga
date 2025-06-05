@@ -870,7 +870,7 @@
                 :occurrence_obj="occurrence_obj"
             />
 
-            <div class="row mb-3">
+            <div class="row mt-3 mb-3">
                 <div class="col-sm-3">
                     <label for="related_species" class="control-label"
                         >Comment</label
@@ -929,6 +929,7 @@
                 :is-read-only="isReadOnly"
                 :occurrence_obj="occurrence_obj"
                 :section_type="'associated_species'"
+                :allow-copy-section-data="false"
                 @copy-update="copyUpdate"
             />
         </FormSection>

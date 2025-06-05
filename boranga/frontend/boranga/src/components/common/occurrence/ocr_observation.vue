@@ -192,6 +192,7 @@
                 :occurrence_id="occurrence_report_obj.id"
                 :is_external="is_external"
                 :is-read-only="isReadOnly"
+                @update-animal-observation="updateAnimalObservation"
             >
             </AnimalObservation>
         </FormSection>
@@ -804,6 +805,9 @@ export default {
                     vm.updatingIdentificationDetails = false;
                 }
             );
+        },
+        updateAnimalObservation: function (data) {
+            this.occurrence_report_obj.animal_observation = data;
         },
     },
 };

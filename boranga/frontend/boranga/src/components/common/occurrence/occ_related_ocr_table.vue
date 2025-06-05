@@ -53,6 +53,10 @@ export default {
             required: false,
             default: '',
         },
+        allowCopySectionData: {
+            type: Boolean,
+            default: true,
+        },
         isReadOnly: {
             type: Boolean,
             default: false,
@@ -190,9 +194,9 @@ export default {
                         }
                     }
                     links += `<a href='#' data-view-section='${full.id}'>View Section</a><br>`;
-                    //links += `<a href='#' data-merge-section='${full.id}'>Copy Section Data (merge)</a><br>`;
-                    links += `<a href='#' data-replace-section='${full.id}'>Copy Section Data</a><br>`;
-
+                    if (vm.allowCopySectionData) {
+                        links += `<a href='#' data-replace-section='${full.id}'>Copy Section Data</a><br>`;
+                    }
                     return links;
                 },
             };
