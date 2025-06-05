@@ -1541,6 +1541,7 @@ export default {
             filtered_wa_legislative_categories: [],
             filtered_wa_priority_categories: [],
             referral_comments_boxes: [],
+            other_conservation_assessments: [],
             community_display: '',
         };
     },
