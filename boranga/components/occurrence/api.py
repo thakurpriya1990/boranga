@@ -109,6 +109,7 @@ from boranga.components.occurrence.models import (
     SoilColour,
     SoilCondition,
     SoilType,
+    SpeciesListRelatesTo,
     WildStatus,
 )
 from boranga.components.occurrence.permissions import (
@@ -752,6 +753,16 @@ class OccurrenceReportViewSet(
                         "name": val.name,
                     }
                 )
+        species_list_relates_to_list = []
+        species_list_relates_tos = SpeciesListRelatesTo.objects.active()
+        if species_list_relates_tos:
+            for val in species_list_relates_tos:
+                species_list_relates_to_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
         res_json = {
             "land_form_list": land_form_list,
             "rock_type_list": rock_type_list,
@@ -760,6 +771,7 @@ class OccurrenceReportViewSet(
             "soil_condition_list": soil_condition_list,
             "drainage_list": drainage_list,
             "intensity_list": intensity_list,
+            "species_list_relates_to_list": species_list_relates_to_list,
         }
         res_json = json.dumps(res_json)
         return HttpResponse(res_json, content_type="application/json")
@@ -4818,6 +4830,16 @@ class OccurrenceViewSet(
         if intensities:
             for val in intensities:
                 intensity_list.append(
+                    {
+                        "id": val.id,
+                        "name": val.name,
+                    }
+                )
+        species_list_relates_to_list = []
+        species_list_relates_tos = SpeciesListRelatesTo.objects.active()
+        if species_list_relates_tos:
+            for val in species_list_relates_tos:
+                species_list_relates_to_list.append(
                     {
                         "id": val.id,
                         "name": val.name,
