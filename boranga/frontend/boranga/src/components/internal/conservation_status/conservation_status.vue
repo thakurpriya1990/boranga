@@ -202,7 +202,7 @@
                                             <a
                                                 v-if="canLimitedAction"
                                                 role="button"
-                                                class="btn btn-sm btn-primary mt-2 float-end"
+                                                class="btn btn-sm btn-primary mt-2"
                                                 @click.prevent="sendReferral()"
                                                 ><i class="bi bi-send me-2"></i
                                                 >Send</a
