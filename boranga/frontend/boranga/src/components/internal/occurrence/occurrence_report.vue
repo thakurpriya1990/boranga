@@ -159,7 +159,7 @@
                                     occurrence_report.assessor_mode
                                         .assessor_can_assess
                                 "
-                                class="actionBtn float-end"
+                                class="float-end"
                                 role="button"
                                 @click.prevent="assignRequestUser()"
                                 >Assign to me
@@ -195,7 +195,7 @@
                                     occurrence_report.assessor_mode
                                         .assessor_can_assess
                                 "
-                                class="actionBtn float-end"
+                                class="float-end"
                                 role="button"
                                 @click.prevent="assignRequestUser()"
                                 >Assign to me
@@ -213,7 +213,7 @@
                                 :disabled="!canAction"
                                 class="form-control"
                             ></select>
-                            <template v-if="!sendingReferral">
+                            <div class="mb-3" v-if="!sendingReferral">
                                 <template v-if="selected_referral">
                                     <label
                                         class="control-label mt-3"
@@ -228,18 +228,18 @@
                                     ></textarea>
                                     <a
                                         v-if="canAction"
-                                        class="actionBtn float-end mt-2"
+                                        class="btn btn-sm btn-primary mt-2 float-end"
                                         role="button"
                                         @click.prevent="sendReferral()"
-                                        >Send</a
+                                        ><i class="bi bi-send me-2"></i>Send</a
                                     >
                                 </template>
-                            </template>
-                            <template v-else>
+                            </div>
+                            <div class="mb-3" v-else>
                                 <span
                                     v-if="canAction"
                                     disabled
-                                    class="actionBtn text-primary float-end"
+                                    class="btn btn-sm btn-primary mt-2 float-end"
                                     @click.prevent="sendReferral()"
                                 >
                                     Sending Referral&nbsp;
@@ -252,7 +252,7 @@
                                         >Loading...</span
                                     >
                                 </span>
-                            </template>
+                            </div>
                         </div>
                         <div
                             v-if="
@@ -342,7 +342,9 @@
                         <div>
                             <div class="fw-bold mb-1">
                                 Recent Referrals
-                                <small class="text-secondary fw-lighter"
+                                <small
+                                    style="font-size: 0.75em"
+                                    class="text-secondary fw-lighter"
                                     >(Showing
                                     {{
                                         occurrence_report.latest_referrals
@@ -1560,37 +1562,58 @@ export default {
                     },
                     body: JSON.stringify(data),
                 }
-            ).then(
-                async (response) => {
-                    const data = await response.json();
+            )
+                .then(
+                    async (response) => {
+                        const data = await response.json();
+                        if (!response.ok) {
+                            swal.fire({
+                                title: 'Referral Error',
+                                text: JSON.stringify(data),
+                                icon: 'error',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            $(vm.$refs.department_users)
+                                .val(null)
+                                .trigger('change');
+                            vm.selected_referral = '';
+                            vm.referral_text = '';
+                            return;
+                        }
+                        vm.original_occurrence_report =
+                            helpers.copyObject(data);
+                        vm.occurrence_report = data;
+                        swal.fire({
+                            title: 'Referral Sent',
+                            text: `The referral has been sent to ${vm.selected_referral}`,
+                            icon: 'success',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                        $(vm.$refs.department_users)
+                            .val(null)
+                            .trigger('change');
+                        vm.selected_referral = '';
+                        vm.referral_text = '';
+                    },
+                    (error) => {
+                        console.log(error);
+                        swal.fire({
+                            title: 'Referral Error',
+                            text: helpers.apiVueResourceError(error),
+                            icon: 'error',
+                            customClass: {
+                                confirmButton: 'btn btn-primary',
+                            },
+                        });
+                    }
+                )
+                .finally(() => {
                     vm.sendingReferral = false;
-                    vm.original_occurrence_report = helpers.copyObject(data);
-                    vm.occurrence_report = data;
-                    swal.fire({
-                        title: 'Referral Sent',
-                        text: `The referral has been sent to ${vm.selected_referral}`,
-                        icon: 'success',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    });
-                    $(vm.$refs.department_users).val(null).trigger('change');
-                    vm.selected_referral = '';
-                    vm.referral_text = '';
-                },
-                (error) => {
-                    console.log(error);
-                    swal.fire({
-                        title: 'Referral Error',
-                        text: helpers.apiVueResourceError(error),
-                        icon: 'error',
-                        customClass: {
-                            confirmButton: 'btn btn-primary',
-                        },
-                    });
-                    vm.sendingReferral = false;
-                }
-            );
+                });
         },
         remindReferral: function (r) {
             let vm = this;

@@ -177,291 +177,266 @@
                         </div>
                     </div>
                     <div v-if="canRefer" class="card-body border-top">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <strong>Referrals</strong><br />
-                                <div class="form-group mb-3">
-                                    <select
-                                        ref="referees"
-                                        :disabled="!canLimitedAction"
-                                        class="form-control"
-                                    ></select>
-                                    <template v-if="!sendingReferral">
-                                        <template v-if="selected_referral">
-                                            <label
-                                                class="control-label mt-2"
-                                                for="referral_text"
-                                                >Comments</label
-                                            >
-                                            <textarea
-                                                ref="referral_text"
-                                                v-model="referral_text"
-                                                class="form-control"
-                                                name="referral_text"
-                                            ></textarea>
+                        <div class="mb-2"><strong>Referrals</strong></div>
+                        <div class="form-group mb-3">
+                            <div class="mb-3">
+                                <select
+                                    ref="referees"
+                                    :disabled="!canLimitedAction"
+                                    class="form-control"
+                                ></select>
+                                <div class="mb-3" v-if="!sendingReferral">
+                                    <template v-if="selected_referral">
+                                        <label
+                                            class="control-label mt-2"
+                                            for="referral_text"
+                                            >Comments</label
+                                        >
+                                        <textarea
+                                            ref="referral_text"
+                                            v-model="referral_text"
+                                            class="form-control"
+                                            name="referral_text"
+                                        ></textarea>
+                                        <div class="d-flex justify-content-end">
                                             <a
                                                 v-if="canLimitedAction"
-                                                class="float-end"
                                                 role="button"
+                                                class="btn btn-sm btn-primary mt-2 float-end"
                                                 @click.prevent="sendReferral()"
+                                                ><i class="bi bi-send me-2"></i
                                                 >Send</a
                                             >
-                                        </template>
-                                    </template>
-                                    <template v-else>
-                                        <span
-                                            v-if="canLimitedAction"
-                                            disabled
-                                            class="text-primary float-end"
-                                            role="button"
-                                            @click.prevent="sendReferral()"
-                                        >
-                                            Sending Referral
-                                            <span
-                                                class="spinner-border spinner-border-sm"
-                                                role="status"
-                                                aria-hidden="true"
-                                            ></span>
-                                            <span class="visually-hidden"
-                                                >Loading...</span
-                                            >
-                                        </span>
+                                        </div>
                                     </template>
                                 </div>
-                                <div
-                                    v-if="
-                                        conservation_status_obj.external_referral_invites &&
-                                        conservation_status_obj
-                                            .external_referral_invites.length >
-                                            0
-                                    "
-                                >
-                                    <div class="fw-bold mb-1">
-                                        External Referee Invites
-                                    </div>
-                                    <table
-                                        class="table table-sm table-hover table-referrals"
+                                <div class="mb-3" v-else>
+                                    <span
+                                        v-if="canLimitedAction"
+                                        disabled
+                                        class="btn btn-sm btn-primary mt-2 float-end"
+                                        role="button"
+                                        @click.prevent="sendReferral()"
                                     >
-                                        <thead>
-                                            <tr>
-                                                <th scope="col">Referee</th>
-                                                <th scope="col">Status</th>
-                                                <th scope="col">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr
-                                                v-for="external_referee_invite in conservation_status_obj.external_referral_invites"
-                                                :key="
-                                                    external_referee_invite.id
+                                        Sending Referral
+                                        <span
+                                            class="spinner-border spinner-border-sm"
+                                            role="status"
+                                            aria-hidden="true"
+                                        ></span>
+                                        <span class="visually-hidden"
+                                            >Loading...</span
+                                        >
+                                    </span>
+                                </div>
+                            </div>
+                            <div
+                                v-if="
+                                    conservation_status_obj.external_referral_invites &&
+                                    conservation_status_obj
+                                        .external_referral_invites.length > 0
+                                "
+                            >
+                                <div class="fw-bold mb-1">
+                                    External Referee Invites
+                                </div>
+                                <table
+                                    class="table table-sm table-hover table-referrals"
+                                >
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Referee</th>
+                                            <th scope="col">Status</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr
+                                            v-for="external_referee_invite in conservation_status_obj.external_referral_invites"
+                                            :key="external_referee_invite.id"
+                                        >
+                                            <td class="truncate-name">
+                                                {{
+                                                    external_referee_invite.full_name
+                                                }}
+                                            </td>
+                                            <td>Pending</td>
+                                            <td class="text-center">
+                                                <a
+                                                    role="button"
+                                                    data-bs-toggle="popover"
+                                                    data-bs-trigger="hover focus"
+                                                    :data-bs-content="
+                                                        'Send a reminder to ' +
+                                                        external_referee_invite.full_name
+                                                    "
+                                                    data-bs-placement="bottom"
+                                                    @click.prevent="
+                                                        remindExternalReferee(
+                                                            external_referee_invite
+                                                        )
+                                                    "
+                                                    ><i
+                                                        class="fa fa-bell text-warning"
+                                                        aria-hidden="true"
+                                                    ></i>
+                                                </a>
+                                                <a
+                                                    role="button"
+                                                    data-bs-toggle="popover"
+                                                    data-bs-trigger="hover focus"
+                                                    :data-bs-content="
+                                                        'Retract the external referee invite sent to ' +
+                                                        external_referee_invite.full_name
+                                                    "
+                                                    data-bs-placement="bottom"
+                                                    @click.prevent="
+                                                        retractExternalRefereeInvite(
+                                                            external_referee_invite
+                                                        )
+                                                    "
+                                                    ><i
+                                                        class="fa fa-times-circle text-danger"
+                                                        aria-hidden="true"
+                                                    ></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        v-if="
+                            conservation_status_obj.latest_referrals &&
+                            conservation_status_obj.latest_referrals.length > 0
+                        "
+                        class="card-body border-top"
+                    >
+                        <div>
+                            <div class="fw-bold mb-1">
+                                Recent Referrals
+                                <small
+                                    class="text-secondary fw-lighter"
+                                    style="font-size: 0.75em"
+                                    >(Showing
+                                    {{
+                                        conservation_status_obj.latest_referrals
+                                            .length
+                                    }}
+                                    of
+                                    {{
+                                        conservation_status_obj.referrals
+                                            .length
+                                    }})</small
+                                >
+                            </div>
+                            <table
+                                class="table table-sm table-hover table-referrals"
+                            >
+                                <thead>
+                                    <tr>
+                                        <th>Referee</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="r in conservation_status_obj.latest_referrals"
+                                        :key="r.id"
+                                    >
+                                        <td class="truncate-name">
+                                            {{ r.referral.first_name }}
+                                            {{ r.referral.last_name }}
+                                        </td>
+                                        <td>
+                                            {{ r.processing_status }}
+                                        </td>
+                                        <td>
+                                            <template
+                                                v-if="
+                                                    r.processing_status ==
+                                                    'Awaiting'
                                                 "
                                             >
-                                                <td class="truncate-name">
-                                                    {{
-                                                        external_referee_invite.full_name
-                                                    }}
-                                                </td>
-                                                <td>Pending</td>
-                                                <td class="text-center">
-                                                    <a
+                                                <a
+                                                    v-if="canLimitedAction"
+                                                    role="button"
+                                                    data-bs-toggle="popover"
+                                                    data-bs-trigger="hover"
+                                                    :data-bs-content="
+                                                        'Send a reminder to ' +
+                                                        r.referral['fullname']
+                                                    "
+                                                    data-bs-placement="bottom"
+                                                    data-bs-container="body"
+                                                    @click.prevent="
+                                                        remindReferral(r)
+                                                    "
+                                                    ><i
+                                                        class="fa fa-bell text-warning"
+                                                        aria-hidden="true"
+                                                    ></i>
+                                                </a>
+                                                <a
+                                                    role="button"
+                                                    data-bs-toggle="popover"
+                                                    data-bs-trigger="hover"
+                                                    :data-bs-content="
+                                                        'Recall the referral request sent to ' +
+                                                        r.referral['fullname']
+                                                    "
+                                                    data-bs-placement="bottom"
+                                                    data-bs-container="body"
+                                                    @click.prevent="
+                                                        recallReferral(r)
+                                                    "
+                                                    ><i
+                                                        class="fa fa-times-circle text-danger"
+                                                        aria-hidden="true"
+                                                    ></i>
+                                                </a>
+                                            </template>
+                                            <template v-else>
+                                                <template
+                                                    v-if="canLimitedAction"
+                                                    ><a
                                                         role="button"
                                                         data-bs-toggle="popover"
-                                                        data-bs-trigger="hover focus"
+                                                        data-bs-trigger="hover"
                                                         :data-bs-content="
-                                                            'Send a reminder to ' +
-                                                            external_referee_invite.full_name
+                                                            'Resend this referral request to ' +
+                                                            r.referral[
+                                                                'fullname'
+                                                            ]
                                                         "
-                                                        data-bs-placement="bottom"
+                                                        data-bs-container="body"
                                                         @click.prevent="
-                                                            remindExternalReferee(
-                                                                external_referee_invite
-                                                            )
+                                                            resendReferral(r)
                                                         "
                                                         ><i
-                                                            class="fa fa-bell text-warning"
+                                                            class="fa fa-envelope text-primary"
                                                             aria-hidden="true"
                                                         ></i>
                                                     </a>
-                                                    <a
-                                                        role="button"
-                                                        data-bs-toggle="popover"
-                                                        data-bs-trigger="hover focus"
-                                                        :data-bs-content="
-                                                            'Retract the external referee invite sent to ' +
-                                                            external_referee_invite.full_name
-                                                        "
-                                                        data-bs-placement="bottom"
-                                                        @click.prevent="
-                                                            retractExternalRefereeInvite(
-                                                                external_referee_invite
-                                                            )
-                                                        "
-                                                        ><i
-                                                            class="fa fa-times-circle text-danger"
-                                                            aria-hidden="true"
-                                                        ></i>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <template
-                                    v-if="
-                                        conservation_status_obj.latest_referrals &&
-                                        conservation_status_obj.latest_referrals
-                                            .length > 0
-                                    "
-                                >
-                                    <div>
-                                        <div class="fw-bold mb-1">
-                                            Recent Referrals
-                                            <small
-                                                class="text-secondary fw-lighter"
-                                                >(Showing
-                                                {{
-                                                    conservation_status_obj
-                                                        .latest_referrals.length
-                                                }}
-                                                of
-                                                {{
-                                                    conservation_status_obj
-                                                        .referrals.length
-                                                }})</small
-                                            >
-                                        </div>
-                                        <table
-                                            class="table table-sm table-hover table-referrals"
-                                        >
-                                            <thead>
-                                                <tr>
-                                                    <th>Referee</th>
-                                                    <th>Status</th>
-                                                    <th>Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr
-                                                    v-for="r in conservation_status_obj.latest_referrals"
-                                                    :key="r.id"
-                                                >
-                                                    <td class="truncate-name">
-                                                        {{
-                                                            r.referral
-                                                                .first_name
-                                                        }}
-                                                        {{
-                                                            r.referral.last_name
-                                                        }}
-                                                    </td>
-                                                    <td>
-                                                        {{
-                                                            r.processing_status
-                                                        }}
-                                                    </td>
-                                                    <td>
-                                                        <template
-                                                            v-if="
-                                                                r.processing_status ==
-                                                                'Awaiting'
-                                                            "
-                                                        >
-                                                            <a
-                                                                v-if="
-                                                                    canLimitedAction
-                                                                "
-                                                                role="button"
-                                                                data-bs-toggle="popover"
-                                                                data-bs-trigger="hover"
-                                                                :data-bs-content="
-                                                                    'Send a reminder to ' +
-                                                                    r.referral[
-                                                                        'fullname'
-                                                                    ]
-                                                                "
-                                                                data-bs-placement="bottom"
-                                                                data-bs-container="body"
-                                                                @click.prevent="
-                                                                    remindReferral(
-                                                                        r
-                                                                    )
-                                                                "
-                                                                ><i
-                                                                    class="fa fa-bell text-warning"
-                                                                    aria-hidden="true"
-                                                                ></i>
-                                                            </a>
-                                                            <a
-                                                                role="button"
-                                                                data-bs-toggle="popover"
-                                                                data-bs-trigger="hover"
-                                                                :data-bs-content="
-                                                                    'Recall the referral request sent to ' +
-                                                                    r.referral[
-                                                                        'fullname'
-                                                                    ]
-                                                                "
-                                                                data-bs-placement="bottom"
-                                                                data-bs-container="body"
-                                                                @click.prevent="
-                                                                    recallReferral(
-                                                                        r
-                                                                    )
-                                                                "
-                                                                ><i
-                                                                    class="fa fa-times-circle text-danger"
-                                                                    aria-hidden="true"
-                                                                ></i>
-                                                            </a>
-                                                        </template>
-                                                        <template v-else>
-                                                            <template
-                                                                v-if="
-                                                                    canLimitedAction
-                                                                "
-                                                                ><a
-                                                                    role="button"
-                                                                    data-bs-toggle="popover"
-                                                                    data-bs-trigger="hover"
-                                                                    :data-bs-content="
-                                                                        'Resend this referral request to ' +
-                                                                        r
-                                                                            .referral[
-                                                                            'fullname'
-                                                                        ]
-                                                                    "
-                                                                    data-bs-container="body"
-                                                                    @click.prevent="
-                                                                        resendReferral(
-                                                                            r
-                                                                        )
-                                                                    "
-                                                                    ><i
-                                                                        class="fa fa-envelope text-primary"
-                                                                        aria-hidden="true"
-                                                                    ></i>
-                                                                </a>
-                                                            </template>
-                                                        </template>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                        <CSMoreReferrals
-                                            :conservation_status_obj="
-                                                conservation_status_obj
-                                            "
-                                            :can-action="canLimitedAction"
-                                            :is-finalised="isFinalised"
-                                            :referral_url="referralListURL"
-                                            @refresh-from-response="
-                                                refreshFromResponse
-                                            "
-                                        />
-                                    </div>
-                                </template>
-                            </div>
+                                                </template>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <CSMoreReferrals
+                                :conservation_status_obj="
+                                    conservation_status_obj
+                                "
+                                :can-action="canLimitedAction"
+                                :is-finalised="isFinalised"
+                                :referral_url="referralListURL"
+                                @refresh-from-response="refreshFromResponse"
+                            />
                         </div>
                     </div>
                     <div
@@ -2239,6 +2214,13 @@ export default {
                     .on('select2:select', function (e) {
                         let data = e.params.data.id;
                         vm.selected_referral = data;
+                        console.log(
+                            `Selected referral: ${vm.selected_referral}`
+                        );
+                        console.log(
+                            `vm.conservation_status_obj.submitter.email: `,
+                            vm.conservation_status_obj.submitter.email
+                        );
                         if (
                             vm.selected_referral ==
                             vm.conservation_status_obj.submitter.email
@@ -2410,50 +2392,57 @@ export default {
                         },
                         body: JSON.stringify(data),
                     }
-                ).then(
-                    async (response) => {
-                        const data = await response.json();
-                        if (!response.ok) {
+                )
+                    .then(
+                        async (response) => {
+                            const data = await response.json();
+                            if (!response.ok) {
+                                swal.fire({
+                                    title: 'Error',
+                                    text: JSON.stringify(data),
+                                    icon: 'error',
+                                    customClass: {
+                                        confirmButton: 'btn btn-primary',
+                                    },
+                                });
+                                $(vm.$refs.referees)
+                                    .val(null)
+                                    .trigger('change');
+                                vm.selected_referral = '';
+                                vm.referral_text = '';
+                                return;
+                            }
+                            vm.original_conservation_status_obj =
+                                helpers.copyObject(data);
+                            vm.conservation_status_obj = data;
                             swal.fire({
-                                title: 'Error',
-                                text: JSON.stringify(data),
+                                title: 'Referral Sent',
+                                text: `The referral has been sent to ${vm.selected_referral}`,
+                                icon: 'success',
+                                customClass: {
+                                    confirmButton: 'btn btn-primary',
+                                },
+                            });
+                            vm.enablePopovers();
+                            $(vm.$refs.referees).val(null).trigger('change');
+                            vm.selected_referral = '';
+                            vm.referral_text = '';
+                        },
+                        (error) => {
+                            console.log(error);
+                            swal.fire({
+                                title: 'Referral Error',
+                                text: helpers.apiVueResourceError(error),
                                 icon: 'error',
                                 customClass: {
                                     confirmButton: 'btn btn-primary',
                                 },
                             });
-                            return;
                         }
+                    )
+                    .finally(() => {
                         vm.sendingReferral = false;
-                        vm.original_conservation_status_obj =
-                            helpers.copyObject(data);
-                        vm.conservation_status_obj = data;
-                        swal.fire({
-                            title: 'Referral Sent',
-                            text: `The referral has been sent to ${vm.selected_referral}`,
-                            icon: 'success',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
-                            },
-                        });
-                        vm.enablePopovers();
-                        $(vm.$refs.referees).val(null).trigger('change');
-                        vm.selected_referral = '';
-                        vm.referral_text = '';
-                    },
-                    (error) => {
-                        console.log(error);
-                        swal.fire({
-                            title: 'Referral Error',
-                            text: helpers.apiVueResourceError(error),
-                            icon: 'error',
-                            customClass: {
-                                confirmButton: 'btn btn-primary',
-                            },
-                        });
-                        vm.sendingReferral = false;
-                    }
-                );
+                    });
             });
         },
         remindReferral: function (r) {
