@@ -5197,6 +5197,10 @@ class OCCAnimalObservation(models.Model):
         blank=True,
     )
 
+    STATES = ["alive", "dead"]
+    SEXES = ["male", "female", "unknown"]
+    AGES = ["adult", "juvenile", "unsure"]
+
     alive_adult_male = models.IntegerField(null=True, blank=True, default=0)
     dead_adult_male = models.IntegerField(null=True, blank=True, default=0)
     alive_adult_female = models.IntegerField(null=True, blank=True, default=0)
@@ -5235,15 +5239,45 @@ class OCCAnimalObservation(models.Model):
             PrimaryDetectionMethod.objects.values_list("id", "name")
         )
 
+    def save(self, *args, **kwargs):
+        # Set fields to None based on count status field
+        if self.count_status == settings.COUNT_STATUS_NOT_COUNTED:
+            for st in self.STATES:
+                for a in self.AGES:
+                    for s in self.SEXES:
+                        setattr(self, f"{st}_{a}_{s}", None)
+            self.simple_alive = None
+            self.simple_dead = None
+
+        elif self.count_status == settings.COUNT_STATUS_SIMPLE_COUNT:
+            for st in self.STATES:
+                for a in self.AGES:
+                    for s in self.SEXES:
+                        setattr(self, f"{st}_{a}_{s}", None)
+
+        elif self.count_status == settings.COUNT_STATUS_COUNTED:
+            self.simple_alive = None
+            self.simple_dead = None
+
+        super().save(*args, **kwargs)
+
     @property
     def total_count(self):
-        state = ["alive", "dead"]
-        sex = ["male", "female", "unknown"]
-        age = ["adult", "juvenile", "unsure"]
+        if self.count_status == settings.COUNT_STATUS_NOT_COUNTED:
+            return None
+
+        if self.count_status == settings.COUNT_STATUS_SIMPLE_COUNT:
+            return (
+                self.simple_alive + self.simple_dead
+                if self.simple_alive or self.simple_dead
+                else 0
+            )
+
+        # If count_status is COUNTED, calculate total from detailed counts
         total = 0
-        for st in state:
-            for a in age:
-                for s in sex:
+        for st in self.STATES:
+            for a in self.AGES:
+                for s in self.SEXES:
                     value = getattr(self, f"{st}_{a}_{s}")
                     if value:
                         total += value
