@@ -2714,6 +2714,26 @@ class OCRFireHistory(models.Model):
         return f"OCR Fire History: {self.id} for Occurrence Report: {self.occurrence_report}"
 
 
+class SpeciesListRelatesTo(OrderedModel, ArchivableModel):
+    objects = OrderedArchivableManager()
+
+    name = models.CharField(
+        max_length=250,
+        blank=False,
+        null=False,
+        unique=True,
+        validators=[no_commas_validator],
+    )
+
+    class Meta(OrderedModel.Meta):
+        app_label = "boranga"
+        verbose_name = "Species List Relates To"
+        verbose_name_plural = "Species List Relates To"
+
+    def __str__(self):
+        return str(self.name)
+
+
 class OCRAssociatedSpecies(models.Model):
     BULK_IMPORT_ABBREVIATION = "ocrspe"
 
@@ -2733,7 +2753,13 @@ class OCRAssociatedSpecies(models.Model):
         related_name="associated_species",
     )
     comment = models.TextField(blank=True)
-
+    species_list_relates_to = models.ForeignKey(
+        SpeciesListRelatesTo,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="associated_species",
+    )
     related_species = models.ManyToManyField(Taxonomy, blank=True)
 
     class Meta:
